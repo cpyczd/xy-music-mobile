@@ -1,5 +1,5 @@
-# xy-music-mobile
-🌧  XY-全网音乐播放器
+# xy-music-mobile   🌧  XY-全网音乐播放器
+
 
 目前项目起步阶段 开发中....
 

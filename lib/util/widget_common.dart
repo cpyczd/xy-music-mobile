@@ -206,3 +206,8 @@ class DialogUtil {
         });
   }
 }
+
+///判断是否显示了软键盘
+bool isSoftKeyboardDisplay(MediaQueryData data) {
+  return data.viewInsets.bottom / data.size.height > 0.3;
+}

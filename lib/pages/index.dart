@@ -2,10 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-05-22 16:41:15
+ * @LastEditTime: 2021-05-23 21:40:15
  */
 
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/util/index.dart';
 import 'hot_page.dart';
 import 'my_music_page.dart';
 import 'search_page.dart';
@@ -22,6 +23,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin<HomePage> {
   int _currentIndex = 0;
+
+  late DateTime _lastPressedAt; //上次点击时间
 
   ///创建ViewPage页面对象
   List<Widget> _getPageViewWidget() {
@@ -60,9 +63,22 @@ class _HomePageState extends State<HomePage>
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "设置")
         ],
       ),
-      body: IndexedStack(
-        children: _getPageViewWidget(),
-        index: _currentIndex,
+      body: WillPopScope(
+        onWillPop: () async {
+          if (_lastPressedAt == null ||
+              DateTime.now().difference(_lastPressedAt) >
+                  Duration(seconds: 1)) {
+            //两次点击间隔超过1秒则重新计时
+            _lastPressedAt = DateTime.now();
+            ToastUtil.show(msg: "再按一次退出程序");
+            return false;
+          }
+          return true;
+        },
+        child: IndexedStack(
+          children: _getPageViewWidget(),
+          index: _currentIndex,
+        ),
       ),
     );
   }

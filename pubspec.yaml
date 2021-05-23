@@ -77,13 +77,17 @@ dependencies:
   overlay: ^0.0.1
   #日志打印
   simple_logger: ^1.8.0+1
+  #Json 序列化
+  # json_annotation: ^4.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  build_runner: ^2.0.0
   #NoSql数据库
   hive_generator: ^1.1.0
-  build_runner: ^2.0.3
+  #Json 序列化
+  # json_serializable: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

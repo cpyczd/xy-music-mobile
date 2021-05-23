@@ -2,8 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-05-22 16:13:39
+ * @LastEditTime: 2021-05-23 17:13:27
  */
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -35,7 +38,12 @@ class HttpUtil {
   ))
     ..interceptors.add(InterceptorsWrapper(
       onResponse: (response, handler) {
-        _log.info("debug:HttpResponse =============> ${response.data}");
+        _log.info(
+            "HttpDebug =====> Request: ${response.requestOptions.path} ${response.requestOptions.method}");
+        _log.info(
+            "HttpDebug =====> --->RequestData: Data:${response.requestOptions.data} Params:${response.requestOptions.queryParameters}");
+        _log.info("HttpDebug =====> --->Response: ${response.data}");
+        _log.info("HttpDebug =====> END");
         handler.next(response);
       },
       onError: (DioError e, ErrorInterceptorHandler handler) async {
@@ -49,11 +57,13 @@ class HttpUtil {
     ));
 
   ///进行Get请求的操作
-  static Future<T> get<T>(String url, {data}) async {
+  static Future<T> get<T>(String url, {data, options}) async {
     try {
       var response = await _http.get(url,
-          queryParameters: data, cancelToken: _cancelToken);
-      return response.data as T;
+          queryParameters: data, cancelToken: _cancelToken, options: options);
+      return response.data is Map
+          ? response.data as T
+          : json.decode(response.data) as T;
     } catch (e) {
       _log.error("请求异常：$e");
       return Future.error("系统异常");
@@ -62,28 +72,16 @@ class HttpUtil {
 
   ///进行Post的请求
   static Future<T> post<T>(String url,
-      {Map<String, dynamic>? data, bool urlParams = false}) async {
+      {Map<String, dynamic>? data, bool urlParams = false, options}) async {
     try {
       var response = await _http.post(url,
           data: !urlParams ? data : null,
           cancelToken: _cancelToken,
           queryParameters: urlParams ? data : null,
-          options: Options(contentType: "application/x-www-form-urlencoded"));
-      return response.data as T;
-    } catch (e) {
-      _log.error("请求异常：$e}");
-      return Future.error("系统异常");
-    }
-  }
-
-  ///发送JSON数据到服务器
-  static Future<T> postBody<T>(String url, {data}) async {
-    try {
-      var response = await _http.post(url,
-          data: data,
-          cancelToken: _cancelToken,
-          options: Options(contentType: "application/json"));
-      return response.data as T;
+          options: options);
+      return response.data is Map
+          ? response.data as T
+          : json.decode(response.data) as T;
     } catch (e) {
       _log.error("请求异常：$e}");
       return Future.error("系统异常");

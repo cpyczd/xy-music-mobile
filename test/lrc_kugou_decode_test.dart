@@ -1,0 +1,43 @@
+/*
+ * @Description: 
+ * @Author: chenzedeng
+ * @Date: 2021-05-22 17:36:00
+ * @LastEditTime: 2021-05-22 18:24:37
+ */
+import 'dart:convert';
+import 'dart:io';
+
+main() {
+  decode();
+}
+
+void decode() {
+  String content =
+      "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";
+  var hex16 = [
+    0x40,
+    0x47,
+    0x61,
+    0x77,
+    0x5e,
+    0x32,
+    0x74,
+    0x47,
+    0x51,
+    0x36,
+    0x31,
+    0x2d,
+    0xce,
+    0xd2,
+    0x6e,
+    0x69
+  ];
+  var str_enc = base64Decode(content).sublist(4);
+
+  for (var i = 0, len = str_enc.length; i < len; i++) {
+    str_enc[i] = str_enc[i] ^ hex16[i % 16];
+  }
+  var inflated = zlib.decode(str_enc);
+  var data = utf8.decode(inflated);
+  print(data);
+}

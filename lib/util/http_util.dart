@@ -5,7 +5,6 @@
  * @LastEditTime: 2021-05-23 17:13:27
  */
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';

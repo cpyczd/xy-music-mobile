@@ -14,7 +14,7 @@ import 'music_service.dart';
 import '/util/index.dart' as util;
 
 ///QQ音乐解析服务
-class TxMusicService extends MusicService {
+class TxMusicServiceImpl extends MusicService {
   @override
   Future<String> getLyric(MusicEntity entity) async {
     Map result = await util.HttpUtil.get(

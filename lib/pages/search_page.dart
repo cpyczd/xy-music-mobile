@@ -2,10 +2,15 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-05-24 18:09:31
+ * @LastEditTime: 2021-05-24 23:27:14
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
+import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/service/kg_music_service.dart';
+import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/service/tx_music_service.dart';
 
 class SearchPage extends StatefulWidget {
   SearchPage({Key? key}) : super(key: key);
@@ -15,9 +20,40 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  ///输入框控制器
   TextEditingController _textControl = TextEditingController();
 
   int pageIndex = 0;
+
+  //搜索建议的Token
+  String? _token;
+
+  ///搜索建议列表
+  List<String> searchTipData = [];
+
+  ///搜索的关键字
+  late String _searchKeyWord;
+
+  ///是否在加载
+  bool _isLoading = false;
+
+  ///搜索的结果
+  List<MusicEntity> _searchResultList = [];
+
+  ///分页数据
+  int _current = 0;
+  int _size = 20;
+
+  ///搜索源
+  MusicSourceConstant _source = MusicSourceConstant.kg;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () async {
+      _token = await MusicService.getToken();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +79,18 @@ class _SearchPageState extends State<SearchPage> {
                       onChanged: (value) {
                         setState(() {
                           value.length == 0 ? pageIndex = 0 : pageIndex = 1;
+                          //搜索建议初始化
+                          if (value.length != 0) {
+                            MusicService.getSearchTip(value, _token)
+                                .then((value) {
+                              setState(() {
+                                searchTipData.clear();
+                                if (value.isNotEmpty) {
+                                  searchTipData.addAll(value);
+                                }
+                              });
+                            });
+                          }
                         });
                       },
                       maxLines: 1,
@@ -67,18 +115,25 @@ class _SearchPageState extends State<SearchPage> {
                   )),
                   TextButton(
                     onPressed: () {
+                      setState(() {
+                        if (pageIndex != 2) {
+                          //跳转搜索
+                          _searchKeyWord = _textControl.text;
+                          _onSearch();
+                        } else {
+                          //情况输入
+                          _textControl.clear();
+                          pageIndex = 0;
+                        }
+                      });
                       FocusScope.of(context).requestFocus(FocusNode());
-                      if (pageIndex == 1) {
-                        //跳转搜索
-                        pageIndex = 2;
-                      } else {
-                        //情况输入
-                        _textControl.clear();
-                      }
                     },
                     child: Text(
-                      pageIndex == 0 ? "搜索" : "取消",
-                      style: TextStyle(fontSize: 15, color: Colors.black),
+                      pageIndex != 2 ? "搜索" : "取消",
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w400),
                     ),
                   )
                 ],
@@ -181,7 +236,6 @@ class _SearchPageState extends State<SearchPage> {
                     return GestureDetector(
                       onTap: () {
                         FocusScope.of(context).requestFocus(FocusNode());
-                        log.info("点击事件:$index");
                       },
                       child: Row(
                         children: [
@@ -217,17 +271,164 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  ///搜索中显示的提示组件
+  ///搜索中显示的搜索建议
   Widget showSearchTipWidget() {
     return Container(
-      child: Text("提示"),
+      child: ListView.builder(
+          itemCount: searchTipData.length,
+          physics: AlwaysScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            var key = searchTipData[index].trim();
+            return ListTile(
+              onTap: () {
+                setState(() {
+                  _searchKeyWord = key;
+                  _textControl.text = key;
+                  _resetSearch();
+                  _onSearch();
+                });
+              },
+              leading: Icon(Icons.search_sharp),
+              title: Align(
+                child: Text(key),
+                alignment: Alignment.centerLeft,
+              ),
+              dense: true,
+            );
+          }),
     );
   }
 
   ///搜索后的结果
   Widget showSearchResultWidget() {
     return Container(
-      child: Text("结果"),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 30,
+            child: DefaultTabController(
+              length: MusicSourceConstant.values.length - 1,
+              child: TabBar(
+                onTap: (value) {
+                  var replaceSource = MusicSourceConstant.values[value];
+                  //如果不是之前的源就重置分页为 0
+                  if (replaceSource != _source) {
+                    _resetSearch();
+                    _source = replaceSource;
+                  }
+                  _onSearch();
+                },
+                isScrollable: true,
+                tabs: MusicSourceConstant.values
+                    .where((element) => element != MusicSourceConstant.none)
+                    .map((e) => Text(e.desc))
+                    .toList(),
+              ),
+            ),
+          ),
+          Expanded(child: (() {
+            return _source == MusicSourceConstant.none
+                ? Center(child: Text("此源暂不支持"))
+                : _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : ListView.separated(
+                        //分割线构建器
+                        separatorBuilder: (BuildContext context, int index) {
+                          return Divider(height: 0.5, color: Colors.black26);
+                        },
+                        padding: EdgeInsets.only(top: 20),
+                        itemCount: _searchResultList.length,
+                        itemBuilder: (context, index) {
+                          var subStyle =
+                              TextStyle(color: Colors.grey, fontSize: 12);
+                          var entity = _searchResultList[index];
+                          return ListTile(
+                              title: Text(
+                                entity.songName,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 5),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('歌手: ' + (entity.singer ?? "-"),
+                                        style: subStyle),
+                                    (() {
+                                      return entity.songnameOriginal !=
+                                              entity.songName
+                                          ? Text(
+                                              'Cover: ' +
+                                                  (entity.songnameOriginal ??
+                                                      "-"),
+                                              style: subStyle,
+                                            )
+                                          : SizedBox();
+                                    })(),
+                                  ],
+                                ),
+                              ),
+                              trailing: IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(Icons.more_vert)));
+                        });
+          })())
+        ],
+      ),
     );
+  }
+
+  void _resetSearch() {
+    _current = 0;
+    _searchResultList.clear();
+  }
+
+  void _onSearch() {
+    FocusScope.of(context).requestFocus(FocusNode());
+    if (_searchKeyWord.isEmpty) {
+      return;
+    }
+    pageIndex = 2;
+    //发起搜索
+    MusicService? service;
+    switch (_source) {
+      case MusicSourceConstant.kg:
+        service = KGMusicServiceImpl();
+        break;
+      case MusicSourceConstant.tx:
+        service = TxMusicServiceImpl();
+        break;
+      default:
+        //不支持的源
+        break;
+    }
+    if (service == null) {
+      setState(() {
+        _source = MusicSourceConstant.none;
+      });
+    } else {
+      setState(() {
+        _source = _source;
+        //开始搜索
+        if (_searchResultList.isEmpty) {
+          //如果是首次加载显示Loading加载组件
+          _isLoading = true;
+        }
+        service
+            ?.searchMusic(_searchKeyWord, size: _size, current: _current)
+            .then((value) {
+          setState(() {
+            if (value.isNotEmpty) {
+              _searchResultList.addAll(value);
+            }
+          });
+        }).whenComplete(() => setState(() => _isLoading = false));
+      });
+    }
   }
 }

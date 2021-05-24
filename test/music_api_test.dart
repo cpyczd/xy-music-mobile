@@ -10,7 +10,7 @@ import 'package:xy_music_mobile/service/tx_music_service.dart';
 
 main() async {
   // var service = KGMusicServiceImpl();
-  var service = TxMusicService();
+  var service = TxMusicServiceImpl();
   List<MusicEntity> res = await service.searchMusic("下辈子不一定还能遇见你");
   var music = res[0];
   print(music);

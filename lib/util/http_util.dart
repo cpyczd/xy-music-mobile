@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-05-23 17:13:27
+ * @LastEditTime: 2021-05-24 21:21:02
  */
 import 'dart:convert';
 
@@ -56,10 +56,13 @@ class HttpUtil {
     ));
 
   ///进行Get请求的操作
-  static Future<T> get<T>(String url, {data, options}) async {
+  static Future<T> get<T>(String url,
+      {data, options, CancelToken? cancelToken}) async {
     try {
       var response = await _http.get(url,
-          queryParameters: data, cancelToken: _cancelToken, options: options);
+          queryParameters: data,
+          cancelToken: cancelToken == null ? _cancelToken : cancelToken,
+          options: options);
       return response.data is Map
           ? response.data as T
           : json.decode(response.data) as T;
@@ -71,11 +74,14 @@ class HttpUtil {
 
   ///进行Post的请求
   static Future<T> post<T>(String url,
-      {Map<String, dynamic>? data, bool urlParams = false, options}) async {
+      {Map<String, dynamic>? data,
+      bool urlParams = false,
+      options,
+      CancelToken? cancelToken}) async {
     try {
       var response = await _http.post(url,
           data: !urlParams ? data : null,
-          cancelToken: _cancelToken,
+          cancelToken: cancelToken == null ? _cancelToken : cancelToken,
           queryParameters: urlParams ? data : null,
           options: options);
       return response.data is Map
@@ -85,5 +91,9 @@ class HttpUtil {
       _log.error("请求异常：$e}");
       return Future.error("系统异常");
     }
+  }
+
+  static Dio getBaseHttp() {
+    return _http;
   }
 }

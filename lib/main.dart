@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-05-24 17:32:19
+ * @LastEditTime: 2021-05-24 19:36:09
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -16,15 +16,18 @@ import 'util/http_util.dart';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'config/logger_config.dart' as log;
 
-void main() async {
-  //初始化Hive
-  var directory = await pathProvider.getApplicationDocumentsDirectory();
-  Hive.init(directory.path);
-  store.Store.hiveBox = await Hive.openBox<Map>(store.Store.HIVE_BOX_NAME);
+void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  void _init() async {
+    //初始化Hive
+    var directory = await pathProvider.getApplicationSupportDirectory();
+    Hive.init(directory.path);
+    store.Store.hiveBox = await Hive.openBox<Map>(store.Store.HIVE_BOX_NAME);
+  }
+
   @override
   Widget build(BuildContext context) {
     //初始化相关配置
@@ -34,6 +37,7 @@ class MyApp extends StatelessWidget {
     Application.context = context;
     HttpUtil.level(Level.INFO);
     log.setLoggerLavel(Level.ALL);
+    _init();
 
     return MaterialApp(
       title: 'Xy-Music',

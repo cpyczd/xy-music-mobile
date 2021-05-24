@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-05-23 23:20:01
+ * @LastEditTime: 2021-05-24 18:09:31
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
@@ -17,7 +17,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   TextEditingController _textControl = TextEditingController();
 
-  bool _isSearch = true;
+  int pageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class _SearchPageState extends State<SearchPage> {
                           FocusScope.of(context).requestFocus(FocusNode()),
                       onChanged: (value) {
                         setState(() {
-                          _isSearch = value.length == 0;
+                          value.length == 0 ? pageIndex = 0 : pageIndex = 1;
                         });
                       },
                       maxLines: 1,
@@ -68,9 +68,16 @@ class _SearchPageState extends State<SearchPage> {
                   TextButton(
                     onPressed: () {
                       FocusScope.of(context).requestFocus(FocusNode());
+                      if (pageIndex == 1) {
+                        //跳转搜索
+                        pageIndex = 2;
+                      } else {
+                        //情况输入
+                        _textControl.clear();
+                      }
                     },
                     child: Text(
-                      _isSearch ? "搜索" : "取消",
+                      pageIndex == 0 ? "搜索" : "取消",
                       style: TextStyle(fontSize: 15, color: Colors.black),
                     ),
                   )
@@ -80,7 +87,15 @@ class _SearchPageState extends State<SearchPage> {
             Expanded(
                 child: Padding(
               padding: const EdgeInsets.all(15),
-              child: _isSearch ? showNormalWidget() : showSearchResultWidget(),
+              child: (() {
+                if (pageIndex == 0) {
+                  return showNormalWidget();
+                } else if (pageIndex == 1) {
+                  return showSearchTipWidget();
+                } else {
+                  return showSearchResultWidget();
+                }
+              })(),
             ))
           ],
         ),
@@ -202,8 +217,17 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  ///搜索后的显示组件
+  ///搜索中显示的提示组件
+  Widget showSearchTipWidget() {
+    return Container(
+      child: Text("提示"),
+    );
+  }
+
+  ///搜索后的结果
   Widget showSearchResultWidget() {
-    return Container();
+    return Container(
+      child: Text("结果"),
+    );
   }
 }

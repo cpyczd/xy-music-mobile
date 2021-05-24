@@ -9,7 +9,7 @@ import 'package:hive/hive.dart';
 
 class Store {
   ///Hive存储的Box名称
-  static const hive_box_box = "xy-music-nosql-box";
+  static const HIVE_BOX_NAME = "xy-music-nosql-box";
 
   static late final Box<Map> hiveBox;
 }

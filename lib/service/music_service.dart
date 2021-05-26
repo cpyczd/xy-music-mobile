@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 18:29:30
- * @LastEditTime: 2021-05-24 21:23:18
+ * @LastEditTime: 2021-05-26 22:16:19
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -32,7 +32,7 @@ abstract class MusicService {
       Map<String, dynamic> params);
 
   ///获取热搜词
-  //List<String> getHotSearch(Map<String, dynamic> params);
+  Future<List<String>> getHotSearch();
 
   ///获取评论
   //List<Map<String, dynamic>> getComment(Map<String, dynamic> params);

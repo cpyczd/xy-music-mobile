@@ -2,10 +2,9 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-05-24 23:27:14
+ * @LastEditTime: 2021-05-26 22:33:10
  */
 import 'package:flutter/material.dart';
-import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
@@ -40,11 +39,19 @@ class _SearchPageState extends State<SearchPage> {
   ///搜索的结果
   List<MusicEntity> _searchResultList = [];
 
+  ///热搜列表
+  List<String> _hotKeyword = [];
+
   ///分页数据
   int _current = 0;
   int _size = 20;
+  //是否在加载更多
+  bool _moreLoading = false;
 
-  ///搜索源
+  ///搜索ListView的控制器
+  ScrollController _scrollResultListController = ScrollController();
+
+  ///默认搜索源
   MusicSourceConstant _source = MusicSourceConstant.kg;
 
   @override
@@ -52,6 +59,33 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     Future.delayed(Duration.zero, () async {
       _token = await MusicService.getToken();
+      _loadResultController();
+      _loadHotSearchList();
+    });
+  }
+
+  ///加载热搜排行榜
+  void _loadHotSearchList() {
+    //从酷狗拉取TopHot
+    MusicService service = KGMusicServiceImpl();
+    service
+        .getHotSearch()
+        .then((value) => setState(() => {_hotKeyword.addAll(value)}));
+  }
+
+  ///初始化加载搜索界面的ListView的监听器
+  void _loadResultController() {
+    _scrollResultListController.addListener(() {
+      if (_scrollResultListController.position.pixels ==
+          _scrollResultListController.position.maxScrollExtent) {
+        //判断是否加载数据
+        if (!_moreLoading && !_isLoading) {
+          //进行加载数据
+          _moreLoading = true;
+          _current++;
+          _onSearch();
+        }
+      }
     });
   }
 
@@ -218,7 +252,7 @@ class _SearchPageState extends State<SearchPage> {
           Expanded(
             flex: 1,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10),
+              padding: EdgeInsets.symmetric(horizontal: 5),
               child: GridView.builder(
                   physics: BouncingScrollPhysics(),
                   padding: EdgeInsets.only(top: 30),
@@ -227,7 +261,7 @@ class _SearchPageState extends State<SearchPage> {
                       childAspectRatio: 3,
                       crossAxisSpacing: 1,
                       mainAxisSpacing: 1),
-                  itemCount: 10,
+                  itemCount: _hotKeyword.length,
                   itemBuilder: (context, index) {
                     var numberColor = Colors.grey;
                     if (index < 3) {
@@ -236,6 +270,11 @@ class _SearchPageState extends State<SearchPage> {
                     return GestureDetector(
                       onTap: () {
                         FocusScope.of(context).requestFocus(FocusNode());
+                        //去搜索
+                        _searchKeyWord = _hotKeyword[index];
+                        _textControl.text = _searchKeyWord;
+                        _resetSearch();
+                        _onSearch();
                       },
                       child: Row(
                         children: [
@@ -251,15 +290,18 @@ class _SearchPageState extends State<SearchPage> {
                           SizedBox.fromSize(
                             size: Size.fromWidth(5),
                           ),
-                          Text(
-                            "假如不再爱你",
-                            style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: index < 3
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: Colors.black),
-                          )
+                          Expanded(
+                              flex: 1,
+                              child: Text(
+                                _hotKeyword[index],
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: index < 3
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: Colors.black),
+                              ))
                         ],
                       ),
                     );
@@ -333,49 +375,65 @@ class _SearchPageState extends State<SearchPage> {
                 : _isLoading
                     ? Center(child: CircularProgressIndicator())
                     : ListView.separated(
+                        controller: _scrollResultListController,
                         //分割线构建器
                         separatorBuilder: (BuildContext context, int index) {
                           return Divider(height: 0.5, color: Colors.black26);
                         },
                         padding: EdgeInsets.only(top: 20),
-                        itemCount: _searchResultList.length,
+                        //多加一预留loading的空间
+                        itemCount: _searchResultList.length + 1,
                         itemBuilder: (context, index) {
-                          var subStyle =
-                              TextStyle(color: Colors.grey, fontSize: 12);
-                          var entity = _searchResultList[index];
-                          return ListTile(
-                              title: Text(
-                                entity.songName,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 16,
+                          if (index == _searchResultList.length) {
+                            return Center(
+                                child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: SizedBox(
+                                  width: 24.0,
+                                  height: 24.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  )),
+                            ));
+                          } else {
+                            var subStyle =
+                                TextStyle(color: Colors.grey, fontSize: 12);
+                            var entity = _searchResultList[index];
+                            return ListTile(
+                                title: Text(
+                                  entity.songName,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              ),
-                              subtitle: Padding(
-                                padding: const EdgeInsets.only(top: 5),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('歌手: ' + (entity.singer ?? "-"),
-                                        style: subStyle),
-                                    (() {
-                                      return entity.songnameOriginal !=
-                                              entity.songName
-                                          ? Text(
-                                              'Cover: ' +
-                                                  (entity.songnameOriginal ??
-                                                      "-"),
-                                              style: subStyle,
-                                            )
-                                          : SizedBox();
-                                    })(),
-                                  ],
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 5),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('歌手: ' + (entity.singer ?? "-"),
+                                          style: subStyle),
+                                      (() {
+                                        return entity.songnameOriginal !=
+                                                entity.songName
+                                            ? Text(
+                                                'Cover: ' +
+                                                    (entity.songnameOriginal ??
+                                                        "-"),
+                                                style: subStyle,
+                                              )
+                                            : SizedBox();
+                                      })(),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              trailing: IconButton(
-                                  onPressed: () {},
-                                  icon: Icon(Icons.more_vert)));
+                                trailing: IconButton(
+                                    onPressed: () {},
+                                    icon: Icon(Icons.more_vert)));
+                          }
                         });
           })())
         ],
@@ -383,11 +441,13 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  ///重置列表
   void _resetSearch() {
     _current = 0;
     _searchResultList.clear();
   }
 
+  ///搜索
   void _onSearch() {
     FocusScope.of(context).requestFocus(FocusNode());
     if (_searchKeyWord.isEmpty) {
@@ -427,7 +487,10 @@ class _SearchPageState extends State<SearchPage> {
               _searchResultList.addAll(value);
             }
           });
-        }).whenComplete(() => setState(() => _isLoading = false));
+        }).whenComplete(() => setState(() {
+                  _isLoading = false;
+                  _moreLoading = false;
+                }));
       });
     }
   }

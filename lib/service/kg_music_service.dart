@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-05-24 17:33:51
+ * @LastEditTime: 2021-05-26 22:14:46
  */
 
 import 'dart:convert';
@@ -177,6 +177,27 @@ class KGMusicServiceImpl extends MusicService {
       entity.qualityFileSize = map["filesize"];
     }
     return entity;
+  }
+
+  @override
+  Future<List<String>> getHotSearch() async {
+    Map rsp = await util.HttpUtil.get(
+        "http://gateway.kugou.com/api/v3/search/hot_tab?signature=ee44edb9d7155821412d220bcaf509dd&appid=1005&clientver=10026&plat=0",
+        options: Options(headers: {
+          "dfid": '1ssiv93oVqMp27cirf2CvoF1',
+          "mid": '156798703528610303473757548878786007104',
+          "clienttime": 1584257267,
+          'x-router': 'msearch.kugou.com',
+          'user-agent':
+              'Android9-AndroidPhone-10020-130-0-searchrecommendprotocol-wifi',
+          'kg-rc': 1,
+        }));
+    if (rsp['errcode'] != 0) {
+      return Future.error("获取失败");
+    }
+    return (rsp['data']['list'][0]['keywords'] as List)
+        .map((e) => e['keyword'] as String)
+        .toList();
   }
 }
 

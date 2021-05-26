@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-05-24 19:36:09
+ * @LastEditTime: 2021-05-26 22:43:19
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +45,7 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: Application.router.generator,
       initialRoute: "/",
       theme: ThemeData(
+        backgroundColor: Color.fromRGBO(248, 248, 248, 1),
         primarySwatch: Colors.lightBlue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),

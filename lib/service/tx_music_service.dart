@@ -141,4 +141,10 @@ class TxMusicServiceImpl extends MusicService {
     }
     return entity;
   }
+
+  @override
+  Future<List<String>> getHotSearch() {
+    // TODO: implement getHotSearch
+    throw UnimplementedError();
+  }
 }

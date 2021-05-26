@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-05-26 22:33:10
+ * @LastEditTime: 2021-05-27 00:26:36
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -62,6 +62,13 @@ class _SearchPageState extends State<SearchPage> {
       _loadResultController();
       _loadHotSearchList();
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _textControl.dispose();
+    _scrollResultListController.dispose();
   }
 
   ///加载热搜排行榜

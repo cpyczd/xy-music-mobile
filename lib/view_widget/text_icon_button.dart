@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 16:56:38
- * @LastEditTime: 2021-06-01 17:31:47
+ * @LastEditTime: 2021-06-01 20:50:37
  */
 import 'package:flutter/material.dart';
 
@@ -33,13 +33,13 @@ class TextIconButton extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         IconButton(onPressed: onPressed, icon: icon),
-        SizedBox.fromSize(
-          size: Size.fromHeight(size),
-        ),
-        Text(
-          text,
-          style: textStyle ?? TextStyle(color: Colors.black87, fontSize: 12),
-        )
+        // SizedBox.fromSize(
+        //   size: Size.fromHeight(1),
+        // ),
+        // Text(
+        //   text,
+        //   style: textStyle ?? TextStyle(color: Colors.black87, fontSize: 12),
+        // )
       ],
     );
   }

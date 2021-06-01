@@ -2,17 +2,17 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-06-01 17:55:57
+ * @LastEditTime: 2021-06-01 23:21:17
  */
 
 import 'dart:async';
 
+import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/util/index.dart';
-import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
+import '../application.dart';
 import 'hot_page.dart';
 import 'my_music_page.dart';
-import 'search_page.dart';
 import 'setting_page.dart';
 import 'song_square_page.dart';
 
@@ -35,7 +35,6 @@ class _HomePageState extends State<HomePage>
       SongSquarePage(),
       HotPage(),
       MyMusicPage(),
-      SearchPage(),
       SettingPage()
     ];
     return list;
@@ -43,7 +42,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   void initState() {
-    _currentIndexStream = StreamController()..sink.add(1);
+    _currentIndexStream = StreamController();
     super.initState();
   }
 
@@ -85,36 +84,39 @@ class _HomePageState extends State<HomePage>
       // ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.play_arrow),
-        onPressed: () {},
+        backgroundColor: Colors.redAccent.shade100,
+        onPressed: () {
+          // Application.navigateToIos(context, "/player");
+          Application.router.navigateTo(context, "/player",
+              transition: TransitionType.inFromBottom);
+        },
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: CircularNotchedRectangle(),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            TextIconButton(
-              icon: Icon(Icons.music_note_outlined),
-              text: "歌单广场",
-              onPressed: () => _change(1),
-            ),
-            TextIconButton(
-                icon: Icon(Icons.hot_tub),
-                text: "排行榜",
-                onPressed: () => _change(2)),
-            TextIconButton(
-                icon: Icon(Icons.my_library_add),
-                text: "我的",
-                onPressed: () => _change(3)),
-            TextIconButton(
-                icon: Icon(Icons.search),
-                text: "搜索",
-                onPressed: () => _change(4)),
-            TextIconButton(
-                icon: Icon(Icons.settings),
-                text: "设置",
-                onPressed: () => _change(5)),
-          ],
+      bottomNavigationBar: SizedBox(
+        height: 100,
+        width: double.infinity,
+        child: BottomAppBar(
+          shape: CircularNotchedRectangle(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              IconButton(
+                icon: Icon(Icons.music_note_outlined),
+                onPressed: () => _change(0),
+              ),
+              IconButton(
+                  icon: Icon(Icons.hot_tub), onPressed: () => _change(1)),
+              IconButton(
+                  icon: Icon(Icons.my_library_add),
+                  onPressed: () => _change(2)),
+              // TextIconButton(
+              //     icon: Icon(Icons.search),
+              //     text: "搜索",
+              //     onPressed: () => _change(4)),
+              IconButton(
+                  icon: Icon(Icons.settings), onPressed: () => _change(3)),
+            ],
+          ),
         ),
       ),
       body: WillPopScope(
@@ -130,6 +132,7 @@ class _HomePageState extends State<HomePage>
           return true;
         },
         child: StreamBuilder(
+          initialData: 0,
           stream: _currentIndexStream.stream,
           builder: (context, snapshot) => IndexedStack(
             children: _getPageViewWidget(),

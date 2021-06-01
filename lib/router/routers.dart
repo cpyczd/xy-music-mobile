@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-05-22 15:13:10
+ * @LastEditTime: 2021-06-01 21:09:37
  */
 import 'package:fluro/fluro.dart';
 import ' router_handler.dart';
@@ -11,6 +11,7 @@ import ' router_handler.dart';
 class Routers {
   static void configRouters(FluroRouter router) {
     _defineRouter(router, "/", homePage);
+    _defineRouter(router, "/player", playerPage);
     // _defineRouter(router, "/register", registerHandler);
     // _defineRouter(router, "/", startHandler);
     // _defineRouter(router, "/renewal", renewalHandler);

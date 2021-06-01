@@ -2,25 +2,24 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-05-24 21:21:02
+ * @LastEditTime: 2021-06-01 10:39:13
  */
 import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:logger/logger.dart';
 import '/util/widget_common.dart';
-import 'package:simple_logger/simple_logger.dart';
-import '/config/logger_config.dart';
 
 class HttpUtil {
-  static final _log = SimpleLogger();
+  static var _log = Logger(level: Level.nothing);
 
   static CancelToken _cancelToken = CancelToken();
 
   ///控制debug开关
-  static void level(Level level) {
-    _log.setLevel(level);
+  static void logOpen() {
+    _log = Logger();
   }
 
   //清除等待的队列
@@ -37,12 +36,12 @@ class HttpUtil {
   ))
     ..interceptors.add(InterceptorsWrapper(
       onResponse: (response, handler) {
-        _log.info(
+        _log.i(
             "HttpDebug =====> Request: ${response.requestOptions.path} ${response.requestOptions.method}");
-        _log.info(
+        _log.i(
             "HttpDebug =====> --->RequestData: Data:${response.requestOptions.data} Params:${response.requestOptions.queryParameters}");
-        _log.info("HttpDebug =====> --->Response: ${response.data}");
-        _log.info("HttpDebug =====> END");
+        _log.i("HttpDebug =====> --->Response: ${response.data}");
+        _log.i("HttpDebug =====> END");
         handler.next(response);
       },
       onError: (DioError e, ErrorInterceptorHandler handler) async {
@@ -67,7 +66,7 @@ class HttpUtil {
           ? response.data as T
           : json.decode(response.data) as T;
     } catch (e) {
-      _log.error("请求异常：$e");
+      _log.e("请求异常：$e");
       return Future.error("系统异常");
     }
   }
@@ -88,7 +87,7 @@ class HttpUtil {
           ? response.data as T
           : json.decode(response.data) as T;
     } catch (e) {
-      _log.error("请求异常：$e}");
+      _log.e("请求异常：$e}");
       return Future.error("系统异常");
     }
   }

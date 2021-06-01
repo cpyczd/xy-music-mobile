@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-05-27 00:26:36
+ * @LastEditTime: 2021-06-01 17:51:51
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';

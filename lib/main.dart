@@ -2,19 +2,17 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-05-26 22:43:19
+ * @LastEditTime: 2021-06-01 17:55:31
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'config/store_config.dart' as store;
-import 'package:simple_logger/simple_logger.dart';
 
 import 'application.dart';
 import 'router/routers.dart';
 import 'util/http_util.dart';
 import 'package:path_provider/path_provider.dart' as pathProvider;
-import 'config/logger_config.dart' as log;
 
 void main() {
   runApp(MyApp());
@@ -35,8 +33,8 @@ class MyApp extends StatelessWidget {
     Routers.configRouters(router);
     Application.router = router;
     Application.context = context;
-    HttpUtil.level(Level.INFO);
-    log.setLoggerLavel(Level.ALL);
+    HttpUtil.logOpen();
+    // log.close();
     _init();
 
     return MaterialApp(
@@ -44,6 +42,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       onGenerateRoute: Application.router.generator,
       initialRoute: "/",
+      builder: (context, child) => GestureDetector(
+        onTap: () {
+          FocusScopeNode currentFocus = FocusScope.of(context);
+          if (!currentFocus.hasPrimaryFocus &&
+              currentFocus.focusedChild != null) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
+        },
+        child: child,
+      ),
       theme: ThemeData(
         backgroundColor: Color.fromRGBO(248, 248, 248, 1),
         primarySwatch: Colors.lightBlue,

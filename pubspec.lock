@@ -443,6 +443,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "4.0.1"
+  logger:
+    dependency: "direct main"
+    description:
+      name: logger
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.0"
   logging:
     dependency: transitive
     description:
@@ -723,13 +730,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "1.0.1"
-  simple_logger:
-    dependency: "direct main"
-    description:
-      name: simple_logger
-      url: "https://pub.flutter-io.cn"
-    source: hosted
-    version: "1.8.0+1"
   sky_engine:
     dependency: transitive
     description: flutter

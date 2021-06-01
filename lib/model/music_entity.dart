@@ -1,21 +1,20 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:xy_music_mobile/model/base_entity.dart';
 
 /*
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-05-23 19:59:39
+ * @LastEditTime: 2021-06-01 15:35:36
  */
 
 import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/util/index.dart';
 
-///音乐模块
-
-class MusicEntity {
-  int? id;
-
+///音乐模块实体类
+class MusicEntity extends BaseEntity {
   ///歌曲ID
   final String? songmId;
 
@@ -66,7 +65,7 @@ class MusicEntity {
   final Map originData;
 
   MusicEntity({
-    this.id,
+    int? id,
     this.songmId,
     this.albumId,
     this.albumName,
@@ -84,7 +83,9 @@ class MusicEntity {
     this.qualityFileSize,
     this.types,
     required this.originData,
-  });
+  }) {
+    super.id = id;
+  }
 
   MusicEntity copyWith({
     int? id,
@@ -146,8 +147,8 @@ class MusicEntity {
       'hash': hash,
       'quality': quality,
       'qualityFileSize': qualityFileSize,
-      'types': types,
-      'originData': originData,
+      'types': jsonEncode(types),
+      'originData': jsonEncode(originData),
     };
   }
 
@@ -160,7 +161,8 @@ class MusicEntity {
       singer: map['singer'],
       songName: map['songName'],
       songnameOriginal: map['songnameOriginal'],
-      source: MusicSourceConstant.none,
+      source:
+          EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
       duration: map['duration'],
       durationStr: map['durationStr'],
       picImage: map['picImage'],
@@ -169,8 +171,8 @@ class MusicEntity {
       playUrl: map['playUrl'],
       quality: map['quality'],
       qualityFileSize: map['qualityFileSize'],
-      types: List<String>.from(map['types']),
-      originData: Map<String, dynamic>.from(map['originData']),
+      types: List<String>.from(jsonDecode(map['types'])),
+      originData: Map<String, dynamic>.from(jsonDecode(map['originData'])),
     );
   }
 

@@ -2,20 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:59:47
- * @LastEditTime: 2021-05-23 17:01:42
+ * @LastEditTime: 2021-06-01 10:11:47
  */
-import 'package:logging/logging.dart';
-import 'package:simple_logger/simple_logger.dart';
+import 'package:logger/logger.dart';
 
-extension Logger on SimpleLogger {
-  void error(message) {
-    this.severe(message);
-  }
-}
+final log = Logger(
+  printer: PrettyPrinter(),
+);
 
-final log = SimpleLogger();
-
-///设置日志等级
-void setLoggerLavel(Level level) {
-  log.setLevel(level);
+void close() {
+  log.close();
 }

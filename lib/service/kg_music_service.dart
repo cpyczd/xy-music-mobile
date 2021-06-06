@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-05-26 22:14:46
+ * @LastEditTime: 2021-06-06 18:17:00
  */
 
 import 'dart:convert';
@@ -94,7 +94,9 @@ class KGMusicServiceImpl extends MusicService {
       if (lrcJson["status"] != 200) {
         return Future.error("下载歌词失败");
       }
-      return lrcDecode(lrcJson["content"]);
+      String lrc = lrcDecode(lrcJson["content"]);
+      entity.lrc = lrc;
+      return lrc;
     } else {
       return Future.error("获取歌词失败");
     }
@@ -103,12 +105,21 @@ class KGMusicServiceImpl extends MusicService {
   ///获取播放Url
   @override
   Future<MusicEntity> getMusicPlayUrl(MusicEntity entity) async {
-    Map result = await util.HttpUtil.get("https://api.gmit.vip/Api/KuGou",
-        data: {"format": "json", "id": entity.hash});
+    Map result = await util.HttpUtil.post("https://music.sonimei.cn/",
+        data: {
+          "input": entity.hash,
+          "type": "kugou",
+          "filter": "id",
+          "page": 1
+        },
+        options: Options(headers: {
+          "x-requested-with": "XMLHttpRequest",
+          "Content-Type": "multipart/form-data"
+        }));
     if (result["code"] != 200) {
       return Future.error("解析失败");
     }
-    entity.playUrl = result["data"]["url"];
+    entity.playUrl = result["data"][0]["url"];
     return entity;
   }
 

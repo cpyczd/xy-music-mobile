@@ -7,7 +7,7 @@ import 'package:xy_music_mobile/model/base_entity.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-06-01 15:35:36
+ * @LastEditTime: 2021-06-06 18:16:29
  */
 
 import 'package:xy_music_mobile/model/source_constant.dart';
@@ -46,7 +46,7 @@ class MusicEntity extends BaseEntity {
   final String? picImage;
 
   ///歌词
-  final String? lrc;
+  String? lrc;
 
   ///Hash
   String? hash;

@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-01 17:51:51
+ * @LastEditTime: 2021-06-06 18:47:44
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
+import 'package:xy_music_mobile/service/mg_music_servce.dart';
 import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/service/tx_music_service.dart';
 
@@ -469,6 +470,9 @@ class _SearchPageState extends State<SearchPage> {
         break;
       case MusicSourceConstant.tx:
         service = TxMusicServiceImpl();
+        break;
+      case MusicSourceConstant.mg:
+        service = MgMusicServiceImpl();
         break;
       default:
         //不支持的源

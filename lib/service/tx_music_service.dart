@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-24 14:33:31
- * @LastEditTime: 2021-05-24 16:06:34
+ * @LastEditTime: 2021-06-06 18:42:43
  */
 import 'dart:convert';
 
@@ -38,18 +38,20 @@ class TxMusicServiceImpl extends MusicService {
     if (code.isEmpty) {
       return Future.error("获取歌词失败");
     }
-    return Utf8Decoder().convert(base64Decode(code));
+    entity.lrc = Utf8Decoder().convert(base64Decode(code));
+    return entity.lrc!;
   }
 
   @override
   Future<MusicEntity> getMusicPlayUrl(MusicEntity entity) async {
-    Map result =
-        await util.HttpUtil.get("https://api.gmit.vip/Api/Tencent", data: {
-      "format": 'json',
-      "id": entity.hash,
-    });
+    Map result = await util.HttpUtil.post("https://music.sonimei.cn/",
+        data: {"input": entity.hash, "type": "qq", "filter": "id", "page": 1},
+        options: Options(headers: {
+          "x-requested-with": "XMLHttpRequest",
+          "Content-Type": "multipart/form-data"
+        }));
     if (result["code"] != 200) {
-      return Future.error("获取失败");
+      return Future.error("解析失败");
     }
     entity.playUrl = result["data"]["url"];
     return entity;

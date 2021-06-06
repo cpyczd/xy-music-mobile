@@ -2,13 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-06-01 23:21:17
+ * @LastEditTime: 2021-06-06 18:51:43
  */
 
 import 'dart:async';
 
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/pages/search_page.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import '../application.dart';
 import 'hot_page.dart';
@@ -35,7 +36,8 @@ class _HomePageState extends State<HomePage>
       SongSquarePage(),
       HotPage(),
       MyMusicPage(),
-      SettingPage()
+      // SettingPage()
+      SearchPage()
     ];
     return list;
   }

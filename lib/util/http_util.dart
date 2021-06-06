@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-06-01 10:39:13
+ * @LastEditTime: 2021-06-06 18:14:36
  */
 import 'dart:convert';
 
@@ -56,7 +56,10 @@ class HttpUtil {
 
   ///进行Get请求的操作
   static Future<T> get<T>(String url,
-      {data, options, CancelToken? cancelToken}) async {
+      {data,
+      options,
+      CancelToken? cancelToken,
+      bool serializationJson = true}) async {
     try {
       var response = await _http.get(url,
           queryParameters: data,
@@ -64,7 +67,9 @@ class HttpUtil {
           options: options);
       return response.data is Map
           ? response.data as T
-          : json.decode(response.data) as T;
+          : serializationJson
+              ? json.decode(response.data) as T
+              : response.data as T;
     } catch (e) {
       _log.e("请求异常：$e");
       return Future.error("系统异常");
@@ -76,7 +81,8 @@ class HttpUtil {
       {Map<String, dynamic>? data,
       bool urlParams = false,
       options,
-      CancelToken? cancelToken}) async {
+      CancelToken? cancelToken,
+      bool serializationJson = true}) async {
     try {
       var response = await _http.post(url,
           data: !urlParams ? data : null,
@@ -85,7 +91,9 @@ class HttpUtil {
           options: options);
       return response.data is Map
           ? response.data as T
-          : json.decode(response.data) as T;
+          : serializationJson
+              ? json.decode(response.data) as T
+              : response.data as T;
     } catch (e) {
       _log.e("请求异常：$e}");
       return Future.error("系统异常");

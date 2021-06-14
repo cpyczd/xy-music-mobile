@@ -2,11 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-05-26 22:16:37
+ * @LastEditTime: 2021-06-14 13:50:49
  */
 import 'package:xy_music_mobile/model/music_entity.dart';
+import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/music_service.dart';
-import '/util/index.dart' as util;
 
 class WyMusicServiceImpl extends MusicService {
   @override
@@ -18,13 +18,6 @@ class WyMusicServiceImpl extends MusicService {
   @override
   Future<MusicEntity> getMusicPlayUrl(MusicEntity entity) {
     // TODO: implement getMusicPlayUrl
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> getMusicSquareDetail(
-      Map<String, dynamic> params) {
-    // TODO: implement getMusicSquareDetail
     throw UnimplementedError();
   }
 
@@ -51,5 +44,10 @@ class WyMusicServiceImpl extends MusicService {
   Future<List<String>> getHotSearch() {
     // TODO: implement getHotSearch
     throw UnimplementedError();
+  }
+
+  @override
+  bool support(MusicSourceConstant type, Object? fliter) {
+    return false;
   }
 }

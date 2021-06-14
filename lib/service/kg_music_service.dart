@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-06-06 18:17:00
+ * @LastEditTime: 2021-06-14 13:50:19
  */
 
 import 'dart:convert';
@@ -124,13 +124,6 @@ class KGMusicServiceImpl extends MusicService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getMusicSquareDetail(
-      Map<String, dynamic> params) {
-    // TODO: implement getMusicSquareDetail
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String> getPic(MusicEntity entity) async {
     Map result = await util.HttpUtil.post(
         "http://media.store.kugou.com/v1/get_res_privilege",
@@ -209,6 +202,11 @@ class KGMusicServiceImpl extends MusicService {
     return (rsp['data']['list'][0]['keywords'] as List)
         .map((e) => e['keyword'] as String)
         .toList();
+  }
+
+  @override
+  bool support(MusicSourceConstant type, Object? fliter) {
+    return type == MusicSourceConstant.kg;
   }
 }
 

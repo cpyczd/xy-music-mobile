@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-06 18:47:44
+ * @LastEditTime: 2021-06-13 23:38:00
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -10,6 +10,7 @@ import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
 import 'package:xy_music_mobile/service/mg_music_servce.dart';
 import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/service/search_helper.dart';
 import 'package:xy_music_mobile/service/tx_music_service.dart';
 
 class SearchPage extends StatefulWidget {
@@ -59,7 +60,7 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () async {
-      _token = await MusicService.getToken();
+      _token = await SearchHelper.getToken();
       _loadResultController();
       _loadHotSearchList();
     });
@@ -99,105 +100,107 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
-        child: Column(
-          children: [
-            //输入框
-            Padding(
-              padding: const EdgeInsets.only(top: 8, left: 15, right: 15),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: 35),
-                    child: TextField(
-                      controller: _textControl,
-                      onEditingComplete: () =>
-                          FocusScope.of(context).requestFocus(FocusNode()),
-                      onChanged: (value) {
-                        setState(() {
-                          value.length == 0 ? pageIndex = 0 : pageIndex = 1;
-                          //搜索建议初始化
-                          if (value.length != 0) {
-                            MusicService.getSearchTip(value, _token)
-                                .then((value) {
-                              setState(() {
-                                searchTipData.clear();
-                                if (value.isNotEmpty) {
-                                  searchTipData.addAll(value);
-                                }
+    return Scaffold(
+      body: SafeArea(
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
+          child: Column(
+            children: [
+              //输入框
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 15, right: 15),
+                child: Row(
+                  children: [
+                    BackButton(),
+                    Expanded(
+                        child: ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: 35),
+                      child: TextField(
+                        controller: _textControl,
+                        onEditingComplete: () =>
+                            FocusScope.of(context).requestFocus(FocusNode()),
+                        onChanged: (value) {
+                          setState(() {
+                            value.length == 0 ? pageIndex = 0 : pageIndex = 1;
+                            //搜索建议初始化
+                            if (value.length != 0) {
+                              SearchHelper.getSearchTip(value, _token)
+                                  .then((value) {
+                                setState(() {
+                                  searchTipData.clear();
+                                  if (value.isNotEmpty) {
+                                    searchTipData.addAll(value);
+                                  }
+                                });
                               });
-                            });
+                            }
+                          });
+                        },
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 15),
+                        decoration: InputDecoration(
+                          fillColor: Color.fromRGBO(235, 238, 245, 1),
+                          filled: true,
+                          // isCollapsed: true, //重点，相当于高度包裹的意思，必须设置为true，不然有默认奇妙的最小高度
+                          contentPadding:
+                              EdgeInsets.symmetric(vertical: 2), //内容内边距，影响高度
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.black38,
+                          ),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(45),
+                              gapPadding: 1,
+                              borderSide: BorderSide.none),
+                          hintStyle: TextStyle(color: Colors.grey.shade500),
+                        ),
+                      ),
+                    )),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          if (pageIndex != 2) {
+                            //跳转搜索
+                            _searchKeyWord = _textControl.text;
+                            _onSearch();
+                          } else {
+                            //情况输入
+                            _textControl.clear();
+                            pageIndex = 0;
                           }
                         });
+                        FocusScope.of(context).requestFocus(FocusNode());
                       },
-                      maxLines: 1,
-                      style: TextStyle(fontSize: 15),
-                      decoration: InputDecoration(
-                        fillColor: Color.fromRGBO(235, 238, 245, 1),
-                        filled: true,
-                        // isCollapsed: true, //重点，相当于高度包裹的意思，必须设置为true，不然有默认奇妙的最小高度
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 2), //内容内边距，影响高度
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Colors.black38,
-                        ),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(45),
-                            gapPadding: 1,
-                            borderSide: BorderSide.none),
-                        hintStyle: TextStyle(color: Colors.grey.shade500),
+                      child: Text(
+                        pageIndex != 2 ? "搜索" : "取消",
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w400),
                       ),
-                    ),
-                  )),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        if (pageIndex != 2) {
-                          //跳转搜索
-                          _searchKeyWord = _textControl.text;
-                          _onSearch();
-                        } else {
-                          //情况输入
-                          _textControl.clear();
-                          pageIndex = 0;
-                        }
-                      });
-                      FocusScope.of(context).requestFocus(FocusNode());
-                    },
-                    child: Text(
-                      pageIndex != 2 ? "搜索" : "取消",
-                      style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w400),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-                child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: (() {
-                if (pageIndex == 0) {
-                  return showNormalWidget();
-                } else if (pageIndex == 1) {
-                  return showSearchTipWidget();
-                } else {
-                  return showSearchResultWidget();
-                }
-              })(),
-            ))
-          ],
+              Expanded(
+                  child: Padding(
+                padding: const EdgeInsets.all(15),
+                child: (() {
+                  if (pageIndex == 0) {
+                    return showNormalWidget();
+                  } else if (pageIndex == 1) {
+                    return showSearchTipWidget();
+                  } else {
+                    return showSearchResultWidget();
+                  }
+                })(),
+              ))
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   ///构建没有搜索的时候页面显示

@@ -24,7 +24,7 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
 
   @override
   void dispose() {
-    dataLineDispose();
+    disposeDataLine();
     super.dispose();
   }
 

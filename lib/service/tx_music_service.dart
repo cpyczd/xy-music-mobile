@@ -58,13 +58,6 @@ class TxMusicServiceImpl extends MusicService {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getMusicSquareDetail(
-      Map<String, dynamic> params) {
-    // TODO: implement getMusicSquareDetail
-    throw UnimplementedError();
-  }
-
-  @override
   Future<String> getPic(MusicEntity entity) {
     return Future.value(entity.picImage);
   }
@@ -148,5 +141,10 @@ class TxMusicServiceImpl extends MusicService {
   Future<List<String>> getHotSearch() {
     // TODO: implement getHotSearch
     throw UnimplementedError();
+  }
+
+  @override
+  bool support(MusicSourceConstant type, Object? fliter) {
+    return type == MusicSourceConstant.tx;
   }
 }

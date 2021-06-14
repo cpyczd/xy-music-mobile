@@ -2,12 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-01 21:11:22
+ * @LastEditTime: 2021-06-14 13:05:51
  */
 
 import 'package:event_bus/event_bus.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/service/service_register.dart' as msr;
+import 'package:xy_music_mobile/config/theme_data.dart' as tdr;
 
 class Application {
   //Router全局路由管理对象
@@ -30,5 +32,13 @@ class Application {
         clearStack: clearStack,
         transition: TransitionType.cupertino,
         routeSettings: settings);
+  }
+
+  ///初始化
+  static void applicationInit() {
+    //音乐服务注册
+    msr.register();
+    //主题数据注入
+    tdr.register();
   }
 }

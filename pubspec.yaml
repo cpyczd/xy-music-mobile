@@ -78,6 +78,8 @@ dependencies:
   #日志打印
   logger: ^1.0.0
   rxdart: ^0.27.1
+  #粘性悬浮组件
+  flutter_sticky_header: ^0.6.0
   # encrypt: ^5.0.0
   #Json 序列化
   # json_annotation: ^4.0.0

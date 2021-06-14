@@ -2,11 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-01 17:55:31
+ * @LastEditTime: 2021-06-14 12:30:46
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:xy_music_mobile/config/theme.dart';
 import 'config/store_config.dart' as store;
 
 import 'application.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     //初始化相关配置
+    Application.applicationInit();
     FluroRouter router = new FluroRouter();
     Routers.configRouters(router);
     Application.router = router;
@@ -52,11 +54,12 @@ class MyApp extends StatelessWidget {
         },
         child: child,
       ),
-      theme: ThemeData(
-        backgroundColor: Color.fromRGBO(248, 248, 248, 1),
-        primarySwatch: Colors.lightBlue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: AppTheme.getThemeData(),
+      // theme: ThemeData(
+      //   backgroundColor: Color.fromRGBO(248, 248, 248, 1),
+      //   primarySwatch: Colors.lightBlue,
+      //   visualDensity: VisualDensity.adaptivePlatformDensity,
+      // ),
     );
   }
 }

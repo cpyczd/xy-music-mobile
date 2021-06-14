@@ -92,7 +92,7 @@ mixin MultDataLine {
     return dataBus[key] as SingleDataLine<T>;
   }
 
-  void dataLineDispose() {
+  void disposeDataLine() {
     dataBus.values.forEach((f) => f.dispose());
     dataBus.clear();
   }

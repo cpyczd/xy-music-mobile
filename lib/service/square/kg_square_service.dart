@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-06-14 22:27:04
+ * @LastEditTime: 2021-06-15 23:31:23
  */
 
 import 'dart:convert';
@@ -13,7 +13,7 @@ import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
 import 'package:xy_music_mobile/service/music_service.dart';
 
-///酷狗歌单Service
+///酷狗歌单Service    Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
 class KgSquareServiceImpl extends SongSquareService {
   @override
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
@@ -43,14 +43,17 @@ class KgSquareServiceImpl extends SongSquareService {
 
   @override
   Future<List<SongSquareInfo>> getSongSquareInfoList(
-      {SongSquareSort? sort, SongSqurareTagItem? tag, int page = 1}) async {
+      {SongSquareSort? sort,
+      SongSqurareTagItem? tag,
+      int page = 1,
+      int size = 10}) async {
     Map resp = await HttpUtil.get(
-        "http://www2.kugou.kugou.com/yueku/v9/special/getSpec",
+        "http://www2.kugou.kugou.com/yueku/v9/special/getSpecial",
         data: {
           "is_ajax": 1,
           "cdn": "cdn",
-          "t": sort?.id,
-          "c": tag?.id,
+          "t": sort?.id ?? "",
+          "c": tag?.id ?? "",
           "p": page
         });
     if (resp["status"] != 1) {
@@ -58,13 +61,13 @@ class KgSquareServiceImpl extends SongSquareService {
     }
     return (resp["special_db"] as List)
         .map((e) => SongSquareInfo(
-            id: e["specialid"],
-            playCount: e["total_play_count"],
-            collectCount: e["collect_count"],
+            id: e["specialid"].toString(),
+            playCount: e["total_play_count"].toString(),
+            collectCount: e["collect_count"].toString(),
             name: e["specialname"],
             time: e["publish_time"],
             img: e["img"],
-            grade: e["grade"],
+            grade: double.parse(e["grade"].toString()),
             desc: e["intro"],
             author: e["nickname"]))
         .toList();
@@ -72,13 +75,13 @@ class KgSquareServiceImpl extends SongSquareService {
 
   @override
   FutureOr<List<SongSquareSort>> getSortList() {
-    return Future.value([
+    return [
       SongSquareSort(id: "5", name: "推荐"),
       SongSquareSort(id: "6", name: "最热"),
       SongSquareSort(id: "7", name: "最新"),
       SongSquareSort(id: "3", name: "热藏"),
       SongSquareSort(id: "8", name: "飙升"),
-    ]);
+    ];
   }
 
   @override
@@ -97,8 +100,8 @@ class KgSquareServiceImpl extends SongSquareService {
           .map((e) => SongSqurareTagItem(
               name: e["name"],
               parentName: e["pname"],
-              id: e["id"],
-              parentId: e["parent_id"]))
+              id: e["id"].toString(),
+              parentId: e["parent_id"].toString()))
           .toList();
       tag.tags = tagInfoList;
       tagList.add(tag);

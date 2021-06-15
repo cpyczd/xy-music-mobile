@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:52:34
- * @LastEditTime: 2021-06-14 22:23:49
+ * @LastEditTime: 2021-06-15 21:23:39
  */
 
 import 'package:xy_music_mobile/model/source_constant.dart';
@@ -71,9 +71,9 @@ class SongSqurareTagItem {
 
   final String parentName;
 
-  final int id;
+  final String id;
 
-  final int parentId;
+  final String parentId;
   SongSqurareTagItem({
     required this.name,
     required this.parentName,
@@ -84,8 +84,8 @@ class SongSqurareTagItem {
   SongSqurareTagItem copyWith({
     String? name,
     String? parentName,
-    int? id,
-    int? parentId,
+    String? id,
+    String? parentId,
   }) {
     return SongSqurareTagItem(
       name: name ?? this.name,
@@ -152,7 +152,7 @@ class SongSquareInfo {
   final String playCount;
 
   ///收藏数量
-  final String collectCount;
+  String? collectCount;
 
   ///歌单名称
   final String name;
@@ -164,22 +164,22 @@ class SongSquareInfo {
   final String img;
 
   ///评分
-  final double grade;
+  double? grade;
 
   ///描述
-  final String desc;
+  String? desc;
 
   ///作者
   final String author;
   SongSquareInfo({
     required this.id,
     required this.playCount,
-    required this.collectCount,
+    this.collectCount,
     required this.name,
     required this.time,
     required this.img,
-    required this.grade,
-    required this.desc,
+    this.grade,
+    this.desc,
     required this.author,
   });
 

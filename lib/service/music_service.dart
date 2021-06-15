@@ -43,7 +43,10 @@ abstract class SongSquareService {
 
   ///返回歌单列表信息数据
   Future<List<SongSquareInfo>> getSongSquareInfoList(
-      {SongSquareSort? sort, SongSqurareTagItem? tag, int page = 1});
+      {SongSquareSort? sort,
+      SongSqurareTagItem? tag,
+      int page = 1,
+      int size = 10});
 
   ///获取歌单内音乐列表信息
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,

@@ -2,11 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-06-06 18:14:36
+ * @LastEditTime: 2021-06-15 23:32:39
  */
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:connectivity/connectivity.dart';
+import 'package:dio/adapter.dart';
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logger/logger.dart';
@@ -20,6 +22,24 @@ class HttpUtil {
   ///控制debug开关
   static void logOpen() {
     _log = Logger();
+  }
+
+  ///设置代理
+  static void openProxy() {
+    (_http.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
+      client.findProxy = (url) {
+        ///设置代理 电脑ip地址
+        return "PROXY 127.0.0.1:8888";
+
+        ///不设置代理
+//          return 'DIRECT';
+      };
+
+      ///忽略证书
+      client.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+    };
   }
 
   //清除等待的队列
@@ -72,7 +92,7 @@ class HttpUtil {
               : response.data as T;
     } catch (e) {
       _log.e("请求异常：$e");
-      return Future.error("系统异常");
+      return Future.error("系统请求异常");
     }
   }
 
@@ -96,7 +116,7 @@ class HttpUtil {
               : response.data as T;
     } catch (e) {
       _log.e("请求异常：$e}");
-      return Future.error("系统异常");
+      return Future.error("系统请求异常");
     }
   }
 

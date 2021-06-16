@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-24 14:33:31
- * @LastEditTime: 2021-06-06 18:42:43
+ * @LastEditTime: 2021-06-16 20:30:21
  */
 import 'dart:convert';
 
@@ -53,7 +53,7 @@ class TxMusicServiceImpl extends MusicService {
     if (result["code"] != 200) {
       return Future.error("解析失败");
     }
-    entity.playUrl = result["data"]["url"];
+    entity.playUrl = result["data"][0]["url"];
     return entity;
   }
 
@@ -144,7 +144,7 @@ class TxMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
+  bool support(MusicSourceConstant type, {Object? fliter}) {
     return type == MusicSourceConstant.tx;
   }
 }

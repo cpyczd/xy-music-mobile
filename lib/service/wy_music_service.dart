@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-06-16 17:58:45
+ * @LastEditTime: 2021-06-16 20:29:33
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -19,16 +19,6 @@ class WyMusicServiceImpl extends MusicService {
     webApi = WyWebApi();
   }
 
-  // {
-  //     method: 'POST',
-  //     url: 'https://music.163.com/api/song/lyric',
-  //     params: {
-  //       id: songmid,
-  //       lv: -1,
-  //       kv: -1,
-  //       tv: -1,
-  //     },
-  //   }
   @override
   Future<String> getLyric(MusicEntity entity) async {
     Map resp = await HttpUtil.post("https://music.163.com/api/linux/forward",
@@ -60,7 +50,7 @@ class WyMusicServiceImpl extends MusicService {
     Map result = await HttpUtil.post("https://music.sonimei.cn/",
         data: {
           "input": entity.songmId,
-          "type": "wy",
+          "type": "netease",
           "filter": "id",
           "page": 1
         },
@@ -71,7 +61,7 @@ class WyMusicServiceImpl extends MusicService {
     if (result["code"] != 200) {
       return Future.error("解析失败");
     }
-    entity.playUrl = result["data"]["url"];
+    entity.playUrl = result["data"][0]["url"];
     return entity;
   }
 
@@ -143,7 +133,7 @@ class WyMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
+  bool support(MusicSourceConstant type, {Object? fliter}) {
     return type == MusicSourceConstant.wy;
   }
 }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-16 16:43:32
+ * @LastEditTime: 2021-06-16 21:52:52
  */
 
 import 'dart:convert';
@@ -82,7 +82,7 @@ class WySquareServiceImpl extends SongSquareService {
     var data = webApi.webapi({
       "cat": tag != null ? tag.id : "全部",
       "order": sort?.id,
-      "limit": page,
+      "limit": size,
       "offset": size * (page - 1),
       "total": true,
     });

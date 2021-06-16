@@ -2,7 +2,7 @@
  * @Description: 服务注册发现
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:00:03
- * @LastEditTime: 2021-06-16 16:56:41
+ * @LastEditTime: 2021-06-16 22:27:42
  */
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
@@ -12,6 +12,7 @@ import 'package:xy_music_mobile/service/ranking/wy_ranking_service.dart';
 import 'package:xy_music_mobile/service/square/kg_square_service.dart';
 import 'package:xy_music_mobile/service/square/wy_square_service.dart';
 import 'package:xy_music_mobile/service/tx_music_service.dart';
+import 'package:xy_music_mobile/service/wy_music_service.dart';
 
 ///音乐服务
 void _registerMusicService() {
@@ -23,6 +24,9 @@ void _registerMusicService() {
 
   ///QQ音乐服务
   MusicServiceProviderMange.register(TxMusicServiceImpl());
+
+  ///网易音乐
+  MusicServiceProviderMange.register(WyMusicServiceImpl());
 }
 
 ///歌单服务

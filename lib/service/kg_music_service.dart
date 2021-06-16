@@ -205,7 +205,7 @@ class KGMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
+  bool support(MusicSourceConstant type, {Object? fliter}) {
     return type == MusicSourceConstant.kg;
   }
 }

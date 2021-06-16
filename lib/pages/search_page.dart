@@ -2,16 +2,16 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-13 23:38:00
+ * @LastEditTime: 2021-06-16 23:02:12
  */
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/config/service_manage.dart';
+import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
-import 'package:xy_music_mobile/service/mg_music_servce.dart';
 import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/service/search_helper.dart';
-import 'package:xy_music_mobile/service/tx_music_service.dart';
 
 class SearchPage extends StatefulWidget {
   SearchPage({Key? key}) : super(key: key);
@@ -56,6 +56,9 @@ class _SearchPageState extends State<SearchPage> {
   ///默认搜索源
   MusicSourceConstant _source = MusicSourceConstant.kg;
 
+  ///支持的播放源
+  late final List<MusicSourceConstant> musicSourceSupport;
+
   @override
   void initState() {
     super.initState();
@@ -64,6 +67,15 @@ class _SearchPageState extends State<SearchPage> {
       _loadResultController();
       _loadHotSearchList();
     });
+    musicSourceSupport = MusicSourceConstant.values.where((s) {
+      try {
+        MusicServiceProviderMange.getProviderAll()
+            .firstWhere((element) => element.support(s));
+      } catch (e) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 
   @override
@@ -361,10 +373,21 @@ class _SearchPageState extends State<SearchPage> {
             width: double.infinity,
             height: 30,
             child: DefaultTabController(
-              length: MusicSourceConstant.values.length - 1,
+              length: musicSourceSupport.length,
               child: TabBar(
-                onTap: (value) {
-                  var replaceSource = MusicSourceConstant.values[value];
+                indicatorColor: Colors.redAccent.shade100,
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorWeight: 2,
+                labelColor: Color(AppTheme.getCurrentTheme().primaryColor),
+                labelStyle:
+                    TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                unselectedLabelColor:
+                    Color(AppTheme.getCurrentTheme().primaryColor)
+                        .withOpacity(0.7),
+                unselectedLabelStyle:
+                    TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+                onTap: (index) {
+                  var replaceSource = musicSourceSupport[index];
                   //如果不是之前的源就重置分页为 0
                   if (replaceSource != _source) {
                     _resetSearch();
@@ -373,10 +396,7 @@ class _SearchPageState extends State<SearchPage> {
                   _onSearch();
                 },
                 isScrollable: true,
-                tabs: MusicSourceConstant.values
-                    .where((element) => element != MusicSourceConstant.none)
-                    .map((e) => Text(e.desc))
-                    .toList(),
+                tabs: musicSourceSupport.map((e) => Text(e.desc)).toList(),
               ),
             ),
           ),
@@ -464,48 +484,32 @@ class _SearchPageState extends State<SearchPage> {
     if (_searchKeyWord.isEmpty) {
       return;
     }
+
+    ///切换显示的页面为序号2
     pageIndex = 2;
     //发起搜索
-    MusicService? service;
-    switch (_source) {
-      case MusicSourceConstant.kg:
-        service = KGMusicServiceImpl();
-        break;
-      case MusicSourceConstant.tx:
-        service = TxMusicServiceImpl();
-        break;
-      case MusicSourceConstant.mg:
-        service = MgMusicServiceImpl();
-        break;
-      default:
-        //不支持的源
-        break;
-    }
-    if (service == null) {
-      setState(() {
-        _source = MusicSourceConstant.none;
-      });
-    } else {
-      setState(() {
-        _source = _source;
-        //开始搜索
-        if (_searchResultList.isEmpty) {
-          //如果是首次加载显示Loading加载组件
-          _isLoading = true;
-        }
-        service
-            ?.searchMusic(_searchKeyWord, size: _size, current: _current)
-            .then((value) {
-          setState(() {
-            if (value.isNotEmpty) {
-              _searchResultList.addAll(value);
-            }
-          });
-        }).whenComplete(() => setState(() {
-                  _isLoading = false;
-                  _moreLoading = false;
-                }));
-      });
-    }
+    MusicService service =
+        MusicServiceProviderMange.getSupportProvider(_source).first;
+
+    setState(() {
+      _source = _source;
+      //开始搜索
+      if (_searchResultList.isEmpty) {
+        //如果是首次加载显示Loading加载组件
+        _isLoading = true;
+      }
+      service
+          .searchMusic(_searchKeyWord, size: _size, current: _current)
+          .then((value) {
+        setState(() {
+          if (value.isNotEmpty) {
+            _searchResultList.addAll(value);
+          }
+        });
+      }).whenComplete(() => setState(() {
+                _isLoading = false;
+                _moreLoading = false;
+              }));
+    });
   }
 }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 16:20:16
- * @LastEditTime: 2021-06-16 17:52:45
+ * @LastEditTime: 2021-06-16 20:26:19
  */
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
@@ -13,7 +13,7 @@ import 'package:xy_music_mobile/util/index.dart';
 
 main() async {
   HttpUtil.logOpen();
-  HttpUtil.openProxy();
+  // HttpUtil.openProxy();
   // var service = KGMusicServiceImpl();
   // var service = TxMusicServiceImpl();
   // var service = MgMusicServiceImpl();

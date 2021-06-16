@@ -32,7 +32,7 @@ abstract class MusicService {
   MusicEntity setQuality(MusicEntity entity, Map map);
 
   ///所支持的播放源
-  bool support(MusicSourceConstant type, Object? fliter);
+  bool support(MusicSourceConstant type, {Object? fliter});
 }
 
 ///歌单广场

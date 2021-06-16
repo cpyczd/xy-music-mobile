@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-16 10:43:45
+ * @LastEditTime: 2021-06-16 22:38:33
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
     Application.router = router;
     Application.context = context;
     HttpUtil.logOpen();
+    // HttpUtil.openProxy();
     // log.close();
     store.Store.flutterInit();
 

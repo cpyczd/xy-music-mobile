@@ -4,7 +4,7 @@ import 'dart:convert';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-13 22:25:23
- * @LastEditTime: 2021-06-14 13:04:59
+ * @LastEditTime: 2021-06-16 20:34:30
  */
 import 'package:flutter/material.dart';
 
@@ -113,7 +113,7 @@ class AppTheme {
   }
 
   ///获取当前的主题配色配置
-  static getCurrentTheme() {
+  static MaterialColor getCurrentTheme() {
     return defaultColor;
   }
 

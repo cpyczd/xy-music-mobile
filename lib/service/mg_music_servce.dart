@@ -136,7 +136,7 @@ class MgMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
+  bool support(MusicSourceConstant type, {Object? fliter}) {
     return type == MusicSourceConstant.mg;
   }
 }

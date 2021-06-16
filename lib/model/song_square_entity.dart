@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:52:34
- * @LastEditTime: 2021-06-15 21:23:39
+ * @LastEditTime: 2021-06-16 15:09:40
  */
 
 import 'package:xy_music_mobile/model/source_constant.dart';
@@ -171,6 +171,8 @@ class SongSquareInfo {
 
   ///作者
   final String author;
+
+  Map? original;
   SongSquareInfo({
     required this.id,
     required this.playCount,
@@ -181,11 +183,12 @@ class SongSquareInfo {
     this.grade,
     this.desc,
     required this.author,
+    this.original,
   });
 
   SongSquareInfo copyWith({
     String? id,
-    String? payCount,
+    String? playCount,
     String? collectCount,
     String? name,
     String? time,
@@ -193,10 +196,11 @@ class SongSquareInfo {
     double? grade,
     String? desc,
     String? author,
+    Map? original,
   }) {
     return SongSquareInfo(
       id: id ?? this.id,
-      playCount: payCount ?? this.playCount,
+      playCount: playCount ?? this.playCount,
       collectCount: collectCount ?? this.collectCount,
       name: name ?? this.name,
       time: time ?? this.time,
@@ -204,6 +208,7 @@ class SongSquareInfo {
       grade: grade ?? this.grade,
       desc: desc ?? this.desc,
       author: author ?? this.author,
+      original: original ?? this.original,
     );
   }
 
@@ -218,6 +223,7 @@ class SongSquareInfo {
       'grade': grade,
       'desc': desc,
       'author': author,
+      'original': original,
     };
   }
 
@@ -232,6 +238,7 @@ class SongSquareInfo {
       grade: map['grade'],
       desc: map['desc'],
       author: map['author'],
+      original: map['original'],
     );
   }
 
@@ -242,7 +249,7 @@ class SongSquareInfo {
 
   @override
   String toString() {
-    return 'SongSquareInfo(id: $id, payCount: $playCount, collectCount: $collectCount, name: $name, time: $time, img: $img, grade: $grade, desc: $desc, author: $author)';
+    return 'SongSquareInfo(id: $id, playCount: $playCount, collectCount: $collectCount, name: $name, time: $time, img: $img, grade: $grade, desc: $desc, author: $author, original: $original)';
   }
 
   @override
@@ -258,7 +265,8 @@ class SongSquareInfo {
         other.img == img &&
         other.grade == grade &&
         other.desc == desc &&
-        other.author == author;
+        other.author == author &&
+        other.original == original;
   }
 
   @override
@@ -271,7 +279,8 @@ class SongSquareInfo {
         img.hashCode ^
         grade.hashCode ^
         desc.hashCode ^
-        author.hashCode;
+        author.hashCode ^
+        original.hashCode;
   }
 }
 
@@ -344,6 +353,12 @@ class SongSquareMusic {
   ///原始数据
   final Map originalData;
 
+  ///时长
+  int? duration;
+
+  ///时长字符串
+  String? durationStr;
+
   ///源
   final MusicSourceConstant source;
   SongSquareMusic({
@@ -352,6 +367,8 @@ class SongSquareMusic {
     required this.singer,
     required this.album,
     required this.originalData,
+    this.duration,
+    this.durationStr,
     required this.source,
   });
 
@@ -361,6 +378,8 @@ class SongSquareMusic {
     String? singer,
     String? album,
     Map? originalData,
+    int? duration,
+    String? durationStr,
     MusicSourceConstant? source,
   }) {
     return SongSquareMusic(
@@ -369,6 +388,8 @@ class SongSquareMusic {
       singer: singer ?? this.singer,
       album: album ?? this.album,
       originalData: originalData ?? this.originalData,
+      duration: duration ?? this.duration,
+      durationStr: durationStr ?? this.durationStr,
       source: source ?? this.source,
     );
   }
@@ -380,6 +401,8 @@ class SongSquareMusic {
       'singer': singer,
       'album': album,
       'originalData': originalData,
+      'duration': duration,
+      'durationStr': durationStr,
       'source': source.name,
     };
   }
@@ -391,8 +414,10 @@ class SongSquareMusic {
       singer: map['singer'],
       album: map['album'],
       originalData: Map.from(map['originalData']),
+      duration: map['duration'],
+      durationStr: map['durationStr'],
       source: EnumUtil.enumFromString<MusicSourceConstant>(
-          MusicSourceConstant.values, map['source'] as String)!,
+          MusicSourceConstant.values, map["source"])!,
     );
   }
 
@@ -403,7 +428,7 @@ class SongSquareMusic {
 
   @override
   String toString() {
-    return 'SongSquareMusic(id: $id, songName: $songName, singer: $singer, album: $album, originalData: $originalData, source: $source)';
+    return 'SongSquareMusic(id: $id, songName: $songName, singer: $singer, album: $album, originalData: $originalData, duration: $duration, durationStr: $durationStr, source: $source)';
   }
 
   @override
@@ -416,6 +441,8 @@ class SongSquareMusic {
         other.singer == singer &&
         other.album == album &&
         mapEquals(other.originalData, originalData) &&
+        other.duration == duration &&
+        other.durationStr == durationStr &&
         other.source == source;
   }
 
@@ -426,6 +453,8 @@ class SongSquareMusic {
         singer.hashCode ^
         album.hashCode ^
         originalData.hashCode ^
+        duration.hashCode ^
+        durationStr.hashCode ^
         source.hashCode;
   }
 }

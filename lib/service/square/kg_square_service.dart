@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-06-15 23:31:23
+ * @LastEditTime: 2021-06-16 14:56:35
  */
 
 import 'dart:convert';
@@ -12,6 +12,7 @@ import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
 import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 
 ///酷狗歌单Service    Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
 class KgSquareServiceImpl extends SongSquareService {
@@ -33,6 +34,8 @@ class KgSquareServiceImpl extends SongSquareService {
               singer: e["singername"],
               album: e["album_name"],
               source: MusicSourceConstant.kg,
+              duration: e["duration"],
+              durationStr: formatPlayTime(e["duration"] / 1000),
               originalData: e))
           .skip((current - 1) * size)
           .take(size)

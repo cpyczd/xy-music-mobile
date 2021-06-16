@@ -2,11 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 18:29:30
- * @LastEditTime: 2021-06-14 21:00:52
+ * @LastEditTime: 2021-06-16 17:59:50
  */
 import 'dart:async';
 
 import 'package:xy_music_mobile/model/music_entity.dart';
+import 'package:xy_music_mobile/model/song_ranking_list_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 
@@ -27,6 +28,7 @@ abstract class MusicService {
   ///获取音乐详情
   Future<MusicEntity> getMusicPlayUrl(MusicEntity entity);
 
+  ///获取品质
   MusicEntity setQuality(MusicEntity entity, Map map);
 
   ///所支持的播放源
@@ -51,6 +53,21 @@ abstract class SongSquareService {
   ///获取歌单内音乐列表信息
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1});
+
+  ///所支持的播放源
+  bool support(MusicSourceConstant type, Object? fliter);
+}
+
+///歌曲排行榜服务
+abstract class SongRankingService {
+  ///获取到分类数据
+  FutureOr<List<SongRankingListEntity>> getSortList();
+
+  ///获取到歌曲数据列表
+  Future<List<SongRankingListItemEntity>> getSongList(
+      SongRankingListEntity sort,
+      {int size = 10,
+      int current = 1});
 
   ///所支持的播放源
   bool support(MusicSourceConstant type, Object? fliter);

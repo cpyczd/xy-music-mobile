@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-15 23:12:59
+ * @LastEditTime: 2021-06-16 16:43:32
  */
 
 import 'dart:convert';
@@ -14,17 +14,17 @@ import 'package:intl/intl.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
-
+import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 ///网易云歌单解析器   Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
 class WySquareServiceImpl extends SongSquareService {
   ///初始化WebApi工具
-  late final _WyWebApi webApi;
+  late final WyWebApi webApi;
 
   WySquareServiceImpl() {
-    webApi = _WyWebApi();
+    webApi = WyWebApi();
   }
 
   @override
@@ -67,6 +67,8 @@ class WySquareServiceImpl extends SongSquareService {
             singer: (e["ar"] as List).map((e) => e["name"]).join("、"),
             album: e["al"]["name"],
             originalData: e,
+            duration: e["dt"],
+            durationStr: formatPlayTime(e["dt"] / 1000),
             source: MusicSourceConstant.wy))
         .toList();
   }
@@ -160,7 +162,7 @@ class WySquareServiceImpl extends SongSquareService {
 }
 
 ///网易WebAPI 参数加密工具
-class _WyWebApi {
+class WyWebApi {
   final iv = "0102030405060708";
   final presetKey = "0CoJUm6Qyw8W8jud";
   final linuxapiKey = "rFgB&h#%2?^eDg:Q";

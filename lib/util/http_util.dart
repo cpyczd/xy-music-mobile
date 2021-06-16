@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-06-15 23:32:39
+ * @LastEditTime: 2021-06-16 17:31:32
  */
 import 'dart:convert';
 import 'dart:io';
@@ -60,7 +60,8 @@ class HttpUtil {
             "HttpDebug =====> Request: ${response.requestOptions.path} ${response.requestOptions.method}");
         _log.i(
             "HttpDebug =====> --->RequestData: Data:${response.requestOptions.data} Params:${response.requestOptions.queryParameters}");
-        _log.i("HttpDebug =====> --->Response: ${response.data}");
+        _log.i(
+            "HttpDebug =====> --->Response: ${response.statusMessage}-${response.statusCode}  ${response.data}");
         _log.i("HttpDebug =====> END");
         handler.next(response);
       },

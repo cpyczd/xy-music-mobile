@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-06-14 13:50:19
+ * @LastEditTime: 2021-06-16 10:07:57
  */
 
 import 'dart:convert';
@@ -229,11 +229,11 @@ String lrcDecode(String content) {
     0x6e,
     0x69
   ];
-  var str_enc = base64Decode(content).sublist(4);
+  var strEnc = base64Decode(content).sublist(4);
 
-  for (var i = 0, len = str_enc.length; i < len; i++) {
-    str_enc[i] = str_enc[i] ^ hex16[i % 16];
+  for (var i = 0, len = strEnc.length; i < len; i++) {
+    strEnc[i] = strEnc[i] ^ hex16[i % 16];
   }
-  var inflated = zlib.decode(str_enc);
+  var inflated = zlib.decode(strEnc);
   return utf8.decode(inflated);
 }

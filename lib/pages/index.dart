@@ -2,17 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-06-13 23:04:49
+ * @LastEditTime: 2021-06-16 10:56:00
  */
 
-import 'dart:async';
-
-import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
-import 'package:xy_music_mobile/pages/search_page.dart';
+import 'package:hive/hive.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
-import '../application.dart';
 import 'hot_page.dart';
 import 'my_music_page.dart';
 import 'setting_page.dart';
@@ -31,11 +27,13 @@ class _HomePageState extends State<HomePage>
 
   final String _keyPageView = "PageViewKey";
 
-  late DateTime _lastPressedAt; //上次点击时间
+  DateTime? _lastPressedAt; //上次点击时间
 
   @override
   void dispose() {
     disposeDataLine();
+    //关闭Hive存储
+    Hive.close();
     super.dispose();
   }
 
@@ -128,7 +126,7 @@ class _HomePageState extends State<HomePage>
       body: WillPopScope(
         onWillPop: () async {
           if (_lastPressedAt == null ||
-              DateTime.now().difference(_lastPressedAt) >
+              DateTime.now().difference(_lastPressedAt!) >
                   Duration(seconds: 1)) {
             //两次点击间隔超过1秒则重新计时
             _lastPressedAt = DateTime.now();

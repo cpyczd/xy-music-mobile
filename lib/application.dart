@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-14 13:05:51
+ * @LastEditTime: 2021-06-16 11:00:10
  */
 
 import 'package:event_bus/event_bus.dart';
@@ -38,7 +38,7 @@ class Application {
   static void applicationInit() {
     //音乐服务注册
     msr.register();
-    //主题数据注入
+    //主题服务数据注入
     tdr.register();
   }
 }

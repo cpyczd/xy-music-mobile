@@ -147,9 +147,7 @@ class DialogUtil {
   ///关闭加载对话框
   static void closeLoading(BuildContext context) {
     if (_isLoading) {
-      if (context != null) {
-        Navigator.pop(context);
-      }
+      Navigator.pop(context);
       _isLoading = false;
     }
   }

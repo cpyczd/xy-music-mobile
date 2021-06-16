@@ -4,7 +4,7 @@ import 'dart:convert';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 10:51:33
- * @LastEditTime: 2021-06-01 16:02:10
+ * @LastEditTime: 2021-06-16 10:03:57
  */
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -50,7 +50,7 @@ class SqlHelper {
     await getCurrentDatabase();
     var res = await _database!.rawQuery(
         "select * from Sqlite_master where type = 'table' and name = '$tableName'");
-    return res != null && res.length > 0;
+    return res.length > 0;
   }
 
   ///关闭

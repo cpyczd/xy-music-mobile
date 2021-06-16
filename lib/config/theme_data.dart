@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 12:19:08
- * @LastEditTime: 2021-06-14 12:48:17
+ * @LastEditTime: 2021-06-16 11:01:06
  */
 
 import './theme.dart';
@@ -20,6 +20,7 @@ final themes = [
       scaffoldBackgroundColor: 0xFFfafafa)
 ];
 
+///注册服务方法、调用交给Application类去管理
 void register() {
   ThemeConfig.registers(themes);
 }

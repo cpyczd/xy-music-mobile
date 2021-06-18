@@ -13,11 +13,11 @@ import 'package:xy_music_mobile/util/index.dart';
 
 import 'dart:async';
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
+import '../base_music_service.dart';
 import '../square/wy_square_service.dart' show WyWebApi;
-import '../music_service.dart';
 
 ///网易排行榜解析服务  TODO: 数据较大后期加入缓存
-class WyRankingListServiceImpl extends SongRankingService {
+class WyRankingListServiceImpl extends BaseSongRankingService {
   late final WyWebApi webApi;
 
   WyRankingListServiceImpl() {
@@ -163,7 +163,7 @@ class WyRankingListServiceImpl extends SongRankingService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
-    return type == MusicSourceConstant.wy;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.wy;
   }
 }

@@ -10,11 +10,11 @@ import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/model/song_ranking_list_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
-import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
+import '../base_music_service.dart';
 
 ///酷狗排行榜服务
-class KgRankingListServiceImpl extends SongRankingService {
+class KgRankingListServiceImpl extends BaseSongRankingService {
   @override
   Future<List<SongRankingListItemEntity>> getSongList(
       SongRankingListEntity sort,
@@ -115,7 +115,7 @@ class KgRankingListServiceImpl extends SongRankingService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
-    return type == MusicSourceConstant.kg;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.kg;
   }
 }

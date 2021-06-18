@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-16 21:52:52
+ * @LastEditTime: 2021-06-18 23:06:28
  */
 
 import 'dart:convert';
@@ -15,11 +15,11 @@ import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
-import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
+import '../base_music_service.dart';
 
 ///网易云歌单解析器   Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
-class WySquareServiceImpl extends SongSquareService {
+class WySquareServiceImpl extends BaseSongSquareService {
   ///初始化WebApi工具
   late final WyWebApi webApi;
 
@@ -156,8 +156,8 @@ class WySquareServiceImpl extends SongSquareService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
-    return type == MusicSourceConstant.wy;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.wy;
   }
 }
 

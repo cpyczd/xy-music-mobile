@@ -8,11 +8,11 @@
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/service/base_music_service.dart';
 import '/util/index.dart' as util;
 
 ///咪咕音乐
-class MgMusicServiceImpl extends MusicService {
+class MgMusicServiceImpl extends BaseMusicService {
   @override
   Future<String> getLyric(MusicEntity entity) async {
     String lrcUrl = entity.originData["lyricUrl"];
@@ -136,7 +136,7 @@ class MgMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, {Object? fliter}) {
-    return type == MusicSourceConstant.mg;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.mg;
   }
 }

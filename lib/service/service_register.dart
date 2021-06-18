@@ -2,7 +2,7 @@
  * @Description: 服务注册发现
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:00:03
- * @LastEditTime: 2021-06-16 22:27:42
+ * @LastEditTime: 2021-06-18 23:32:07
  */
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
@@ -17,32 +17,32 @@ import 'package:xy_music_mobile/service/wy_music_service.dart';
 ///音乐服务
 void _registerMusicService() {
   ///注册酷狗服务
-  MusicServiceProviderMange.register(KGMusicServiceImpl());
+  musicServiceProviderMange.register(KGMusicServiceImpl());
 
   ///咪咕服务
-  MusicServiceProviderMange.register(MgMusicServiceImpl());
+  musicServiceProviderMange.register(MgMusicServiceImpl());
 
   ///QQ音乐服务
-  MusicServiceProviderMange.register(TxMusicServiceImpl());
+  musicServiceProviderMange.register(TxMusicServiceImpl());
 
   ///网易音乐
-  MusicServiceProviderMange.register(WyMusicServiceImpl());
+  musicServiceProviderMange.register(WyMusicServiceImpl());
 }
 
 ///歌单服务
 void _registerSquareService() {
   ///酷狗歌单服务注册
-  SquareServiceProviderMange.register(KgSquareServiceImpl());
+  squareServiceProviderMange.register(KgSquareServiceImpl());
   //网易歌单
-  SquareServiceProviderMange.register(WySquareServiceImpl());
+  squareServiceProviderMange.register(WySquareServiceImpl());
 }
 
 ///排行榜服务
 void _registerRankingService() {
   ///酷狗排行榜服务注册
-  SongRankingServiceProviderMange.register(KgRankingListServiceImpl());
+  songRankingServiceProviderMange.register(KgRankingListServiceImpl());
   //网易排行榜
-  SongRankingServiceProviderMange.register(WyRankingListServiceImpl());
+  songRankingServiceProviderMange.register(WyRankingListServiceImpl());
 }
 
 ///注册服务方法、调用交给Application类去管理

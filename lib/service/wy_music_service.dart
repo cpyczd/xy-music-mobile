@@ -2,17 +2,17 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-06-16 20:29:33
+ * @LastEditTime: 2021-06-18 23:09:08
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import './square/wy_square_service.dart' show WyWebApi;
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 
-class WyMusicServiceImpl extends MusicService {
+class WyMusicServiceImpl extends BaseMusicService {
   late final WyWebApi webApi;
 
   WyMusicServiceImpl() {
@@ -133,7 +133,7 @@ class WyMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, {Object? fliter}) {
-    return type == MusicSourceConstant.wy;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.wy;
   }
 }

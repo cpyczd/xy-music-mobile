@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 18:29:30
- * @LastEditTime: 2021-06-16 17:59:50
+ * @LastEditTime: 2021-06-18 23:32:24
  */
 import 'dart:async';
 
@@ -11,7 +11,19 @@ import 'package:xy_music_mobile/model/song_ranking_list_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 
-abstract class MusicService {
+///公共抽象类
+abstract class BaseCommon {
+  MusicSourceConstant? supportSource({Object? fliter});
+
+  ///所支持的播放源
+  support(MusicSourceConstant type, {Object? fliter}) {
+    MusicSourceConstant? source = supportSource(fliter: fliter);
+    return source != null && source == type;
+  }
+}
+
+///音乐解析服务抽象类
+abstract class BaseMusicService extends BaseCommon {
   ///搜索
   Future<List<MusicEntity>> searchMusic(String keyword,
       {int size = 10, int current = 0});
@@ -30,13 +42,10 @@ abstract class MusicService {
 
   ///获取品质
   MusicEntity setQuality(MusicEntity entity, Map map);
-
-  ///所支持的播放源
-  bool support(MusicSourceConstant type, {Object? fliter});
 }
 
 ///歌单广场
-abstract class SongSquareService {
+abstract class BaseSongSquareService extends BaseCommon {
   ///返回类别列表信息
   FutureOr<List<SongSquareSort>> getSortList();
 
@@ -53,13 +62,10 @@ abstract class SongSquareService {
   ///获取歌单内音乐列表信息
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1});
-
-  ///所支持的播放源
-  bool support(MusicSourceConstant type, Object? fliter);
 }
 
 ///歌曲排行榜服务
-abstract class SongRankingService {
+abstract class BaseSongRankingService extends BaseCommon {
   ///获取到分类数据
   FutureOr<List<SongRankingListEntity>> getSortList();
 
@@ -68,7 +74,4 @@ abstract class SongRankingService {
       SongRankingListEntity sort,
       {int size = 10,
       int current = 1});
-
-  ///所支持的播放源
-  bool support(MusicSourceConstant type, Object? fliter);
 }

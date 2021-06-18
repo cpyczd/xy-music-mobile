@@ -2,15 +2,16 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-16 23:02:12
+ * @LastEditTime: 2021-06-18 23:31:23
  */
 import 'package:flutter/material.dart';
-import 'package:xy_music_mobile/config/service_manage.dart';
+import 'package:xy_music_mobile/config/service_manage.dart'
+    show musicServiceProviderMange;
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/kg_music_service.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/search_helper.dart';
 
 class SearchPage extends StatefulWidget {
@@ -57,7 +58,7 @@ class _SearchPageState extends State<SearchPage> {
   MusicSourceConstant _source = MusicSourceConstant.kg;
 
   ///支持的播放源
-  late final List<MusicSourceConstant> musicSourceSupport;
+  late final List<MusicSourceConstant?> musicSourceSupport;
 
   @override
   void initState() {
@@ -67,15 +68,7 @@ class _SearchPageState extends State<SearchPage> {
       _loadResultController();
       _loadHotSearchList();
     });
-    musicSourceSupport = MusicSourceConstant.values.where((s) {
-      try {
-        MusicServiceProviderMange.getProviderAll()
-            .firstWhere((element) => element.support(s));
-      } catch (e) {
-        return false;
-      }
-      return true;
-    }).toList();
+    musicSourceSupport = musicServiceProviderMange.getSupportSourceList();
   }
 
   @override
@@ -88,7 +81,7 @@ class _SearchPageState extends State<SearchPage> {
   ///加载热搜排行榜
   void _loadHotSearchList() {
     //从酷狗拉取TopHot
-    MusicService service = KGMusicServiceImpl();
+    BaseMusicService service = KGMusicServiceImpl();
     service
         .getHotSearch()
         .then((value) => setState(() => {_hotKeyword.addAll(value)}));
@@ -391,12 +384,12 @@ class _SearchPageState extends State<SearchPage> {
                   //如果不是之前的源就重置分页为 0
                   if (replaceSource != _source) {
                     _resetSearch();
-                    _source = replaceSource;
+                    _source = replaceSource!;
                   }
                   _onSearch();
                 },
                 isScrollable: true,
-                tabs: musicSourceSupport.map((e) => Text(e.desc)).toList(),
+                tabs: musicSourceSupport.map((e) => Text(e!.desc)).toList(),
               ),
             ),
           ),
@@ -488,8 +481,8 @@ class _SearchPageState extends State<SearchPage> {
     ///切换显示的页面为序号2
     pageIndex = 2;
     //发起搜索
-    MusicService service =
-        MusicServiceProviderMange.getSupportProvider(_source).first;
+    BaseMusicService service =
+        musicServiceProviderMange.getSupportProvider(_source).first;
 
     setState(() {
       _source = _source;

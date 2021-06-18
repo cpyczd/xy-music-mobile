@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-18 16:32:42
+ * @LastEditTime: 2021-06-18 23:31:41
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -59,10 +59,10 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             ? null
             : SongSqurareTagItem(
                 id: item.tagId!, name: "", parentName: "", parentId: "");
-        var list =
-            await SquareServiceProviderMange.getSupportProvider(item.source)
-                .first
-                .getSongSquareInfoList(sort: sort, tag: tag);
+        var list = await squareServiceProviderMange
+            .getSupportProvider(item.source)
+            .first
+            .getSongSquareInfoList(sort: sort, tag: tag);
         getLine<List<SongSquareInfo>>(item.source.name)
             .setData(list.take(_groupItemSize).toList());
       }

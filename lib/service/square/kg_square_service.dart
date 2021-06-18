@@ -11,11 +11,11 @@ import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
+import '../base_music_service.dart';
 
 ///酷狗歌单Service    Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
-class KgSquareServiceImpl extends SongSquareService {
+class KgSquareServiceImpl extends BaseSongSquareService {
   @override
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1}) async {
@@ -113,7 +113,7 @@ class KgSquareServiceImpl extends SongSquareService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
-    return type == MusicSourceConstant.kg;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.kg;
   }
 }

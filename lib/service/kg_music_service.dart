@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-06-16 10:07:57
+ * @LastEditTime: 2021-06-18 23:07:43
  */
 
 import 'dart:convert';
@@ -11,11 +11,10 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
-
-import 'music_service.dart';
+import 'base_music_service.dart';
 import '/util/index.dart' as util;
 
-class KGMusicServiceImpl extends MusicService {
+class KGMusicServiceImpl extends BaseMusicService {
   ///默认请求配置
   final Options _options = Options(headers: {
     "KG-RC": "1",
@@ -205,8 +204,8 @@ class KGMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, {Object? fliter}) {
-    return type == MusicSourceConstant.kg;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.kg;
   }
 }
 

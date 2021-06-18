@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-24 14:33:31
- * @LastEditTime: 2021-06-16 20:30:21
+ * @LastEditTime: 2021-06-18 23:08:38
  */
 import 'dart:convert';
 
@@ -10,11 +10,11 @@ import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 
-import 'music_service.dart';
+import 'base_music_service.dart';
 import '/util/index.dart' as util;
 
 ///QQ音乐解析服务
-class TxMusicServiceImpl extends MusicService {
+class TxMusicServiceImpl extends BaseMusicService {
   @override
   Future<String> getLyric(MusicEntity entity) async {
     Map result = await util.HttpUtil.get(
@@ -144,7 +144,7 @@ class TxMusicServiceImpl extends MusicService {
   }
 
   @override
-  bool support(MusicSourceConstant type, {Object? fliter}) {
-    return type == MusicSourceConstant.tx;
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.tx;
   }
 }

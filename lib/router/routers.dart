@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-13 23:36:49
+ * @LastEditTime: 2021-06-18 16:15:15
  */
 import 'package:fluro/fluro.dart';
 import 'router_handler.dart';
@@ -13,10 +13,8 @@ class Routers {
     _defineRouter(router, "/", homePage);
     _defineRouter(router, "/player", playerPage);
     _defineRouter(router, "/search", searchPage);
-    // _defineRouter(router, "/register", registerHandler);
-    // _defineRouter(router, "/", startHandler);
-    // _defineRouter(router, "/renewal", renewalHandler);
-    // _defineRouter(router, "/index", indexHandler);
+    _defineRouter(router, "/squareInfoPage", squareInfoPage);
+    _defineRouter(router, "/squareListPage", squareListPage);
     // _defineRouter(router, "/detail/:index", chatDetailHandler);
   }
 

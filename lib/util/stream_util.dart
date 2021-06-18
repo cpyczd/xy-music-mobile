@@ -63,12 +63,13 @@ class _DataObserverWidgetState<T> extends State<DataObserverWidget<T>> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
+      initialData: widget.dataLine.currentData,
       stream: widget.dataLine.outer,
       builder: (context, AsyncSnapshot snapshot) {
-        if (snapshot != null && snapshot.data != null) {
+        if (snapshot.data != null) {
           return widget.observer(context, snapshot.data as T);
         } else {
-          return Row();
+          return Container();
         }
       },
     );

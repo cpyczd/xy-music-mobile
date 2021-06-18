@@ -4,7 +4,7 @@ import 'dart:convert';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-13 22:25:23
- * @LastEditTime: 2021-06-16 20:34:30
+ * @LastEditTime: 2021-06-18 17:15:02
  */
 import 'package:flutter/material.dart';
 
@@ -110,6 +110,11 @@ class AppTheme {
   static MaterialColor findTheme(String name) {
     return ThemeConfig._themes
         .firstWhere((element) => element.themeName == name);
+  }
+
+  ///颜色取反
+  static Color reversal(int colorHex16, {double opacity = 1}) {
+    return Color(0x00ffffff - colorHex16).withOpacity(opacity);
   }
 
   ///获取当前的主题配色配置

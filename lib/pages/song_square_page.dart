@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-16 23:17:01
+ * @LastEditTime: 2021-06-18 16:32:42
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
@@ -24,9 +25,48 @@ class SongSquarePage extends StatefulWidget {
 }
 
 class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
+  ///展示的歌单列表配置
+  final List<_LoadSquareGroup> _groups = [
+    _LoadSquareGroup(
+        name: "网易最热",
+        source: MusicSourceConstant.wy,
+        sortId: "hot",
+        tagId: "华语"),
+    _LoadSquareGroup(
+      name: "酷狗推荐",
+      source: MusicSourceConstant.kg,
+      sortId: "5",
+    ),
+    _LoadSquareGroup(name: "酷狗最热", source: MusicSourceConstant.kg, sortId: "6"),
+  ];
+
+  ///每组展示的个数
+  final int _groupItemSize = 4;
+
+  late BuildContext _context;
+
   @override
   void initState() {
+    log.d("InitState 被调用 =>> SongSquarePage");
     super.initState();
+    Future.delayed(Duration.zero).then((value) async {
+      for (var item in _groups) {
+        var sort = item.sortId == null
+            ? null
+            : SongSquareSort(id: item.sortId!, name: "");
+
+        var tag = item.tagId == null
+            ? null
+            : SongSqurareTagItem(
+                id: item.tagId!, name: "", parentName: "", parentId: "");
+        var list =
+            await SquareServiceProviderMange.getSupportProvider(item.source)
+                .first
+                .getSongSquareInfoList(sort: sort, tag: tag);
+        getLine<List<SongSquareInfo>>(item.source.name)
+            .setData(list.take(_groupItemSize).toList());
+      }
+    });
   }
 
   @override
@@ -37,6 +77,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
 
   @override
   Widget build(BuildContext context) {
+    _context = context;
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -62,11 +103,14 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
         delegate: SliverChildListDelegate([
           TextIconButton(
-              icon: Icon(
-                Icons.all_inbox_sharp,
-                color: Color(AppTheme.getCurrentTheme().primaryColor),
-              ),
-              text: "全部歌单"),
+            icon: Icon(
+              Icons.all_inbox_sharp,
+              color: Color(AppTheme.getCurrentTheme().primaryColor),
+            ),
+            text: "全部歌单",
+            onPressed: () =>
+                Application.navigateToIos(_context, "/squareListPage"),
+          ),
           TextIconButton(
               icon: Icon(Icons.input_outlined,
                   color: Color(AppTheme.getCurrentTheme().primaryColor)),
@@ -119,41 +163,20 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
   }
 
   Widget _squareList() {
-    return CustomScrollView(slivers: <Widget>[
-      _createBtnAction(),
-      SliverPadding(
-        padding: EdgeInsets.only(bottom: 20),
-        sliver: _createSuqareWidgetItem(
-            title: "网易最热",
-            source: MusicSourceConstant.wy,
-            sortId: "hot",
-            tagId: "华语"),
-      ),
-      SliverPadding(
-          padding: EdgeInsets.only(bottom: 20),
-          sliver: _createSuqareWidgetItem(
-              title: "酷狗推荐", source: MusicSourceConstant.kg, sortId: "5")),
-      SliverPadding(
-        padding: EdgeInsets.only(bottom: 20),
-        sliver: _createSuqareWidgetItem(
-            title: "酷狗最热", source: MusicSourceConstant.kg, sortId: "6"),
-      )
-    ]);
+    return CustomScrollView(
+        physics: BouncingScrollPhysics(),
+        slivers: <Widget>[
+          _createBtnAction(),
+        ]..addAll(_groups
+            .map((e) => SliverPadding(
+                  padding: EdgeInsets.only(bottom: 20),
+                  sliver: _createSquareWidgetItem(e),
+                ))
+            .toList()));
   }
 
   ///创建一个Sliver
-  Widget _createSuqareWidgetItem(
-      {required String title,
-      required MusicSourceConstant source,
-      String? sortId,
-      String? tagId,
-      VoidCallback? moreCallBack,
-      GestureTapCallback? clickItemCallBack}) {
-    var sort = sortId == null ? null : SongSquareSort(id: sortId, name: "");
-
-    var tag = tagId == null
-        ? null
-        : SongSqurareTagItem(id: tagId, name: "", parentName: "", parentId: "");
+  Widget _createSquareWidgetItem(_LoadSquareGroup data) {
     return SliverStickyHeader(
       overlapsContent: false,
       header: Container(
@@ -165,7 +188,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              title,
+              data.name,
               style: const TextStyle(
                   color: Colors.black,
                   fontSize: 18,
@@ -173,63 +196,74 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             ),
             TextButton(
               child: Text("更多"),
-              onPressed: moreCallBack,
+              onPressed: data.moreCallBack,
             ),
           ],
         ),
       ),
-      sliver: FutureBuilder<List<SongSquareInfo>>(
-        future: SquareServiceProviderMange.getSupportProvider(source)
-            .first
-            .getSongSquareInfoList(sort: sort, tag: tag),
-        builder: (context, snapshot) {
-          late List<SongSquareInfo> list;
-          int index = 0;
-          if (snapshot.connectionState == ConnectionState.done &&
-              snapshot.hasData) {
-            list = snapshot.data!.sublist(
-                0, snapshot.data!.length < 4 ? snapshot.data!.length : 4);
-            index = list.length;
-          }
-          return SliverGrid(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, mainAxisSpacing: 20),
-              delegate:
-                  SliverChildBuilderDelegate((BuildContext context, int index) {
-                var item = list[index];
-                return GestureDetector(
-                  onTap: clickItemCallBack,
-                  child: Container(
-                    width: 131,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: item.img,
-                            fit: BoxFit.cover,
-                          ),
-                        )),
-                        Padding(
-                          padding: EdgeInsets.only(top: 6, left: 10, right: 10),
-                          child: Text(
-                            item.name,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: Color.fromRGBO(7, 18, 23, 1),
-                                fontSize: 12),
-                          ),
-                        )
-                      ],
-                    ),
+      sliver: getLine<List<SongSquareInfo>>(data.source.name, initData: [])
+          .addObserver((context, list) {
+        return SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, mainAxisSpacing: 20),
+            delegate:
+                SliverChildBuilderDelegate((BuildContext context, int index) {
+              var item = list[index];
+              return GestureDetector(
+                onTap: data.clickItemCallBack,
+                child: Container(
+                  width: 131,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                          child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: item.img,
+                          fit: BoxFit.cover,
+                        ),
+                      )),
+                      Padding(
+                        padding: EdgeInsets.only(top: 6, left: 10, right: 10),
+                        child: Text(
+                          item.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Color.fromRGBO(7, 18, 23, 1),
+                              fontSize: 12),
+                        ),
+                      )
+                    ],
                   ),
-                );
-              }, childCount: index));
-        },
-      ),
+                ),
+              );
+            }, childCount: list.length));
+      }),
     );
   }
+}
+
+class _LoadSquareGroup {
+  final String name;
+
+  final MusicSourceConstant source;
+
+  String? sortId;
+
+  String? tagId;
+
+  VoidCallback? moreCallBack;
+
+  GestureTapCallback? clickItemCallBack;
+
+  _LoadSquareGroup({
+    required this.name,
+    required this.source,
+    this.sortId,
+    this.tagId,
+    this.moreCallBack,
+    this.clickItemCallBack,
+  });
 }

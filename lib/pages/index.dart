@@ -27,7 +27,8 @@ class _HomePageState extends State<HomePage>
 
   final String _keyPageView = "PageViewKey";
 
-  DateTime? _lastPressedAt; //上次点击时间
+  //上次点击时间
+  DateTime? _lastPressedAt;
 
   @override
   void dispose() {
@@ -62,6 +63,7 @@ class _HomePageState extends State<HomePage>
     getLine(_keyPageView).inner.add(index);
   }
 
+  @mustCallSuper
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,43 +88,6 @@ class _HomePageState extends State<HomePage>
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: "设置")
         ],
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   child: Icon(Icons.play_arrow),
-      //   backgroundColor: Colors.redAccent.shade100,
-      //   onPressed: () {
-      //     // Application.navigateToIos(context, "/player");
-      //     Application.router.navigateTo(context, "/player",
-      //         transition: TransitionType.inFromBottom);
-      //   },
-      // ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      // bottomNavigationBar: SizedBox(
-      //   height: 100,
-      //   width: double.infinity,
-      //   child: BottomAppBar(
-      //     shape: CircularNotchedRectangle(),
-      //     child: Row(
-      //       mainAxisAlignment: MainAxisAlignment.spaceAround,
-      //       children: <Widget>[
-      //         IconButton(
-      //           icon: Icon(Icons.music_note_outlined),
-      //           onPressed: () => _change(0),
-      //         ),
-      //         IconButton(
-      //             icon: Icon(Icons.hot_tub), onPressed: () => _change(1)),
-      //         IconButton(
-      //             icon: Icon(Icons.my_library_add),
-      //             onPressed: () => _change(2)),
-      //         // TextIconButton(
-      //         //     icon: Icon(Icons.search),
-      //         //     text: "搜索",
-      //         //     onPressed: () => _change(4)),
-      //         IconButton(
-      //             icon: Icon(Icons.settings), onPressed: () => _change(3)),
-      //       ],
-      //     ),
-      //   ),
-      // ),
       body: WillPopScope(
         onWillPop: () async {
           if (_lastPressedAt == null ||

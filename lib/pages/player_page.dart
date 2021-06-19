@@ -119,25 +119,25 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
         Row(
           children: [
             getLine<String>(_startTimeKey, initData: "00:00")
-                .addObserver((context, data) => Text(
-                      data,
+                .addObserver((context, pack) => Text(
+                      pack.data!,
                       style: TextStyle(color: Colors.white60, fontSize: 10),
                     )),
             Expanded(
                 child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 5),
                     child: getLine(_controll, initData: 0.1)
-                        .addObserver((context, data) => Slider(
-                              value: data,
+                        .addObserver((context, pack) => Slider(
+                              value: pack.data!,
                               inactiveColor: Colors.grey.shade600,
                               activeColor: Colors.white,
                               onChanged: (double value) {
-                                getLine(_controll).inner.add(value);
+                                getLine(_controll).setData(value);
                               },
                             )))),
             getLine<String>(_startTimeKey, initData: "00:00")
-                .addObserver((context, data) => Text(
-                      data,
+                .addObserver((context, pack) => Text(
+                      pack.data!,
                       style: TextStyle(color: Colors.white60, fontSize: 10),
                     )),
           ],

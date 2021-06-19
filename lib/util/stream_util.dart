@@ -2,44 +2,131 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:33:42
- * @LastEditTime: 2021-06-01 23:20:29
+ * @LastEditTime: 2021-06-20 00:09:44
  */
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
-typedef SingleDataObserver<T> = Widget Function(BuildContext context, T data);
+typedef SingleDataObserver<T> = Widget Function(
+    BuildContext context, SinglePackageData<T> pack);
+
+class SinglePackageData<T> {
+  T? data;
+  dynamic params;
+  Widget? waitWidget;
+
+  SinglePackageData({
+    this.data,
+    this.params,
+    this.waitWidget,
+  });
+
+  @override
+  String toString() =>
+      'SinglePackageData(data: $data, params: $params, waitWidget: $waitWidget)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is SinglePackageData<T> &&
+        other.data == data &&
+        other.params == params &&
+        other.waitWidget == waitWidget;
+  }
+
+  @override
+  int get hashCode => data.hashCode ^ params.hashCode ^ waitWidget.hashCode;
+
+  SinglePackageData<T> copyWith({
+    T? data,
+    dynamic params,
+    Widget? waitWidget,
+  }) {
+    return SinglePackageData<T>(
+      data: data ?? this.data,
+      params: params ?? this.params,
+      waitWidget: waitWidget ?? this.waitWidget,
+    );
+  }
+}
 
 class SingleDataLine<T> {
-  late final StreamController<T> _stream;
+  late final StreamController<SinglePackageData<T>> _stream;
 
   //拿到当前最新的数据
-  T? currentData;
+  SinglePackageData<T>? currentData;
 
-  SingleDataLine({T? initData}) {
+  SingleDataLine({SinglePackageData<T>? initData}) {
     currentData = initData;
-    _stream = initData == null
-        ? BehaviorSubject<T>()
-        : BehaviorSubject<T>.seeded(initData);
+    _stream = (initData == null)
+        ? BehaviorSubject<SinglePackageData<T>>()
+        : BehaviorSubject<SinglePackageData<T>>.seeded(initData);
   }
 
-  Stream<T> get outer => _stream.stream;
+  Stream<SinglePackageData<T>> get outer => _stream.stream;
 
-  StreamSink<T> get inner => _stream.sink;
+  StreamSink<SinglePackageData<T>> get inner => _stream.sink;
 
-  void setData(T t) {
+  ///设置主数据
+  void setData(T? t) {
     //同值过滤
     if (t == currentData) return;
+    if (currentData != null && t == currentData!.data) return;
     //防止关闭
     if (_stream.isClosed) return;
-    currentData = t;
-    inner.add(t);
+    if (currentData == null) {
+      currentData = SinglePackageData(data: t);
+    } else {
+      currentData?.data = t!;
+    }
+    inner.add(currentData!);
   }
 
-  Widget addObserver(
-    Widget Function(BuildContext context, T data) observer,
-  ) {
+  ///设置其他参数
+  void setParams(dynamic params) {
+    //同值过滤
+    if (params == currentData) return;
+    if (currentData != null && params == currentData!.params) return;
+    //防止关闭
+    if (_stream.isClosed) return;
+    if (currentData == null) {
+      currentData = SinglePackageData(params: params);
+    } else {
+      currentData?.data = params;
+    }
+    inner.add(currentData!);
+  }
+
+  ///设置Wiget
+  void setWaitWidget(Widget? widget) {
+    //同值过滤
+    if (currentData != null && widget == currentData!.waitWidget) return;
+    //防止关闭
+    if (_stream.isClosed) return;
+    if (currentData == null) {
+      currentData = SinglePackageData(waitWidget: widget);
+    } else {
+      currentData?.waitWidget = widget;
+    }
+    inner.add(currentData!);
+  }
+
+  ///设置全部数据 根据不为空的进行选择
+  void setSignlePackage(SinglePackageData<T> copy) {
+    if (currentData == copy) return;
+    if (currentData == null) {
+      currentData = copy;
+    } else {
+      currentData = currentData!.copyWith(
+          data: copy.data, params: copy.params, waitWidget: copy.waitWidget);
+    }
+    inner.add(currentData!);
+  }
+
+  Widget addObserver(SingleDataObserver<T> observer) {
     return DataObserverWidget<T>(this, observer);
   }
 
@@ -66,10 +153,17 @@ class _DataObserverWidgetState<T> extends State<DataObserverWidget<T>> {
       initialData: widget.dataLine.currentData,
       stream: widget.dataLine.outer,
       builder: (context, AsyncSnapshot snapshot) {
-        if (snapshot.data != null) {
-          return widget.observer(context, snapshot.data as T);
+        if (snapshot.data != null &&
+            (snapshot.data as SinglePackageData<T>).data != null) {
+          return widget.observer(
+              context, snapshot.data as SinglePackageData<T>);
         } else {
-          return Container();
+          if (snapshot.data == null) {
+            return Container();
+          } else {
+            var v = snapshot.data as SinglePackageData<T>;
+            return v.waitWidget ?? Container();
+          }
         }
       },
     );
@@ -85,12 +179,40 @@ class _DataObserverWidgetState<T> extends State<DataObserverWidget<T>> {
 mixin MultDataLine {
   final Map<String, SingleDataLine> dataBus = Map();
 
-  SingleDataLine<T> getLine<T>(String key, {T? initData}) {
+  SingleDataLine<T> getLine<T>(String key,
+      {T? initData, dynamic initpParams, Widget? waitWidget}) {
     if (!dataBus.containsKey(key)) {
-      SingleDataLine<T> dataLine = new SingleDataLine<T>(initData: initData);
+      SingleDataLine<T> dataLine = new SingleDataLine<T>(
+          initData: SinglePackageData(
+              data: initData, params: initpParams, waitWidget: waitWidget));
       dataBus[key] = dataLine;
     }
     return dataBus[key] as SingleDataLine<T>;
+  }
+
+  ///使用Futuer初始化数据并返回构建的 observer对象
+  FutureBuilder getLineForInitFuture<T>(String key,
+      {required Future<T> initData,
+      required SingleDataObserver<T> observer,
+      dynamic initpParams,
+      Widget? waitWidget}) {
+    return FutureBuilder(
+        future: initData,
+        builder: (context, s) {
+          if (s.connectionState == ConnectionState.done && s.hasData) {
+            if (!dataBus.containsKey(key)) {
+              SingleDataLine<T> dataLine = new SingleDataLine<T>(
+                  initData: SinglePackageData(
+                      data: s.data,
+                      params: initpParams,
+                      waitWidget: waitWidget));
+              dataBus[key] = dataLine;
+            }
+            var signler = dataBus[key] as SingleDataLine<T>;
+            return signler.addObserver(observer);
+          }
+          return waitWidget ?? Container();
+        });
   }
 
   void disposeDataLine() {

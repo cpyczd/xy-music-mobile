@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-18 23:31:41
+ * @LastEditTime: 2021-06-19 23:49:47
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -202,13 +202,13 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
         ),
       ),
       sliver: getLine<List<SongSquareInfo>>(data.source.name, initData: [])
-          .addObserver((context, list) {
+          .addObserver((context, pack) {
         return SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2, mainAxisSpacing: 20),
             delegate:
                 SliverChildBuilderDelegate((BuildContext context, int index) {
-              var item = list[index];
+              var item = pack.data![index];
               return GestureDetector(
                 onTap: data.clickItemCallBack,
                 child: Container(
@@ -239,7 +239,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
                   ),
                 ),
               );
-            }, childCount: list.length));
+            }, childCount: pack.data!.length));
       }),
     );
   }

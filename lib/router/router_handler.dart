@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-05-22 16:44:45
+ * @LastEditTime: 2021-06-20 00:40:17
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +33,11 @@ Handler playerPage = Handler(
 ///歌单列表页面
 Handler squareListPage = Handler(
     handlerFunc: (BuildContext? context, Map<String, List<String>> parameters) {
-  return SquareListPage();
+  var arguments;
+  if (context!.settings?.arguments != null) {
+    arguments = (context.settings?.arguments as SquareListPageArauments);
+  }
+  return SquareListPage(arauments: arguments);
 });
 
 ///歌单歌曲详情页面

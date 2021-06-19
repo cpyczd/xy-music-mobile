@@ -101,9 +101,9 @@ class _HomePageState extends State<HomePage>
           return true;
         },
         child: getLine(_keyPageView, initData: _currentIndex)
-            .addObserver((context, data) => IndexedStack(
+            .addObserver((context, pack) => IndexedStack(
                   children: _getPageViewWidget(),
-                  index: data,
+                  index: pack.data!,
                 )),
       ),
     );

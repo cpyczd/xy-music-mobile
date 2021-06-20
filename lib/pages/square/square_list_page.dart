@@ -369,11 +369,14 @@ class _SquareListPageState extends State<SquareListPage>
                     shrinkWrap: true,
                     itemBuilder: (c, i) => ListTile(
                           onTap: () {
+                            _overlayEntry.remove();
+
+                            ///同值过滤
+                            if (sourceList[i]! == _source) return;
                             _source = sourceList[i]!;
                             _service = squareServiceProviderMange
                                 .getSupportProvider(_source)
                                 .first;
-                            _overlayEntry.remove();
                             var sortList =
                                 _service.getSortList() as List<SongSquareSort>;
                             getLine(_sourceStreamKey).setData(_source.desc);

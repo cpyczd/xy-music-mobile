@@ -1,17 +1,21 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/application.dart';
 
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
+import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 
 /*
  * @Description: 歌单页
  * @Author: chenzedeng
  * @Date: 2021-06-18 16:12:23
- * @LastEditTime: 2021-06-20 00:33:44
+ * @LastEditTime: 2021-06-20 16:26:31
  */
 class SquareListPage extends StatefulWidget {
   final SquareListPageArauments? arauments;
@@ -41,7 +45,11 @@ class _SquareListPageState extends State<SquareListPage>
   ///歌单类别 Stream Key
   String _sortStreamKey = "_sortStreamKey";
 
+  ///歌单列表Key
   String _infoStreamKey = "_infoStreamKey";
+
+  ///加载中的Key
+  String _loadInfoStreamKey = "_loadInfoStreamKey";
 
   ///获取所有支持的歌单服务
   final sourceList = squareServiceProviderMange.getSupportSourceList();
@@ -52,17 +60,35 @@ class _SquareListPageState extends State<SquareListPage>
   ///当前的类别
   SongSquareSort? _squareSort;
 
-  ///当前的Tag
-  SongSqurareTag? _squareTag;
+  ///当前的选择Tag
+  SongSqurareTagItem? _squareTagItem;
+
+  ///获取的Tags列表对象
+  List<SongSqurareTag>? _squrareTags;
+
+  ///分页页码
+  int _pageIndex = 1;
+
+  ///分页大小
+  int _pageSize = 30;
 
   @override
   void initState() {
-    _source = widget.arauments?.paramsSource ?? MusicSourceConstant.wy;
-    //默认为酷狗源
+    _source = widget.arauments?.paramsSource ?? MusicSourceConstant.kg;
     _service = squareServiceProviderMange.getSupportProvider(_source).first;
+
+    ///取页面传递来的值进行判断是否进行赋值为初始请求值
+    if (widget.arauments?.paramsSort != null) {
+      _squareSort = (_service.getSortList() as List<SongSquareSort>)
+          .firstWhere((element) => element.id == widget.arauments!.paramsSort);
+    } else {
+      _squareSort = (_service.getSortList() as List<SongSquareSort>)[0];
+    }
     super.initState();
     Future.delayed(Duration.zero).then((value) {
       _createOverlay();
+      _loadInfoList();
+      _loadTags();
     });
   }
 
@@ -74,6 +100,37 @@ class _SquareListPageState extends State<SquareListPage>
     }
     _tabController?.dispose();
     super.dispose();
+  }
+
+  ///加载歌单列表
+  void _loadInfoList() {
+    getLine(_loadInfoStreamKey).setData(true);
+    _service
+        .getSongSquareInfoList(
+            sort: _squareSort,
+            tag: _squareTagItem,
+            page: _pageIndex,
+            size: _pageSize)
+        .then((value) {
+      getLine(_loadInfoStreamKey).setData(false);
+      var siginer = getLine<List<SongSquareInfo>>(_infoStreamKey);
+      List<SongSquareInfo> list;
+      if (!siginer.hasData()) {
+        list = value;
+      } else {
+        list = siginer.getData()!;
+        list.addAll(value);
+      }
+      siginer.setData(list);
+      siginer.forceRefresh();
+    }).catchError((e) => ToastUtil.show(msg: e.toString()));
+  }
+
+  ///加载标签
+  void _loadTags() {
+    _service.getTags().then((value) {
+      _squrareTags = value;
+    });
   }
 
   @override
@@ -134,27 +191,97 @@ class _SquareListPageState extends State<SquareListPage>
 
   ///列表主页
   Widget _infoList() {
-    return getLine<List<SongSquareInfo>>(_infoStreamKey,
-        waitWidget: Center(
-            child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox(
-              width: 24.0,
-              height: 24.0,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.0,
-              )),
-        ))).addObserver((context, pack) => GridView.builder(
-        itemCount: pack.data!.length, //预留一个位置给上拉加载的加载框
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, mainAxisSpacing: 10),
-        itemBuilder: (c, i) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [],
-          );
-        }));
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      child: CustomScrollView(
+        physics: BouncingScrollPhysics(),
+        slivers: [
+          getLine<List<SongSquareInfo>>(_infoStreamKey,
+                  initData: <SongSquareInfo>[])
+              .addObserver((context, pack) => SliverGrid(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 15,
+                        childAspectRatio: .74),
+                    delegate: SliverChildBuilderDelegate((c, i) {
+                      if (i >= pack.data!.length - 1) {
+                        //加载数据
+                        _pageIndex++;
+                        _loadInfoList();
+                      }
+                      var item = pack.data![i];
+                      return Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            height: 100,
+                            constraints:
+                                BoxConstraints(minHeight: 100, maxHeight: 100),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(5),
+                                image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image:
+                                        CachedNetworkImageProvider(item.img))),
+                          ),
+                          Expanded(
+                              child: Padding(
+                            padding: EdgeInsets.only(top: 0),
+                            child: Text(
+                              item.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.reversal(
+                                      AppTheme.getCurrentTheme()
+                                          .scaffoldBackgroundColor)),
+                            ),
+                          ))
+                        ],
+                      );
+                    }, childCount: pack.data!.length),
+                  )),
+          getLine<bool>(_loadInfoStreamKey, initData: true)
+              .addObserver((context, pack) => SliverPadding(
+                  padding: EdgeInsets.only(top: 8),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate((c, i) {
+                      return Container(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Center(
+                                child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: SizedBox(
+                                  width: 24.0,
+                                  height: 24.0,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0,
+                                  )),
+                            )),
+                            Padding(
+                              padding: EdgeInsets.only(top: 5),
+                              child: Text(
+                                "加载中...",
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppTheme.reversal(
+                                        AppTheme.getCurrentTheme()
+                                            .scaffoldBackgroundColor)),
+                              ),
+                            )
+                          ],
+                        ),
+                      );
+                    }, childCount: pack.data! ? 1 : 0),
+                  )))
+        ],
+      ),
+    );
   }
 
   ///标题TabBar选择栏
@@ -169,22 +296,19 @@ class _SquareListPageState extends State<SquareListPage>
               child: getLine<List<SongSquareSort>>(_sortStreamKey,
                       initData: sortList)
                   .addObserver((context, pack) {
-            var index = 0;
-            if (widget.arauments?.paramsSort != null) {
-              index = pack.data!.indexWhere(
-                  (element) => element.id == widget.arauments?.paramsSort);
-              if (index == -1) {
-                index = 0;
-              }
-              widget.arauments?.paramsSort = null;
-            }
+            var index = (_service.getSortList() as List<SongSquareSort>)
+                .indexWhere((element) => element == _squareSort);
             _tabController = TabController(
                 length: pack.data!.length, vsync: this, initialIndex: index);
             return TabBar(
                 onTap: (value) {
-                  //类别点击切换类别
+                  //同值过滤
+                  if (_squareSort == pack.data![value]) return;
                   _squareSort = pack.data![value];
-                  //TODO 类别点击后的事件切换
+                  _squareTagItem = null;
+                  _pageIndex = 1;
+                  getLine(_infoStreamKey).setData(<SongSquareInfo>[]);
+                  _loadInfoList();
                 },
                 controller: _tabController,
                 physics: BouncingScrollPhysics(),
@@ -205,7 +329,20 @@ class _SquareListPageState extends State<SquareListPage>
           Padding(
             padding: EdgeInsets.only(left: 8),
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                if (_squrareTags != null) {
+                  Application.navigateToIos(context, "/squareTagSelected",
+                          params: _squrareTags)
+                      .then((value) {
+                    if (value != null) {
+                      _squareTagItem = value;
+                      _pageIndex = 1;
+                      getLine(_infoStreamKey).setData(<SongSquareInfo>[]);
+                      _loadInfoList();
+                    }
+                  });
+                }
+              },
               icon: Icon(Icons.menu_sharp),
             ),
           )
@@ -237,9 +374,18 @@ class _SquareListPageState extends State<SquareListPage>
                                 .getSupportProvider(_source)
                                 .first;
                             _overlayEntry.remove();
+                            var sortList =
+                                _service.getSortList() as List<SongSquareSort>;
                             getLine(_sourceStreamKey).setData(_source.desc);
-                            getLine(_sortStreamKey).setData(
-                                _service.getSortList() as List<SongSquareSort>);
+                            getLine(_sortStreamKey).setData(sortList);
+
+                            ///给定初始化的Sort
+                            _squareSort = sortList[0];
+                            _squareTagItem = null;
+                            _pageIndex = 1;
+                            getLine(_infoStreamKey).setData(<SongSquareInfo>[]);
+                            _loadTags();
+                            _loadInfoList();
                           },
                           title: Text(
                             sourceList[i]!.desc,

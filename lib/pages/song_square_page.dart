@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-19 23:49:47
+ * @LastEditTime: 2021-06-20 23:16:15
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +13,7 @@ import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/pages/square/square_list_page.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
 
@@ -196,7 +197,9 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             ),
             TextButton(
               child: Text("更多"),
-              onPressed: data.moreCallBack,
+              onPressed: () {
+                data.moreClick!(context, data);
+              },
             ),
           ],
         ),
@@ -210,7 +213,11 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
                 SliverChildBuilderDelegate((BuildContext context, int index) {
               var item = pack.data![index];
               return GestureDetector(
-                onTap: data.clickItemCallBack,
+                onTap: () {
+                  if (data.squareInfoClick != null) {
+                    data.squareInfoClick!(context, item);
+                  }
+                },
                 child: Container(
                   width: 131,
                   child: Column(
@@ -245,6 +252,10 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
   }
 }
 
+typedef void _MoreClickHandler(BuildContext context, _LoadSquareGroup group);
+
+typedef void _SquareInfoClickHandler(BuildContext context, SongSquareInfo info);
+
 class _LoadSquareGroup {
   final String name;
 
@@ -254,16 +265,24 @@ class _LoadSquareGroup {
 
   String? tagId;
 
-  VoidCallback? moreCallBack;
+  _MoreClickHandler? moreClick = (context, group) {
+    Application.navigateToIos(context, "/squareListPage",
+        params: SquareListPageArauments(
+            paramsSource: group.source, paramsSort: group.sortId));
+  };
 
-  GestureTapCallback? clickItemCallBack;
+  _SquareInfoClickHandler? squareInfoClick;
 
   _LoadSquareGroup({
     required this.name,
     required this.source,
     this.sortId,
     this.tagId,
-    this.moreCallBack,
-    this.clickItemCallBack,
-  });
+    _MoreClickHandler? moreClick,
+    this.squareInfoClick,
+  }) {
+    if (moreClick != null) {
+      this.moreClick = moreClick;
+    }
+  }
 }

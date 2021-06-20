@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-06-16 14:56:35
+ * @LastEditTime: 2021-06-20 16:48:22
  */
 
 import 'dart:convert';
@@ -57,7 +57,7 @@ class KgSquareServiceImpl extends BaseSongSquareService {
           "cdn": "cdn",
           "t": sort?.id ?? "",
           "c": tag?.id ?? "",
-          "p": page
+          "p": page - 1
         });
     if (resp["status"] != 1) {
       Future.error("获取失败");
@@ -79,6 +79,7 @@ class KgSquareServiceImpl extends BaseSongSquareService {
   @override
   FutureOr<List<SongSquareSort>> getSortList() {
     return [
+      SongSquareSort(id: "", name: "全部"),
       SongSquareSort(id: "5", name: "推荐"),
       SongSquareSort(id: "6", name: "最热"),
       SongSquareSort(id: "7", name: "最新"),

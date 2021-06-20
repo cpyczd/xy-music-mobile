@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:33:42
- * @LastEditTime: 2021-06-20 00:09:44
+ * @LastEditTime: 2021-06-20 16:28:18
  */
 import 'dart:async';
 
@@ -128,6 +128,25 @@ class SingleDataLine<T> {
 
   Widget addObserver(SingleDataObserver<T> observer) {
     return DataObserverWidget<T>(this, observer);
+  }
+
+  ///获取Data数据
+  T? getData() {
+    return currentData?.data;
+  }
+
+  ///是否有数据存在
+  bool hasData() {
+    return currentData != null && currentData!.data != null;
+  }
+
+  ///强制刷新
+  void forceRefresh() {
+    //为空判断
+    if (currentData == null) return;
+    //防止关闭
+    if (_stream.isClosed) return;
+    inner.add(currentData!);
   }
 
   void dispose() {

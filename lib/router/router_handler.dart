@@ -6,10 +6,12 @@
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/pages/player_page.dart';
 import 'package:xy_music_mobile/pages/search_page.dart';
 import 'package:xy_music_mobile/pages/square/square_info_page.dart';
 import 'package:xy_music_mobile/pages/square/square_list_page.dart';
+import 'package:xy_music_mobile/pages/square/square_tag_select_page.dart';
 import '/pages/index.dart';
 
 ///Home Page
@@ -44,4 +46,12 @@ Handler squareListPage = Handler(
 Handler squareInfoPage = Handler(
     handlerFunc: (BuildContext? context, Map<String, List<String>> parameters) {
   return SquareInfoPage();
+});
+
+///歌单筛选Tag页面
+Handler squareTagSelectedPage = Handler(
+    handlerFunc: (BuildContext? context, Map<String, List<String>> parameters) {
+  return SquareTagSelectedPage(
+    tags: context!.settings!.arguments as List<SongSqurareTag>,
+  );
 });

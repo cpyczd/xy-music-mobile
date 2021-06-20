@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-18 23:06:28
+ * @LastEditTime: 2021-06-20 22:45:38
  */
 
 import 'dart:convert';
@@ -30,6 +30,9 @@ class WySquareServiceImpl extends BaseSongSquareService {
   @override
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1}) async {
+    if (current <= 0) {
+      current = 1;
+    }
     var data = webApi.linuxapi({
       "method": 'POST',
       "url": 'https://music.163.com/api/v3/playlist/detail',
@@ -79,9 +82,12 @@ class WySquareServiceImpl extends BaseSongSquareService {
       SongSqurareTagItem? tag,
       int page = 1,
       int size = 10}) async {
+    if (page <= 0) {
+      page = 1;
+    }
     var data = webApi.webapi({
-      "cat": tag != null ? tag.id : "全部",
-      "order": sort?.id,
+      "cat": tag?.id ?? "全部",
+      "order": sort?.id ?? "hot",
       "limit": size,
       "offset": size * (page - 1),
       "total": true,
@@ -133,7 +139,7 @@ class WySquareServiceImpl extends BaseSongSquareService {
     Map all = resp["all"];
     tags.add(SongSqurareTag(name: "默认", source: MusicSourceConstant.wy, tags: [
       SongSqurareTagItem(
-          name: all["name"], parentName: "", id: "", parentId: "")
+          name: all["name"], parentName: "", id: all["name"], parentId: "")
     ]));
 
     List sub = resp["sub"];

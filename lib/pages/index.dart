@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-06-16 10:56:00
+ * @LastEditTime: 2021-06-20 23:30:21
  */
 
 import 'package:flutter/material.dart';
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage>
     setState(() {
       _currentIndex = index;
     });
-    getLine(_keyPageView).inner.add(index);
+    getLine(_keyPageView).setData(index);
   }
 
   @mustCallSuper
@@ -100,7 +100,7 @@ class _HomePageState extends State<HomePage>
           }
           return true;
         },
-        child: getLine(_keyPageView, initData: _currentIndex)
+        child: getLine<int>(_keyPageView, initData: _currentIndex)
             .addObserver((context, pack) => IndexedStack(
                   children: _getPageViewWidget(),
                   index: pack.data!,

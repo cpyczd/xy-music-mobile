@@ -5,10 +5,10 @@
  * @LastEditTime: 2021-06-16 20:26:19
  */
 import 'package:xy_music_mobile/model/music_entity.dart';
-import 'package:xy_music_mobile/service/kg_music_service.dart';
-import 'package:xy_music_mobile/service/mg_music_servce.dart';
-import 'package:xy_music_mobile/service/tx_music_service.dart';
-import 'package:xy_music_mobile/service/wy_music_service.dart';
+import 'package:xy_music_mobile/service/music/kg_music_service.dart';
+import 'package:xy_music_mobile/service/music/mg_music_servce.dart';
+import 'package:xy_music_mobile/service/music/tx_music_service.dart';
+import 'package:xy_music_mobile/service/music/wy_music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 main() async {

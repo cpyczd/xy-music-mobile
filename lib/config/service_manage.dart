@@ -5,7 +5,7 @@
  * @LastEditTime: 2021-06-18 23:27:39
  */
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:rxdart/rxdart.dart';
 

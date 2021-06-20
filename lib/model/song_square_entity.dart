@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
  * @LastEditTime: 2021-06-16 15:09:40
  */
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 ///标签

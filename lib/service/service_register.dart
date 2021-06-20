@@ -5,14 +5,14 @@
  * @LastEditTime: 2021-06-18 23:32:07
  */
 import 'package:xy_music_mobile/config/service_manage.dart';
-import 'package:xy_music_mobile/service/kg_music_service.dart';
-import 'package:xy_music_mobile/service/mg_music_servce.dart';
+import 'package:xy_music_mobile/service/music/kg_music_service.dart';
+import 'package:xy_music_mobile/service/music/mg_music_servce.dart';
 import 'package:xy_music_mobile/service/ranking/kg_ranking_service.dart';
 import 'package:xy_music_mobile/service/ranking/wy_ranking_service.dart';
 import 'package:xy_music_mobile/service/square/kg_square_service.dart';
 import 'package:xy_music_mobile/service/square/wy_square_service.dart';
-import 'package:xy_music_mobile/service/tx_music_service.dart';
-import 'package:xy_music_mobile/service/wy_music_service.dart';
+import 'package:xy_music_mobile/service/music/tx_music_service.dart';
+import 'package:xy_music_mobile/service/music/wy_music_service.dart';
 
 ///音乐服务
 void _registerMusicService() {

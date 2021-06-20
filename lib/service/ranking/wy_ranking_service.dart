@@ -6,7 +6,7 @@
  */
 
 import 'package:dio/dio.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 
 import 'package:xy_music_mobile/model/song_ranking_list_entity.dart';
 import 'package:xy_music_mobile/util/index.dart';

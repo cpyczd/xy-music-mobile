@@ -10,7 +10,7 @@ import 'package:xy_music_mobile/model/base_entity.dart';
  * @LastEditTime: 2021-06-06 18:16:29
  */
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 ///音乐模块实体类

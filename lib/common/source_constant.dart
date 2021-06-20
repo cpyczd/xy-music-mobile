@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:49:36
- * @LastEditTime: 2021-05-23 14:57:50
+ * @LastEditTime: 2021-06-20 23:45:14
  * 
  * 
  * {
@@ -37,7 +37,10 @@ enum MusicSourceConstant { kg, kw, tx, wy, mg, xm, none }
 
 extension MusicSourceExtension on MusicSourceConstant {
   String get name => describeEnum(this);
-  String get desc {
+
+  String get desc => originalDesc;
+
+  String get aliasDesc {
     switch (this) {
       case MusicSourceConstant.kg:
         return '小枸音乐';
@@ -51,6 +54,25 @@ extension MusicSourceExtension on MusicSourceConstant {
         return '小密音乐';
       case MusicSourceConstant.xm:
         return '小夏音乐';
+      default:
+        return 'None';
+    }
+  }
+
+  String get originalDesc {
+    switch (this) {
+      case MusicSourceConstant.kg:
+        return '酷狗';
+      case MusicSourceConstant.kw:
+        return '酷我';
+      case MusicSourceConstant.tx:
+        return 'QQ';
+      case MusicSourceConstant.wy:
+        return '网易';
+      case MusicSourceConstant.mg:
+        return '咪咕';
+      case MusicSourceConstant.xm:
+        return '虾米';
       default:
         return 'None';
     }

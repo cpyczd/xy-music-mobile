@@ -6,7 +6,7 @@ import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';

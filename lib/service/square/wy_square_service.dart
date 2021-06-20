@@ -11,7 +11,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:intl/intl.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;

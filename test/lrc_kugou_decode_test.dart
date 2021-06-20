@@ -6,7 +6,7 @@
  */
 import 'dart:convert';
 import 'dart:io';
-import 'package:xy_music_mobile/service/kg_music_service.dart';
+import 'package:xy_music_mobile/service/music/kg_music_service.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/square/wy_square_service.dart';
 import 'package:xy_music_mobile/util/index.dart';

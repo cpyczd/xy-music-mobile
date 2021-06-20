@@ -10,8 +10,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
-import 'base_music_service.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
+import '../base_music_service.dart';
 import '/util/index.dart' as util;
 
 class KGMusicServiceImpl extends BaseMusicService {

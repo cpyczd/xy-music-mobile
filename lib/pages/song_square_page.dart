@@ -12,7 +12,7 @@ import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/pages/square/square_list_page.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/text_icon_button.dart';

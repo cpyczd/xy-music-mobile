@@ -2,14 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-06-18 23:09:08
+ * @LastEditTime: 2021-06-20 23:40:33
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
-import './square/wy_square_service.dart' show WyWebApi;
+import '../square/wy_square_service.dart' show WyWebApi;
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 
 class WyMusicServiceImpl extends BaseMusicService {

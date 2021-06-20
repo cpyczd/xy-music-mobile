@@ -7,7 +7,7 @@
 
 import 'dart:convert';
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-20 00:40:17
+ * @LastEditTime: 2021-06-21 11:15:29
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +45,9 @@ Handler squareListPage = Handler(
 ///歌单歌曲详情页面
 Handler squareInfoPage = Handler(
     handlerFunc: (BuildContext? context, Map<String, List<String>> parameters) {
-  return SquareInfoPage();
+  return SquareInfoPage(
+    info: context!.settings!.arguments as SongSquareInfo,
+  );
 });
 
 ///歌单筛选Tag页面

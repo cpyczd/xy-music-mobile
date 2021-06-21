@@ -197,52 +197,56 @@ class _SquareListPageState extends State<SquareListPage>
         physics: BouncingScrollPhysics(),
         slivers: [
           getLine<List<SongSquareInfo>>(_infoStreamKey,
-                  initData: <SongSquareInfo>[])
-              .addObserver((context, pack) => SliverGrid(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 15,
-                        childAspectRatio: .74),
-                    delegate: SliverChildBuilderDelegate((c, i) {
-                      if (i >= pack.data!.length - 1) {
-                        //加载数据
-                        _pageIndex++;
-                        _loadInfoList();
-                      }
-                      var item = pack.data![i];
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 100,
-                            constraints:
-                                BoxConstraints(minHeight: 100, maxHeight: 100),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(5),
-                                image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image:
-                                        CachedNetworkImageProvider(item.img))),
+              initData: <
+                  SongSquareInfo>[]).addObserver((context, pack) => SliverGrid(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 15,
+                    childAspectRatio: .74),
+                delegate: SliverChildBuilderDelegate((c, i) {
+                  if (i >= pack.data!.length - 1) {
+                    //加载数据
+                    _pageIndex++;
+                    _loadInfoList();
+                  }
+                  var item = pack.data![i];
+                  return GestureDetector(
+                    onTap: () => Application.navigateToIos(
+                        context, "/squareInfoPage",
+                        params: item),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          height: 100,
+                          constraints:
+                              BoxConstraints(minHeight: 100, maxHeight: 100),
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
+                              image: DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: CachedNetworkImageProvider(item.img))),
+                        ),
+                        Expanded(
+                            child: Padding(
+                          padding: EdgeInsets.only(top: 0),
+                          child: Text(
+                            item.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.reversal(
+                                    AppTheme.getCurrentTheme()
+                                        .scaffoldBackgroundColor)),
                           ),
-                          Expanded(
-                              child: Padding(
-                            padding: EdgeInsets.only(top: 0),
-                            child: Text(
-                              item.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.reversal(
-                                      AppTheme.getCurrentTheme()
-                                          .scaffoldBackgroundColor)),
-                            ),
-                          ))
-                        ],
-                      );
-                    }, childCount: pack.data!.length),
-                  )),
+                        ))
+                      ],
+                    ),
+                  );
+                }, childCount: pack.data!.length),
+              )),
           getLine<bool>(_loadInfoStreamKey, initData: true)
               .addObserver((context, pack) => SliverPadding(
                   padding: EdgeInsets.only(top: 8),

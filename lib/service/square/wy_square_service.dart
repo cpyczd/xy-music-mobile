@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-20 22:45:38
+ * @LastEditTime: 2021-06-21 15:13:53
  */
 
 import 'dart:convert';
@@ -112,8 +112,9 @@ class WySquareServiceImpl extends BaseSongSquareService {
   }
 
   String formatPlayCount(int num) {
-    if (num > 100000000) return "${(num / 10000000 / 10)}" '亿';
-    if (num > 10000) return '${num / 1000 / 10}' '万';
+    if (num > 100000000)
+      return "${(num / 10000000 / 10).toStringAsFixed(2)}" '亿';
+    if (num > 10000) return '${(num / 1000 / 10).toStringAsFixed(2)}' '万';
     return "$num";
   }
 

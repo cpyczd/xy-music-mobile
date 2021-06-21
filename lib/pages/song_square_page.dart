@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-20 23:16:15
+ * @LastEditTime: 2021-06-21 14:03:04
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -198,7 +198,9 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             TextButton(
               child: Text("更多"),
               onPressed: () {
-                data.moreClick!(context, data);
+                if (data.moreClick != null) {
+                  data.moreClick!(context, data);
+                }
               },
             ),
           ],
@@ -271,7 +273,9 @@ class _LoadSquareGroup {
             paramsSource: group.source, paramsSort: group.sortId));
   };
 
-  _SquareInfoClickHandler? squareInfoClick;
+  _SquareInfoClickHandler? squareInfoClick = (context, info) {
+    Application.navigateToIos(context, "/squareInfoPage", params: info);
+  };
 
   _LoadSquareGroup({
     required this.name,
@@ -279,10 +283,13 @@ class _LoadSquareGroup {
     this.sortId,
     this.tagId,
     _MoreClickHandler? moreClick,
-    this.squareInfoClick,
+    _SquareInfoClickHandler? squareInfoClick,
   }) {
     if (moreClick != null) {
       this.moreClick = moreClick;
+    }
+    if (squareInfoClick != null) {
+      this.squareInfoClick = squareInfoClick;
     }
   }
 }

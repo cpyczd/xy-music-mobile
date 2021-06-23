@@ -2,9 +2,10 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-21 14:03:04
+ * @LastEditTime: 2021-06-23 15:26:57
  */
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:xy_music_mobile/application.dart';
@@ -274,7 +275,13 @@ class _LoadSquareGroup {
   };
 
   _SquareInfoClickHandler? squareInfoClick = (context, info) {
-    Application.navigateToIos(context, "/squareInfoPage", params: info);
+    // Application.navigateToIos(context, "/squareInfoPage", params: info);
+    Application.router.navigateTo(
+      context,
+      "/squareInfoPage",
+      transition: TransitionType.native,
+      routeSettings: RouteSettings(arguments: info),
+    );
   };
 
   _LoadSquareGroup({

@@ -1,5 +1,9 @@
+import 'dart:ui';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
@@ -8,7 +12,7 @@ import 'package:xy_music_mobile/util/stream_util.dart';
  * @Description: 歌单详情歌曲页面
  * @Author: cpyczd
  * @Date: 2021-06-18 4:05 下午
- * @LastEditTime: 2021-06-21 18:00:49
+ * @LastEditTime: 2021-06-23 16:08:44
  */
 class SquareInfoPage extends StatefulWidget {
   final SongSquareInfo info;
@@ -29,127 +33,145 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:
+          Color(AppTheme.getCurrentTheme().scaffoldBackgroundColor),
+      appBar: AppBar(
+        iconTheme: IconThemeData(
+          color: Colors.black, //修改颜色
+        ),
+        centerTitle: true,
+        title: Text(
+          widget.info.name,
+          style: TextStyle(color: Colors.black87),
+        ),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: SafeArea(
-        child: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-            return <Widget>[
-              SliverAppBar(
-                backgroundColor: Colors.white,
-                automaticallyImplyLeading: false,
-                //appbar显示
-                pinned: false,
-                floating: false,
-                snap: false,
-                forceElevated: false,
-                //ture 状态栏下方，false不要状态栏
-                primary: false,
-                expandedHeight: 400,
-                flexibleSpace: FlexibleSpaceBar(
-                  stretchModes: const <StretchMode>[
-                    // StretchMode.zoomBackground,
-                    StretchMode.blurBackground,
-                    StretchMode.fadeTitle,
-                  ],
-                  // title: Text(widget.info.name),
-                  background: Container(
-                    color: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                    child: Column(
-                      children: [_topBarInfo(), _action()],
-                    ),
-                  ),
-                ),
-                // bottom: PreferredSize(
-                //   child: Container(
-                //       height: 100,
-                //       width: double.infinity,
-                //       child: Center(
-                //         child: Text(
-                //           "我的选项",
-                //           style: TextStyle(color: Colors.black, fontSize: 16),
-                //         ),
-                //       ),
-                //       decoration: BoxDecoration(
-                //           borderRadius: BorderRadius.only(
-                //               topLeft: Radius.circular(15),
-                //               topRight: Radius.circular(15)),
-                //           color: Colors.white)),
-                //   preferredSize: Size(100, 20),
-                // ),
-              )
-            ];
-          },
-          body: _infoList(),
+        child: Container(
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: _topBarInfo(),
+              ),
+              _infoList()
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _topBarInfo() {
-    var ordinaryStyle = TextStyle(fontSize: 14);
+    var ordinaryStyle = TextStyle(fontSize: 14, color: Colors.white);
     return Container(
-        height: 300,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // BackButton(),
-            Container(
-              margin: EdgeInsets.only(top: 20),
-              height: 200,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                      child: ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: CachedNetworkImage(
-                        imageUrl: widget.info.img, fit: BoxFit.cover),
-                  )),
-                  SizedBox.fromSize(size: Size.fromWidth(20)),
-                  Expanded(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+      height: 200,
+      color: Colors.white,
+      child: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: CachedNetworkImageProvider(widget.info.img),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+            child: Container(
+              child: Hero(
+                tag: "heroTag",
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  height: double.infinity,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        widget.info.name,
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: AppTheme.reversal(AppTheme.getCurrentTheme()
-                                .scaffoldBackgroundColor),
-                            fontWeight: FontWeight.w600),
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: CachedNetworkImage(
+                                imageUrl: widget.info.img,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            Positioned(
+                                top: 5,
+                                left: 5,
+                                child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 3.5, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(.5),
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
+                                    child: RichText(
+                                        text: TextSpan(
+                                            style: TextStyle(fontSize: 10),
+                                            children: [
+                                          WidgetSpan(
+                                              child: Icon(
+                                            Icons.play_arrow,
+                                            color: Colors.white,
+                                            size: 10,
+                                          )),
+                                          TextSpan(text: widget.info.playCount)
+                                        ]))))
+                          ],
+                        ),
                       ),
-                      Text(
-                        "作者: ${widget.info.author}",
-                        style: ordinaryStyle,
-                      ),
-                      Text("评分: ${widget.info.grade ?? '暂无'}",
-                          style: ordinaryStyle),
-                      Text("播放量: ${widget.info.playCount}",
-                          style: ordinaryStyle),
-                      // Text("收藏量:${widget.info.collectCount}"),
-                      // Text("时间:${widget.info.time}"),
+                      SizedBox.fromSize(size: Size.fromWidth(20)),
+                      Expanded(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.info.name,
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Text(
+                            "作者: ${widget.info.author}",
+                            style: ordinaryStyle,
+                          ),
+                          widget.info.desc != null &&
+                                  widget.info.desc!.isNotEmpty
+                              ? Expanded(
+                                  child: GestureDetector(
+                                  onTap: () {
+                                    log.d("点击了描述");
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                          child: Text(
+                                        widget.info.desc ?? "",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: ordinaryStyle,
+                                      )),
+                                      Icon(
+                                        Icons.arrow_right,
+                                        color: Colors.white,
+                                      )
+                                    ],
+                                  ),
+                                ))
+                              : SizedBox.expand()
+                        ],
+                      ))
                     ],
-                  ))
-                ],
-              ),
-            ),
-            SizedBox.fromSize(
-              size: Size.fromHeight(20),
-            ),
-            Expanded(
-              child: Text(
-                widget.info.desc ?? '暂无介绍',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.reversal(
-                      AppTheme.getCurrentTheme().scaffoldBackgroundColor),
+                  ),
                 ),
               ),
-            )
-          ],
-        ));
+            ),
+          )),
+    );
   }
 
   Widget _action() {
@@ -157,11 +179,30 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
   }
 
   Widget _infoList() {
-    return Container(
-        child: ListView.builder(
-            itemCount: 20,
-            itemBuilder: (c, i) {
-              return ListTile(title: Text("Item:$i"));
-            }));
+    return SliverStickyHeader(
+      overlapsContent: false,
+      header: Container(
+        height: 60.0,
+        color: Color(AppTheme.getCurrentTheme().scaffoldBackgroundColor),
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton.icon(
+                onPressed: () {},
+                icon: Icon(Icons.play_arrow),
+                label: Text("播放全部"))
+          ],
+        ),
+      ),
+      sliver: SliverList(
+          delegate: SliverChildBuilderDelegate((content, index) {
+        return Container(
+          height: 65,
+          color: Colors.primaries[index % Colors.primaries.length],
+        );
+      }, childCount: 30)),
+    );
   }
 }

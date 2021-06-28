@@ -2,11 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-06-20 23:30:21
+ * @LastEditTime: 2021-06-28 16:23:42
  */
 
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'hot_page.dart';
@@ -23,12 +25,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin<HomePage>, MultDataLine {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   final String _keyPageView = "PageViewKey";
 
   //上次点击时间
   DateTime? _lastPressedAt;
+
+  final TextStyle _selected = TextStyle(
+      color: Color(AppTheme.getCurrentTheme().primaryColor),
+      fontSize: 20,
+      fontWeight: FontWeight.w500);
+
+  final TextStyle _unselect = TextStyle(color: Colors.white, fontSize: 15);
 
   @override
   void dispose() {
@@ -42,10 +51,10 @@ class _HomePageState extends State<HomePage>
   /// 主页曲库（搜索）推荐歌单、排行榜、我的曲库、设置
   List<Widget> _getPageViewWidget() {
     List<Widget> list = [
+      MyMusicPage(),
       SongSquarePage(),
       HotPage(),
-      MyMusicPage(),
-      SettingPage()
+      // SettingPage()
     ];
     return list;
   }
@@ -67,27 +76,27 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: (index) {
-          setState(() {
-            _change(index);
-          });
-        },
-        currentIndex: _currentIndex,
-        selectedItemColor: Theme.of(context).primaryColor,
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w200),
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.music_note_outlined), label: "歌单广场"),
-          BottomNavigationBarItem(icon: Icon(Icons.hot_tub), label: "排行榜"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.my_library_add), label: "我的曲库"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "设置")
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   onTap: (index) {
+      //     setState(() {
+      //       _change(index);
+      //     });
+      //   },
+      //   currentIndex: _currentIndex,
+      //   selectedItemColor: Theme.of(context).primaryColor,
+      //   unselectedItemColor: Colors.grey,
+      //   selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+      //   unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w200),
+      //   type: BottomNavigationBarType.fixed,
+      //   items: [
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.music_note_outlined), label: "歌单广场"),
+      //     BottomNavigationBarItem(icon: Icon(Icons.hot_tub), label: "排行榜"),
+      //     BottomNavigationBarItem(
+      //         icon: Icon(Icons.my_library_add), label: "我的曲库"),
+      //     BottomNavigationBarItem(icon: Icon(Icons.settings), label: "设置")
+      //   ],
+      // ),
       body: WillPopScope(
         onWillPop: () async {
           if (_lastPressedAt == null ||
@@ -100,11 +109,59 @@ class _HomePageState extends State<HomePage>
           }
           return true;
         },
-        child: getLine<int>(_keyPageView, initData: _currentIndex)
-            .addObserver((context, pack) => IndexedStack(
-                  children: _getPageViewWidget(),
-                  index: pack.data!,
+        child: Column(
+          children: [
+            Container(
+                padding:
+                    EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+                height: MediaQuery.of(context).padding.top + 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.pinkAccent,
+                      Colors.orangeAccent,
+                    ],
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.menu,
+                          color: Colors.white,
+                        )),
+                    TextButton(
+                      onPressed: () => _change(0),
+                      child: Text("我的",
+                          style: _currentIndex == 0 ? _selected : _unselect),
+                    ),
+                    TextButton(
+                        onPressed: () => _change(1),
+                        child: Text("推荐",
+                            style: _currentIndex == 1 ? _selected : _unselect)),
+                    TextButton(
+                        onPressed: () => _change(2),
+                        child: Text("发现",
+                            style: _currentIndex == 2 ? _selected : _unselect)),
+                    IconButton(
+                        onPressed: () =>
+                            Application.navigateToIos(context, "/search"),
+                        icon: Icon(Icons.search, color: Colors.white)),
+                  ],
                 )),
+            Expanded(
+                child: getLine<int>(_keyPageView, initData: _currentIndex)
+                    .addObserver((context, pack) => IndexedStack(
+                          children: _getPageViewWidget(),
+                          index: pack.data!,
+                        )))
+          ],
+        ),
       ),
     );
   }

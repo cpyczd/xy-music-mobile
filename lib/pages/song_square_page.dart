@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:flutter_swiper_null_safety/flutter_swiper_null_safety.dart';
 import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -42,8 +43,8 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
     _LoadSquareGroup(name: "酷狗最热", source: MusicSourceConstant.kg, sortId: "6"),
   ];
 
-  ///每组展示的个数
-  final int _groupItemSize = 4;
+  ///Grid每组展示的个数
+  final int _groupItemSize = 6;
 
   late BuildContext _context;
 
@@ -81,28 +82,16 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
   Widget build(BuildContext context) {
     _context = context;
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 36),
-          child: Column(
-            children: [
-              _searchWidget(),
-              Expanded(
-                  child: Container(
-                margin: EdgeInsets.only(top: 20),
-                child: _squareList(),
-              ))
-            ],
-          ),
-        ),
+      body: Container(
+        child: _squareList(),
       ),
     );
   }
 
   Widget _createBtnAction() {
     return SliverGrid(
-        gridDelegate:
-            SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, childAspectRatio: 2.5),
         delegate: SliverChildListDelegate([
           TextIconButton(
             icon: Icon(
@@ -113,10 +102,6 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             onPressed: () =>
                 Application.navigateToIos(_context, "/squareListPage"),
           ),
-          TextIconButton(
-              icon: Icon(Icons.input_outlined,
-                  color: Color(AppTheme.getCurrentTheme().primaryColor)),
-              text: "导入外部歌单"),
           TextIconButton(
               icon: Icon(Icons.settings,
                   color: Color(AppTheme.getCurrentTheme().primaryColor)),
@@ -164,14 +149,40 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
     );
   }
 
+  ///创建首页Banner
+  Widget _createSwiper() {
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 150,
+        child: Swiper.children(
+          containerHeight: 150,
+          containerWidth: double.infinity,
+          autoplay: true,
+          pagination: SwiperPagination(),
+          children: [
+            Image.asset(
+              "assets/tmp/banner1.jpeg",
+              fit: BoxFit.fill,
+            ),
+            Image.asset(
+              "assets/tmp/banner2.jpeg",
+              fit: BoxFit.fill,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _squareList() {
     return CustomScrollView(
         physics: BouncingScrollPhysics(),
         slivers: <Widget>[
+          _createSwiper(),
           _createBtnAction(),
         ]..addAll(_groups
             .map((e) => SliverPadding(
-                  padding: EdgeInsets.only(bottom: 20),
+                  padding: EdgeInsets.only(bottom: 20, left: 15, right: 15),
                   sliver: _createSquareWidgetItem(e),
                 ))
             .toList()));
@@ -196,14 +207,14 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
                   fontSize: 18,
                   fontWeight: FontWeight.w500),
             ),
-            TextButton(
-              child: Text("更多"),
-              onPressed: () {
-                if (data.moreClick != null) {
-                  data.moreClick!(context, data);
-                }
-              },
-            ),
+            TextButton.icon(
+                onPressed: () {
+                  if (data.moreClick != null) {
+                    data.moreClick!(context, data);
+                  }
+                },
+                icon: Icon(Icons.more_horiz),
+                label: Text("更多"))
           ],
         ),
       ),
@@ -211,7 +222,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
           .addObserver((context, pack) {
         return SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, mainAxisSpacing: 20),
+                crossAxisCount: 3, mainAxisSpacing: 20),
             delegate:
                 SliverChildBuilderDelegate((BuildContext context, int index) {
               var item = pack.data![index];

@@ -82,6 +82,8 @@ dependencies:
   flutter_sticky_header: ^0.6.0
   #Aes\Rsa 加解密
   encrypt: ^5.0.0
+  #轮播图插件
+  flutter_swiper_null_safety: ^1.0.2
   #Json 序列化
   # json_annotation: ^4.0.0
 

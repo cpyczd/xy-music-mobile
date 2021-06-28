@@ -32,12 +32,9 @@ class _HomePageState extends State<HomePage>
   //上次点击时间
   DateTime? _lastPressedAt;
 
-  final TextStyle _selected = TextStyle(
-      color: Color(AppTheme.getCurrentTheme().primaryColor),
-      fontSize: 20,
-      fontWeight: FontWeight.w500);
+  final TextStyle _selected = TextStyle(color: Colors.white, fontSize: 18);
 
-  final TextStyle _unselect = TextStyle(color: Colors.white, fontSize: 15);
+  final TextStyle _unselect = TextStyle(color: Colors.white60, fontSize: 15);
 
   @override
   void dispose() {

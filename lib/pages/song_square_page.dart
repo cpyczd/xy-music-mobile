@@ -17,6 +17,7 @@ import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/pages/square/square_list_page.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
+import 'package:xy_music_mobile/view_widget/icon_util.dart';
 import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
 
 ///歌单广场 主页
@@ -94,17 +95,17 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             crossAxisCount: 2, childAspectRatio: 2.5),
         delegate: SliverChildListDelegate([
           TextIconButton(
-            icon: Icon(
-              Icons.all_inbox_sharp,
-              color: Color(AppTheme.getCurrentTheme().primaryColor),
-            ),
+            // icon: Icon(
+            //   Icons.all_inbox_sharp,
+            //   color: Color(AppTheme.getCurrentTheme().primaryColor),
+            // ),
+            icon: svg(name: "gedan"),
             text: "全部歌单",
             onPressed: () =>
                 Application.navigateToIos(_context, "/squareListPage"),
           ),
           TextIconButton(
-              icon: Icon(Icons.settings,
-                  color: Color(AppTheme.getCurrentTheme().primaryColor)),
+              icon: svg(name: "custom"),
               text: "推荐管理"),
         ]));
   }
@@ -153,9 +154,9 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
   Widget _createSwiper() {
     return SliverToBoxAdapter(
       child: Container(
-        height: 150,
+        height: 130,
         child: Swiper.children(
-          containerHeight: 150,
+          containerHeight: 130,
           containerWidth: double.infinity,
           autoplay: true,
           pagination: SwiperPagination(),
@@ -213,8 +214,8 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
                     data.moreClick!(context, data);
                   }
                 },
-                icon: Icon(Icons.more_horiz),
-                label: Text("更多"))
+                icon: Text("更多"),
+                label: Icon(Icons.more_horiz,size: 15,))
           ],
         ),
       ),

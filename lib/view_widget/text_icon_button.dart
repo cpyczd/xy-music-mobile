@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 class TextIconButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  final Icon icon;
+  final Widget icon;
 
   final String text;
 

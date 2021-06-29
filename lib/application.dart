@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-16 11:00:10
+ * @LastEditTime: 2021-06-29 21:26:11
  */
 
 import 'package:event_bus/event_bus.dart';
@@ -31,6 +31,20 @@ class Application {
         replace: replace,
         clearStack: clearStack,
         transition: TransitionType.cupertino,
+        routeSettings: settings);
+  }
+
+  ///原生跳转
+  static Future navigateToNative(BuildContext context, String path,
+      {bool replace = false, bool clearStack = false, Object? params}) {
+    RouteSettings? settings;
+    if (params != null) {
+      settings = RouteSettings(name: "params", arguments: params);
+    }
+    return router.navigateTo(context, path,
+        replace: replace,
+        clearStack: clearStack,
+        transition: TransitionType.native,
         routeSettings: settings);
   }
 

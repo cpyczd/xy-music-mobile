@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-20 18:25:04
+ * @LastEditTime: 2021-06-29 21:03:20
  */
 import 'package:fluro/fluro.dart';
 import 'router_handler.dart';
@@ -16,6 +16,7 @@ class Routers {
     _defineRouter(router, "/squareInfoPage", squareInfoPage);
     _defineRouter(router, "/squareListPage", squareListPage);
     _defineRouter(router, "/squareTagSelected", squareTagSelectedPage);
+    _defineRouter(router, "/myMusicInfo", myMusicInfoPage);
     // _defineRouter(router, "/detail/:index", chatDetailHandler);
   }
 

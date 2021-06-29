@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:27
- * @LastEditTime: 2021-06-28 16:02:47
+ * @LastEditTime: 2021-06-29 23:32:52
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
@@ -24,7 +25,10 @@ class _MyMusicPageState extends State<MyMusicPage> {
     return Scaffold(
       body: Container(
         child: CustomScrollView(
-          slivers: [_headMenu(), _mySquare(), _myCollect()],
+          slivers: [
+            _headMenu(), _mySquare(),
+            // _myCollect()
+          ],
         ),
       ),
     );
@@ -93,17 +97,57 @@ class _MyMusicPageState extends State<MyMusicPage> {
       ),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
-          return ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl:
-                    "http://imge.kugou.com/stdmusic/150/20200909/20200909115057861947.jpg",
-                fit: BoxFit.cover,
+          return Container(
+            height: 50,
+            width: double.infinity,
+            margin: EdgeInsets.symmetric(vertical: 6),
+            child: ListTile(
+              onTap: () {
+                Application.navigateToIos(context, "/myMusicInfo");
+              },
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl:
+                      "https://imgessl.kugou.com/uploadpic/softhead/240/20210602/20210602150924868.jpg",
+                  fit: BoxFit.cover,
+                  height: 50,
+                  width: 50,
+                ),
+              ),
+              title: Text("我喜欢"),
+              subtitle: Text("12首"),
+              trailing: IconButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                      context: context,
+                      elevation: 10,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30)),
+                      builder: (BuildContext context) {
+                        return ListView(
+                          shrinkWrap: true,
+                          padding: EdgeInsets.all(12),
+                          children: [
+                            ListTile(
+                              title: Text("编辑"),
+                              leading: Icon(Icons.edit),
+                            ),
+                            ListTile(
+                              title: Text("编辑"),
+                              leading: Icon(Icons.edit),
+                            ),
+                            ListTile(
+                              title: Text("编辑"),
+                              leading: Icon(Icons.edit),
+                            ),
+                          ],
+                        );
+                      });
+                },
+                icon: Icon(Icons.more_vert),
               ),
             ),
-            title: Text("我喜欢"),
-            subtitle: Text("12首"),
           );
         }, childCount: 5),
       ),
@@ -111,6 +155,7 @@ class _MyMusicPageState extends State<MyMusicPage> {
   }
 }
 
+///我的收藏
 Widget _myCollect() {
   return SliverStickyHeader(
     header: Container(
@@ -130,17 +175,26 @@ Widget _myCollect() {
     ),
     sliver: SliverList(
       delegate: SliverChildBuilderDelegate((context, index) {
-        return ListTile(
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: CachedNetworkImage(
-              imageUrl:
-                  "http://imge.kugou.com/stdmusic/150/20200909/20200909115057861947.jpg",
-              fit: BoxFit.cover,
+        return Container(
+          height: 50,
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(vertical: 6),
+          child: ListTile(
+            leading: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: CachedNetworkImage(
+                imageUrl:
+                    "http://imge.kugou.com/stdmusic/150/20200909/20200909115057861947.jpg",
+                fit: BoxFit.cover,
+              ),
             ),
+            title: Text("[怀旧] 90后怀旧单曲合集"),
+            subtitle: Text("205首"),
+            // trailing: IconButton(
+            //   onPressed: () {},
+            //   icon: Icon(Icons.more_vert),
+            // ),
           ),
-          title: Text("[怀旧] 90后怀旧单曲合集"),
-          subtitle: Text("205首"),
         );
       }, childCount: 5),
     ),

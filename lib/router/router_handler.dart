@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-21 11:15:29
+ * @LastEditTime: 2021-06-29 21:00:50
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
-import 'package:xy_music_mobile/pages/player_page.dart';
+import 'package:xy_music_mobile/pages/music_player/my_music_info_page.dart';
+import 'package:xy_music_mobile/pages/music_player/player_page.dart';
 import 'package:xy_music_mobile/pages/search_page.dart';
 import 'package:xy_music_mobile/pages/square/square_info_page.dart';
 import 'package:xy_music_mobile/pages/square/square_list_page.dart';
@@ -56,4 +57,10 @@ Handler squareTagSelectedPage = Handler(
   return SquareTagSelectedPage(
     tags: context!.settings!.arguments as List<SongSqurareTag>,
   );
+});
+
+///自建音乐歌单详情页
+Handler myMusicInfoPage = Handler(
+    handlerFunc: (BuildContext? context, Map<String, List<String>> parameters) {
+  return MyMusicInfoPage();
 });

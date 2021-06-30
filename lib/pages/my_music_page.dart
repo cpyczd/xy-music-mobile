@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:27
- * @LastEditTime: 2021-06-29 23:32:52
+ * @LastEditTime: 2021-06-30 17:13:40
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -123,9 +123,12 @@ class _MyMusicPageState extends State<MyMusicPage> {
                       context: context,
                       elevation: 10,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)),
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(25),
+                              topRight: Radius.circular(25))),
                       builder: (BuildContext context) {
                         return ListView(
+                          physics: BouncingScrollPhysics(),
                           shrinkWrap: true,
                           padding: EdgeInsets.all(12),
                           children: [

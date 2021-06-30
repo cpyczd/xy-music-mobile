@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-23 15:26:57
+ * @LastEditTime: 2021-06-30 17:17:11
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluro/fluro.dart';
@@ -104,9 +104,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             onPressed: () =>
                 Application.navigateToIos(_context, "/squareListPage"),
           ),
-          TextIconButton(
-              icon: svg(name: "custom"),
-              text: "推荐管理"),
+          TextIconButton(icon: svg(name: "custom"), text: "推荐管理"),
         ]));
   }
 
@@ -163,11 +161,11 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
           children: [
             Image.asset(
               "assets/tmp/banner1.jpeg",
-              fit: BoxFit.fill,
+              fit: BoxFit.cover,
             ),
             Image.asset(
               "assets/tmp/banner2.jpeg",
-              fit: BoxFit.fill,
+              fit: BoxFit.cover,
             ),
           ],
         ),
@@ -215,7 +213,10 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
                   }
                 },
                 icon: Text("更多"),
-                label: Icon(Icons.more_horiz,size: 15,))
+                label: Icon(
+                  Icons.more_horiz,
+                  size: 15,
+                ))
           ],
         ),
       ),

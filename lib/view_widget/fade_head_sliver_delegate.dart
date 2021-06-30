@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 23:15:55
- * @LastEditTime: 2021-06-29 23:53:27
+ * @LastEditTime: 2021-06-30 15:37:51
  */
 import 'dart:ui';
 
@@ -16,6 +16,7 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
   final double spacing;
   final Widget content;
   final String title;
+  String? toTopReplaceTitle;
   final Color barColor;
   List<Widget>? action;
   List<Widget>? insertTopWidget;
@@ -28,6 +29,7 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
       this.barColor = Colors.white,
       this.title = "Title",
       this.spacing = 10,
+      this.toTopReplaceTitle,
       List<Widget>? action,
       List<Widget>? insertTopWidget}) {
     if (action == null) {
@@ -55,6 +57,10 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
+    String titleStr =
+        shrinkOffset <= this.maxExtent - this.minExtent - paddingTop
+            ? title
+            : toTopReplaceTitle ?? title;
     return Container(
       height: this.maxExtent,
       width: MediaQuery.of(context).size.width,
@@ -95,7 +101,7 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
                   Align(
                     alignment: Alignment.center,
                     child: Text(
-                      title,
+                      titleStr,
                       style: TextStyle(
                         fontSize: 19,
                         color: barColor,
@@ -135,7 +141,8 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
   }
 
   ///返回模糊视图
-  static Container vague(String imgUrl) {
+  static Container vague(String imgUrl,
+      {double sigmaX = 30, double sigmaY = 30}) {
     return Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -144,7 +151,7 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
           ),
         ),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          filter: ImageFilter.blur(sigmaX: sigmaX, sigmaY: sigmaY),
           child: Container(),
         ));
   }

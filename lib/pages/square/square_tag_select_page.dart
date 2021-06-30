@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-20 18:03:12
- * @LastEditTime: 2021-06-20 22:47:00
+ * @LastEditTime: 2021-06-30 22:23:21
  */
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
@@ -36,6 +36,7 @@ class SquareTagSelectedPage extends StatelessWidget {
         ),
       ),
       body: SafeArea(
+        bottom: false,
         child: Container(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 13),
             child: CustomScrollView(

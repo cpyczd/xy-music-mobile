@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-06-28 16:23:42
+ * @LastEditTime: 2021-06-30 22:20:08
  */
 
 import 'package:flutter/material.dart';
@@ -11,6 +11,7 @@ import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
+import 'package:xy_music_mobile/view_widget/player_bottom_controller.dart';
 import 'hot_page.dart';
 import 'my_music_page.dart';
 import 'setting_page.dart';
@@ -156,7 +157,20 @@ class _HomePageState extends State<HomePage>
                     .addObserver((context, pack) => IndexedStack(
                           children: _getPageViewWidget(),
                           index: pack.data!,
-                        )))
+                        ))),
+            Container(
+              decoration: BoxDecoration(color: Colors.white, boxShadow: [
+                BoxShadow(
+                    color: Colors.black38,
+                    offset: Offset(0.0, 10.0), //阴影xy轴偏移量
+                    blurRadius: 12.0, //阴影模糊程度
+                    spreadRadius: 1.5 //阴影扩散程度
+                    )
+              ]),
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom),
+              child: PlayerBottomControllre(),
+            )
           ],
         ),
       ),

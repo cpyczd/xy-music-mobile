@@ -2,13 +2,17 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:07:33
- * @LastEditTime: 2021-06-01 23:19:19
+ * @LastEditTime: 2021-06-30 23:58:35
  */
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
+import 'package:xy_music_mobile/view_widget/fade_head_sliver_delegate.dart';
 
 class PlayerPage extends StatefulWidget {
   PlayerPage({Key? key}) : super(key: key);
@@ -22,6 +26,37 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
   final String _endTimeKey = "endTimeKey";
   final String _controll = "Controll";
 
+  PaletteGenerator? _paletteGenerator;
+
+  ///主色调
+  Color primaryColor = Color(AppTheme.getCurrentTheme().primaryColor);
+
+  String url =
+      "https://imgessl.kugou.com/uploadpic/softhead/240/20210608/20210608172539722.jpg";
+  // "https://imgessl.kugou.com/uploadpic/softhead/240/20210602/20210602150924868.jpg";
+  // "http://p2.music.126.net/EjksfQRGUB2_i0qz-AHOJA==/109951165928359140.jpg?param=140y140";
+
+  @override
+  void initState() {
+    super.initState();
+    PaletteGenerator.fromImageProvider(CachedNetworkImageProvider(url),
+            size: Size(500, 1000), region: Offset.zero & Size(10, 10))
+        .then((value) {
+      setState(() {
+        _paletteGenerator = value;
+        if (_paletteGenerator?.dominantColor?.color.value != null) {
+          var reversalColor =
+              AppTheme.reversal(_paletteGenerator!.dominantColor!.color.value);
+          //计算是否接近白色
+          var Y = 0.2126 * reversalColor.red +
+              0.7152 * reversalColor.green +
+              0.0722 * reversalColor.blue;
+          primaryColor = Y < 128 ? Colors.black : Colors.white;
+        }
+      });
+    });
+  }
+
   @override
   void dispose() {
     disposeDataLine();
@@ -31,48 +66,15 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black54,
-      body: SafeArea(
-        child: Container(
-          child: Stack(
-            children: [
-              new Container(
-                decoration: new BoxDecoration(
-                  image: new DecorationImage(
-                    image: new NetworkImage(
-                        "http://imge.kugou.com/stdmusic/150/20150720/20150720210642744945.jpg"),
-                    fit: BoxFit.cover,
-                    colorFilter: new ColorFilter.mode(
-                      Colors.black,
-                      BlendMode.overlay,
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                  child: new BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 25.0, sigmaY: 25.0),
-                child: Opacity(
-                  opacity: 0.77,
-                  child: new Container(
-                    decoration: new BoxDecoration(
-                      color: Colors.black54,
-                    ),
-                  ),
-                ),
-              )),
-              // ClipRRect(
-              //     // make sure we apply clip it properly
-              //     child: BackdropFilter(
-              //   //背景滤镜
-              //   filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10), //背景模糊化
-              //   child: Container(
-              //     alignment: Alignment.center,
-              //     color: Colors.grey.withOpacity(0.2),
-              //   ),
-              // )),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
+      body: Container(
+        color: Colors.black54,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            SliverFadeDelegate.vague(url, sigmaX: 40, sigmaY: 40),
+            Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: SafeArea(
                 child: Column(
                   children: [
                     _backWidget(),
@@ -80,9 +82,9 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
                     _bottomControll()
                   ],
                 ),
-              )
-            ],
-          ),
+              ),
+            )
+          ],
         ),
       ),
     );
@@ -95,8 +97,11 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
       children: [
         Align(
           alignment: Alignment.centerLeft,
-          child: BackButton(
-            color: Colors.white,
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: primaryColor,
+            ),
             onPressed: () => Application.router.pop(context),
           ),
         ),
@@ -105,7 +110,7 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
             child: Text(
               "我们的歌",
               style: TextStyle(
-                  color: Colors.white,
+                  color: primaryColor,
                   fontSize: 17,
                   fontWeight: FontWeight.w400),
             ))
@@ -121,7 +126,7 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
             getLine<String>(_startTimeKey, initData: "00:00")
                 .addObserver((context, pack) => Text(
                       pack.data!,
-                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                      style: TextStyle(color: primaryColor, fontSize: 10),
                     )),
             Expanded(
                 child: Padding(
@@ -138,7 +143,7 @@ class _PlayerPageState extends State<PlayerPage> with MultDataLine {
             getLine<String>(_startTimeKey, initData: "00:00")
                 .addObserver((context, pack) => Text(
                       pack.data!,
-                      style: TextStyle(color: Colors.white60, fontSize: 10),
+                      style: TextStyle(color: primaryColor, fontSize: 10),
                     )),
           ],
         )

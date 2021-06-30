@@ -2,14 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 21:01:25
- * @LastEditTime: 2021-06-30 17:27:25
+ * @LastEditTime: 2021-06-30 22:35:33
  */
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:xy_music_mobile/view_widget/fade_head_sliver_delegate.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
@@ -22,8 +21,6 @@ class MyMusicInfoPage extends StatefulWidget {
 }
 
 class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
-  PaletteGenerator? _paletteGenerator;
-
   String url =
       "https://imgessl.kugou.com/uploadpic/softhead/240/20210608/20210608172539722.jpg";
   // "https://imgessl.kugou.com/uploadpic/softhead/240/20210602/20210602150924868.jpg";
@@ -32,15 +29,6 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
   @override
   void initState() {
     super.initState();
-    PaletteGenerator.fromImageProvider(CachedNetworkImageProvider(url),
-            maximumColorCount: 20,
-            region: Offset.zero & Size(240, 240),
-            size: Size(240, 240))
-        .then((value) {
-      setState(() {
-        _paletteGenerator = value;
-      });
-    });
   }
 
   @override
@@ -55,13 +43,6 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
   }
 
   Widget _topCovert() {
-    // Color textColor =
-    //     (_paletteGenerator?.dominantColor?.color ?? Colors.transparent) ==
-    //             Colors.transparent
-    //         ? Colors.white
-    //         : AppTheme.reversal(
-    //             _paletteGenerator!.dominantColor!.color.value,
-    //           );
     Color textColor = Colors.white;
     return SliverPersistentHeader(
       pinned: true,
@@ -142,7 +123,7 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
                       style: TextStyle(color: Colors.black, fontSize: 15),
                       children: [
                         TextSpan(
-                            text: "12首",
+                            text: " 12首",
                             style:
                                 TextStyle(color: Colors.black54, fontSize: 13))
                       ]),
@@ -168,42 +149,48 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
                   onPressed: () {},
                   icon: iconFont(hex16: 0xe627, size: 20, color: Colors.green),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "一首情歌",
-                        style: TextStyle(
-                            color: Colors.black, fontWeight: FontWeight.w400),
-                      ),
-                      Text(
-                        "任重",
-                        style: TextStyle(color: Colors.grey),
-                      )
-                    ],
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "下辈子不一定还能遇见你",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Colors.black, fontWeight: FontWeight.w400),
+                        ),
+                        Text(
+                          "任重",
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        )
+                      ],
+                    ),
                   ),
                 ),
                 Expanded(
+                    flex: 1,
                     child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                        onPressed: () {},
-                        icon: iconFont(
-                            hex16: 0xe612, size: 20, color: Colors.grey)),
-                    IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.green,
-                          size: 20,
-                        )),
-                  ],
-                ))
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        IconButton(
+                            onPressed: () {},
+                            icon: iconFont(
+                                hex16: 0xe612, size: 20, color: Colors.grey)),
+                        IconButton(
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: Colors.green,
+                              size: 20,
+                            )),
+                      ],
+                    ))
               ],
             ),
           );

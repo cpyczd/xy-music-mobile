@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/application.dart';
 
-import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
@@ -179,6 +178,7 @@ class _SquareListPageState extends State<SquareListPage>
           ),
         ),
         body: SafeArea(
+          bottom: false,
           child: Container(
             child: Column(
               children: [_toolbar(), Expanded(child: _infoList())],
@@ -316,9 +316,9 @@ class _SquareListPageState extends State<SquareListPage>
                 },
                 controller: _tabController,
                 physics: BouncingScrollPhysics(),
-                indicatorColor: Colors.redAccent.shade100,
+                indicatorColor: Color(AppTheme.getCurrentTheme().primaryColor),
                 indicatorSize: TabBarIndicatorSize.label,
-                indicatorWeight: 2,
+                indicatorWeight: 2.3,
                 labelColor: Color(AppTheme.getCurrentTheme().primaryColor),
                 labelStyle:
                     TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
@@ -326,7 +326,7 @@ class _SquareListPageState extends State<SquareListPage>
                     Color(AppTheme.getCurrentTheme().primaryColor)
                         .withOpacity(0.7),
                 unselectedLabelStyle:
-                    TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+                    TextStyle(fontWeight: FontWeight.w400, fontSize: 13),
                 isScrollable: true,
                 tabs: pack.data!.map((e) => Text(e.name)).toList());
           })),

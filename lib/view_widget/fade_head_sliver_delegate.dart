@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 23:15:55
- * @LastEditTime: 2021-06-30 15:37:51
+ * @LastEditTime: 2021-06-30 23:05:01
  */
 import 'dart:ui';
 
@@ -10,15 +10,30 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
+  ///AppBar的高度
   final double barHeight;
+
+  ///内容的高度
   final double contentHeight;
+
+  ///距离顶部的高度 一般设置为状态栏的paddingTop高度
   final double paddingTop;
+
+  ///Appbar和Content的之间间距
   final double spacing;
+
+  ///内容Widget
   final Widget content;
+
+  ///标题
   final String title;
+
+  ///滑动到顶部的时候要切换显示的标题
   String? toTopReplaceTitle;
   final Color barColor;
   List<Widget>? action;
+
+  ///要插入Stack顶部的组件
   List<Widget>? insertTopWidget;
 
   SliverFadeDelegate(
@@ -85,7 +100,6 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
             child: Container(
               height: this.barHeight,
               child: Stack(
-                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Align(
                     alignment: Alignment.centerLeft,
@@ -93,20 +107,23 @@ class SliverFadeDelegate extends SliverPersistentHeaderDelegate {
                       icon: Icon(
                         Icons.arrow_back_ios,
                         color: barColor,
-                        // color: this.makeStickyHeaderTextColor(shrinkOffset, true),
                       ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
                   Align(
                     alignment: Alignment.center,
-                    child: Text(
-                      titleStr,
-                      style: TextStyle(
-                        fontSize: 19,
-                        color: barColor,
-                        fontWeight: FontWeight.w400,
-                        // color: this.makeStickyHeaderTextColor(shrinkOffset, false),
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width / 3 * 2,
+                      child: Text(
+                        titleStr,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 19,
+                          color: barColor,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ),
                   ),

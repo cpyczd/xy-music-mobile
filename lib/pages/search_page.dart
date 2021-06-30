@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-19 21:36:04
+ * @LastEditTime: 2021-06-30 23:21:43
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/config/service_manage.dart'
@@ -13,6 +13,7 @@ import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/search_helper.dart';
+import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
 class SearchPage extends StatefulWidget {
   SearchPage({Key? key}) : super(key: key);
@@ -107,6 +108,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        bottom: false,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
@@ -423,40 +425,93 @@ class _SearchPageState extends State<SearchPage> {
                             var subStyle =
                                 TextStyle(color: Colors.grey, fontSize: 12);
                             var entity = _searchResultList[index];
-                            return ListTile(
-                                title: Text(
-                                  entity.songName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 5),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('歌手: ' + (entity.singer ?? "-"),
-                                          style: subStyle),
-                                      (() {
-                                        return entity.songnameOriginal !=
-                                                entity.songName
-                                            ? Text(
-                                                'Cover: ' +
-                                                    (entity.songnameOriginal ??
-                                                        "-"),
-                                                style: subStyle,
-                                              )
-                                            : SizedBox();
-                                      })(),
-                                    ],
-                                  ),
-                                ),
-                                trailing: IconButton(
+                            return Container(
+                              height: 60,
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 10),
+                              width: double.infinity,
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    constraints: BoxConstraints(maxWidth: 20),
                                     onPressed: () {},
-                                    icon: Icon(Icons.more_vert)));
+                                    icon: iconFont(
+                                      hex16: 0xe615,
+                                      size: 20,
+                                    ),
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(left: 20),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            entity.songName,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w400),
+                                          ),
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 5),
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                    '歌手: ' +
+                                                        (entity.singer ?? "-"),
+                                                    style: subStyle),
+                                                (() {
+                                                  return entity
+                                                              .songnameOriginal !=
+                                                          entity.songName
+                                                      ? Text(
+                                                          'Cover: ' +
+                                                              (entity.songnameOriginal ??
+                                                                  "-"),
+                                                          style: subStyle,
+                                                        )
+                                                      : SizedBox();
+                                                })(),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.end,
+                                        children: [
+                                          IconButton(
+                                              onPressed: () {},
+                                              icon: Icon(
+                                                Icons.more_vert,
+                                                size: 20,
+                                              )),
+                                        ],
+                                      ))
+                                ],
+                              ),
+                            );
                           }
                         });
           })())

@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-29 21:26:11
+ * @LastEditTime: 2021-07-01 22:48:17
  */
 
 import 'package:event_bus/event_bus.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/service/player_service.dart';
 import 'package:xy_music_mobile/service/service_register.dart' as msr;
 import 'package:xy_music_mobile/config/theme_data.dart' as tdr;
 
@@ -19,6 +20,8 @@ class Application {
   static final EventBus eventBus = EventBus();
 
   static late BuildContext context;
+
+  static late final PlayerService playerService = PlayerService();
 
   ///IOS 可侧滑返回的跳转界面
   static Future navigateToIos(BuildContext context, String path,
@@ -54,5 +57,9 @@ class Application {
     msr.register();
     //主题服务数据注入
     tdr.register();
+    //初始化音乐播放服务
+    // if (playerService == null) {
+    //   playerService = PlayerService();
+    // }
   }
 }

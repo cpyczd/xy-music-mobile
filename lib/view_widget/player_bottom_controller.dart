@@ -2,14 +2,18 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-06-30 23:37:22
+ * @LastEditTime: 2021-07-01 23:58:50
  */
 
+import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/common/player_constan.dart';
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/theme.dart';
+import 'package:xy_music_mobile/service/audio_service_task.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
 class PlayerBottomControllre extends StatefulWidget {
@@ -20,6 +24,18 @@ class PlayerBottomControllre extends StatefulWidget {
 }
 
 class _PlayerBottomControllreState extends State<PlayerBottomControllre> {
+  @override
+  void initState() {
+    super.initState();
+
+    // ///加载音乐
+    Application.playerService
+        .loadMusic(
+            Application.playerService.musicModel!.getCurrentMusicEntity())
+        .then((value) => log.i("加载音乐完成"))
+        .catchError((e) => log.e("异常$e"));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -70,15 +86,34 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre> {
             ),
           ),
           SizedBox.fromSize(size: Size.fromWidth(15)),
-          _createIconButton(0xe701),
+          _createIconButton(0xe701, callback: playOrPaused),
           SizedBox.fromSize(size: Size.fromWidth(15)),
-          _createIconButton(0xe602),
+          _createIconButton(0xe602, callback: next),
           SizedBox.fromSize(size: Size.fromWidth(15)),
-          _createIconButton(0xe6a7),
+          _createIconButton(0xe6a7, callback: showMusicList),
         ],
       ),
     );
   }
+
+  ///播放或者暂停
+  void playOrPaused() {
+    if (Application.playerService.playState == PlayStatus.playing) {
+      log.i("暂停");
+      // Application.playerService.puase();
+      AudioService.pause();
+    } else {
+      log.i("开始播放");
+      // Application.playerService.play();
+      AudioService.play();
+    }
+  }
+
+  ///下一首
+  void next() {}
+
+  ///显示播放列表
+  void showMusicList() {}
 
   ///创建按钮
   Widget _createIconButton(int hex16, {VoidCallback? callback}) {

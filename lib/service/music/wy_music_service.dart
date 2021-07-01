@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-06-20 23:40:33
+ * @LastEditTime: 2021-07-02 00:15:50
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';

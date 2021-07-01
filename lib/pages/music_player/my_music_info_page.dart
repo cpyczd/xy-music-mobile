@@ -2,13 +2,15 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 21:01:25
- * @LastEditTime: 2021-06-30 22:35:33
+ * @LastEditTime: 2021-07-01 13:50:21
  */
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:xy_music_mobile/util/widget_common.dart';
 import 'package:xy_music_mobile/view_widget/fade_head_sliver_delegate.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
@@ -29,6 +31,9 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
   @override
   void initState() {
     super.initState();
+    //设置状态栏的颜色为亮色
+    //设置状态栏的颜色
+    setUiOverlayStyle(Brightness.light);
   }
 
   @override

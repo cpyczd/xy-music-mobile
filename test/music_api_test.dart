@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 16:20:16
- * @LastEditTime: 2021-06-16 20:26:19
+ * @LastEditTime: 2021-07-01 15:44:21
  */
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
@@ -18,7 +18,7 @@ main() async {
   // var service = TxMusicServiceImpl();
   // var service = MgMusicServiceImpl();
   var service = WyMusicServiceImpl();
-  List<MusicEntity> res = await service.searchMusic("晴天");
+  List<MusicEntity> res = await service.searchMusic("不该用情");
   var music = res[0];
   print(music);
   //获取歌词

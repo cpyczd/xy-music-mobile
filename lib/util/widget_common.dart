@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 ///Toast工具类
@@ -208,4 +209,12 @@ class DialogUtil {
 ///判断是否显示了软键盘
 bool isSoftKeyboardDisplay(MediaQueryData data) {
   return data.viewInsets.bottom / data.size.height > 0.3;
+}
+
+///设置状态栏的颜色
+void setUiOverlayStyle(Brightness color) {
+  SystemUiOverlayStyle systemUiOverlayStyle = SystemUiOverlayStyle(
+    statusBarBrightness: color,
+  );
+  SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
 }

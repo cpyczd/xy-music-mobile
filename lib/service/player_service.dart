@@ -2,12 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-02 17:10:19
+ * @LastEditTime: 2021-07-02 00:28:39
  */
 
+import 'package:audio_service/audio_service.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:logger/logger.dart';
 import 'package:xy_music_mobile/common/event/player/index.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -16,12 +16,8 @@ import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/player_list_model.dart';
 
-import 'base_music_service.dart';
-
 ///播放服务
 class PlayerService {
-  final Logger _logger = log;
-
   EventBus _musicEventBus = EventBus();
 
   ///播放列表
@@ -38,13 +34,8 @@ class PlayerService {
 
   PlayerListModel? get musicModel => _playerListModel;
 
-  AudioPlayer get player => _audioPlayer!;
-
   PlayerService() {
     //初始化播放列表
-    _audioPlayer = AudioPlayer();
-
-    initListener();
     loadPalyList();
   }
 
@@ -66,45 +57,33 @@ class PlayerService {
               "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
           originData: {})
     ]);
-    // var mediaList = _playerListModel!.musicList
-    //     .map((item) => MediaItem(
-    //           id: item.songmId!,
-    //           album: item.albumName ?? "-",
-    //           title: item.songName,
-    //           artist: item.singer,
-    //           duration: Duration(microseconds: item.duration),
-    //           // artUri: Uri.http(item.picImage ?? "", "")
-    //         ))
-    //     .toList();
-    // AudioServiceBackground.setQueue(mediaList);
+
+    var mediaList = _playerListModel!.musicList
+        .map((item) => MediaItem(
+              id: item.songmId!,
+              album: item.albumName ?? "-",
+              title: item.songName,
+              artist: item.singer,
+              duration: Duration(microseconds: item.duration),
+              // artUri: Uri.http(item.picImage ?? "", "")
+            ))
+        .toList();
+    AudioServiceBackground.setQueue(mediaList);
   }
 
   ///加载音乐
   Future<bool> loadMusicForUrl(String url) async {
-    _logger.d("loadMusicForUrl :{ $url }");
-    try {
-      await _audioPlayer!.setUrl(url);
+    await dispose();
+    _status = PlayStatus.loading;
+    _audioPlayer = AudioPlayer();
+    bool s = await _audioPlayer!.setUrl(url) == 1 ? true : false;
+    if (s) {
       _status = PlayStatus.ready;
-      return true;
-    } on PlayerException catch (e) {
-      // iOS/macOS: maps to NSError.code
-      // Android: maps to ExoPlayerException.type
-      // Web: maps to MediaError.code
-      _logger.e("Error code: ${e.code}");
-      // iOS/macOS: maps to NSError.localizedDescription
-      // Android: maps to ExoPlaybackException.getMessage()
-      // Web: a generic message
-      _logger.e("Error message: ${e.message}");
-    } on PlayerInterruptedException catch (e) {
-      // This call was interrupted since another audio source was loaded or the
-      // player was stopped or disposed before this audio source could complete
-      // loading.
-      _logger.e("Connection aborted: ${e.message}");
-    } catch (e) {
-      // Fallback for all errors
-      _logger.e(e);
+      initListener();
+    } else {
+      _status = PlayStatus.error;
     }
-    return false;
+    return s;
   }
 
   ///加载音乐 根据音乐数据Model
@@ -115,6 +94,7 @@ class PlayerService {
     if (entity.playUrl == null) {
       return false;
     }
+
     return await loadMusicForUrl(entity.playUrl!);
   }
 
@@ -126,17 +106,16 @@ class PlayerService {
     if (_status != PlayStatus.ready) {
       return false;
     }
-    if (!_audioPlayer!.playing) {
-      try {
-        await _audioPlayer!.play();
+    if (_audioPlayer?.state != PlayerState.PLAYING) {
+      var state = await _audioPlayer!.resume() == 1 ? true : false;
+      if (state) {
         _status = PlayStatus.playing;
-      } catch (e) {
+      } else {
         _status = PlayStatus.error;
-        _logger.e("play exception", e);
-        return false;
       }
+      return state;
     }
-    return true;
+    return false;
   }
 
   ///暂停
@@ -144,18 +123,16 @@ class PlayerService {
     if (_audioPlayer == null) {
       return false;
     }
-    if (!_audioPlayer!.playing) {
+    if (_audioPlayer?.state != PlayerState.PLAYING) {
       return true;
     }
-    try {
-      await _audioPlayer!.pause();
-      _status = PlayStatus.playing;
-    } catch (e) {
+    var state = await _audioPlayer!.pause() == 1 ? true : false;
+    if (state) {
+      _status = PlayStatus.paused;
+    } else {
       _status = PlayStatus.error;
-      _logger.e("puase exception", e);
-      return false;
     }
-    return true;
+    return state;
   }
 
   ///初始化监听器
@@ -164,36 +141,25 @@ class PlayerService {
       return;
     }
 
-    _audioPlayer!.playerStateStream.listen((state) {
-      // if (state.playing) ... else ...
-      switch (state.processingState) {
-        case ProcessingState.idle:
-          //空闲
-          break;
-        case ProcessingState.loading:
-          //loading加载
-          break;
-        case ProcessingState.buffering:
-          //缓冲中
-          break;
-        case ProcessingState.ready:
-          //准备好了
-          break;
-        case ProcessingState.completed:
-          //播放完成
-          _logger.i("播放完成");
-          _musicEventBus.fire(
-              PlayerCompletionEvent(_playerListModel!.getCurrentMusicEntity()));
-          break;
-      }
+    ///播放进度
+    _audioPlayer!.onAudioPositionChanged.listen((Duration p) {
+      // log.i("当前播放进度: $p");
+      _musicEventBus.fire(new PlayerPositionChangedEvent(
+          p, _playerListModel!.getCurrentMusicEntity()));
     });
-
-    _audioPlayer!.durationStream.listen((event) {
-      if (event != null) {
-        _logger.d("durationStream : $event");
-        _musicEventBus.fire(new PlayerPositionChangedEvent(
-            event, _playerListModel!.getCurrentMusicEntity()));
-      }
+    //播放状态
+    _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
+      log.i("播放状态: $s");
+    });
+    _audioPlayer!.onPlayerCompletion.listen((event) {
+      log.i("播放完成");
+      _musicEventBus.fire(
+          PlayerCompletionEvent(_playerListModel!.getCurrentMusicEntity()));
+    });
+    _audioPlayer!.onPlayerError.listen((msg) {
+      log.e("播放出现异常: $msg");
+      _musicEventBus.fire(
+          PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()));
     });
   }
 

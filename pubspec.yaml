@@ -70,8 +70,8 @@ dependencies:
   #ListView滚动到列表中指定item
   scrollable_positioned_list: ^0.1.10
   #音乐播放组件
-  # audioplayers: ^0.19.0
-  just_audio: ^0.8.0
+  audioplayers: ^0.19.0
+  # just_audio: ^0.8.0
   #后台控制中心 音乐播放服务
   audio_service: ^0.17.0
   url_launcher: ^6.0.4
@@ -87,6 +87,7 @@ dependencies:
   flutter_swiper_null_safety: ^1.0.2
   #图片颜色提取工具
   palette_generator: ^0.3.0
+  uuid: 3.0.4
   #Json 序列化
   # json_annotation: ^4.0.0
 

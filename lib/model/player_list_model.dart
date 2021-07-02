@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
-
+import 'package:uuid/uuid.dart';
 /*
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-01 22:08:51
+ * @LastEditTime: 2021-07-02 23:31:56
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
+import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 import 'music_entity.dart';
@@ -29,12 +30,32 @@ class PlayerListModel {
 
   VoidCallback? _save;
 
+  var _uuid = Uuid();
+
   PlayerListModel({
     required this.musicList,
     this.mode = PlayMode.order,
     this.playIndex = 0,
-  });
+  }) {
+    for (var v in this.musicList) {
+      _checkData(v);
+    }
+  }
 
+  void _checkData(MusicEntity entity) async {
+    if (entity.uuid == null || entity.uuid!.isEmpty) {
+      entity.uuid = _uuid.v1();
+    }
+    if (entity.picImage == null || entity.picImage!.isEmpty) {
+      var url = await musicServiceProviderMange
+          .getSupportProvider(entity.source)
+          .first
+          .getPic(entity);
+      entity.picImage = url;
+    }
+  }
+
+  ///返回当前的播放列表
   MusicEntity getCurrentMusicEntity() {
     if (playIndex > musicList.length) {
       throw new Exception("playe index out");
@@ -42,6 +63,13 @@ class PlayerListModel {
     return musicList[playIndex];
   }
 
+  ///设置当前的播放音乐
+  int setCurrentMusic(MusicEntity entity) {
+    this.playIndex = this.musicList.indexOf(entity);
+    return this.playIndex;
+  }
+
+  ///保存到本地数据
   void setSaveFun(VoidCallback callback) {
     this._save = callback;
   }
@@ -97,6 +125,22 @@ class PlayerListModel {
     return state;
   }
 
+  ///是否有下一首
+  bool hasPrevious() {
+    if (playIndex - 1 < 0) {
+      return false;
+    }
+    return true;
+  }
+
+  ///是否有上一首
+  bool hasNext() {
+    if (playIndex + 1 >= musicList.length) {
+      return false;
+    }
+    return true;
+  }
+
   void _callSave() {
     if (_save != null) {
       this._save!();
@@ -106,11 +150,13 @@ class PlayerListModel {
   ///插入音乐
   void addMusic(MusicEntity entity) {
     this.musicList.insert(0, entity);
+    _checkData(entity);
     _callSave();
   }
 
   ///插入音乐
   void addMusicAll(List<MusicEntity> entityList) {
+    entityList.forEach((element) => _checkData(element));
     this.musicList.insertAll(0, entityList);
     _callSave();
   }

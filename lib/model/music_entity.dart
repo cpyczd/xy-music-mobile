@@ -7,7 +7,7 @@ import 'package:xy_music_mobile/model/base_entity.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-06-06 18:16:29
+ * @LastEditTime: 2021-07-02 22:42:57
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -15,6 +15,8 @@ import 'package:xy_music_mobile/util/index.dart';
 
 ///音乐模块实体类
 class MusicEntity extends BaseEntity {
+  String? uuid;
+
   ///歌曲ID
   final String? songmId;
 
@@ -43,7 +45,7 @@ class MusicEntity extends BaseEntity {
   String? durationStr;
 
   ///图片封面
-  final String? picImage;
+  String? picImage;
 
   ///歌词
   String? lrc;

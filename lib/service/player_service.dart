@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-02 00:28:39
+ * @LastEditTime: 2021-07-03 00:22:53
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -25,17 +25,26 @@ class PlayerService {
 
   AudioPlayer? _audioPlayer;
 
+  final String _playerInstanceId = "xy-music-play-id";
+
   ///播放状态
   PlayStatus _status = PlayStatus.stop;
 
-  PlayStatus get playState => _status;
+  PlayStatus get playState => this._status;
+
+  set playState(PlayStatus status) => this._status = status;
 
   EventBus get bus => _musicEventBus;
 
   PlayerListModel? get musicModel => _playerListModel;
 
+  ///当前播放的进度
+  Duration position = Duration.zero;
+
   PlayerService() {
     //初始化播放列表
+    _audioPlayer =
+        AudioPlayer(mode: PlayerMode.MEDIA_PLAYER, playerId: _playerInstanceId);
     loadPalyList();
   }
 
@@ -59,23 +68,42 @@ class PlayerService {
     ]);
 
     var mediaList = _playerListModel!.musicList
-        .map((item) => MediaItem(
-              id: item.songmId!,
-              album: item.albumName ?? "-",
-              title: item.songName,
-              artist: item.singer,
-              duration: Duration(microseconds: item.duration),
-              // artUri: Uri.http(item.picImage ?? "", "")
-            ))
+        .map((e) => MediaItem(
+            id: e.uuid!,
+            album: e.albumName ?? "-",
+            title: e.songName,
+            artist: e.singer,
+            duration: Duration(milliseconds: e.duration),
+            extras: e.toMap(),
+            artUri: _getImage(e)))
         .toList();
     AudioServiceBackground.setQueue(mediaList);
   }
 
+  Uri? _getImage(MusicEntity entity) {
+    if (entity.picImage == null || entity.picImage!.isEmpty) {
+      musicServiceProviderMange
+          .getSupportProvider(entity.source)
+          .first
+          .getPic(entity)
+          .then((value) {});
+      return null;
+    }
+    return Uri.parse(entity.picImage!);
+  }
+
+  void _createPlayerInstance() {
+    _audioPlayer?.stop();
+    _status = PlayStatus.stop;
+    _audioPlayer =
+        AudioPlayer(mode: PlayerMode.MEDIA_PLAYER, playerId: _playerInstanceId);
+  }
+
   ///加载音乐
   Future<bool> loadMusicForUrl(String url) async {
-    await dispose();
+    // await dispose();
+    _createPlayerInstance();
     _status = PlayStatus.loading;
-    _audioPlayer = AudioPlayer();
     bool s = await _audioPlayer!.setUrl(url) == 1 ? true : false;
     if (s) {
       _status = PlayStatus.ready;
@@ -88,12 +116,18 @@ class PlayerService {
 
   ///加载音乐 根据音乐数据Model
   Future<bool> loadMusic(MusicEntity entity) async {
+    if (entity.playUrl != null && entity.playUrl!.isNotEmpty) {
+      return await loadMusicForUrl(entity.playUrl!);
+    }
     var service =
         musicServiceProviderMange.getSupportProvider(entity.source).first;
     await service.getMusicPlayUrl(entity);
     if (entity.playUrl == null) {
       return false;
     }
+
+    //设置下标同步
+    musicModel!.setCurrentMusic(entity);
 
     return await loadMusicForUrl(entity.playUrl!);
   }
@@ -103,7 +137,7 @@ class PlayerService {
     if (_audioPlayer == null) {
       return false;
     }
-    if (_status != PlayStatus.ready) {
+    if (_status == PlayStatus.stop) {
       return false;
     }
     if (_audioPlayer?.state != PlayerState.PLAYING) {
@@ -135,6 +169,31 @@ class PlayerService {
     return state;
   }
 
+  ///停止
+  Future<bool> stop() async {
+    if (_audioPlayer == null) {
+      return false;
+    }
+    var res = await _audioPlayer!.stop() == 1 ? true : false;
+    if (res) {
+      position = Duration.zero;
+      this.playState = PlayStatus.stop;
+    } else {
+      this.playState = PlayStatus.error;
+    }
+    return res;
+  }
+
+  Future<bool> seekTo(Duration duration) async {
+    if (_audioPlayer == null) {
+      return false;
+    }
+    if (_audioPlayer?.state != PlayerState.PLAYING) {
+      return false;
+    }
+    return await _audioPlayer!.seek(duration) == 1 ? true : false;
+  }
+
   ///初始化监听器
   initListener() {
     if (_audioPlayer == null) {
@@ -143,17 +202,19 @@ class PlayerService {
 
     ///播放进度
     _audioPlayer!.onAudioPositionChanged.listen((Duration p) {
+      position = p;
       // log.i("当前播放进度: $p");
-      _musicEventBus.fire(new PlayerPositionChangedEvent(
-          p, _playerListModel!.getCurrentMusicEntity()));
+      // AudioServiceBackground.sendCustomEvent(PlayerPositionChangedEvent(
+      //     p, _playerListModel!.getCurrentMusicEntity()));
     });
     //播放状态
     _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
       log.i("播放状态: $s");
+      position = Duration.zero;
     });
     _audioPlayer!.onPlayerCompletion.listen((event) {
       log.i("播放完成");
-      _musicEventBus.fire(
+      AudioServiceBackground.sendCustomEvent(
           PlayerCompletionEvent(_playerListModel!.getCurrentMusicEntity()));
     });
     _audioPlayer!.onPlayerError.listen((msg) {

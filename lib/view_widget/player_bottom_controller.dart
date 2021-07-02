@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-02 17:08:30
+ * @LastEditTime: 2021-07-03 00:23:04
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -10,10 +10,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/application.dart';
-import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/theme.dart';
-import 'package:xy_music_mobile/service/audio_service_task.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
 class PlayerBottomControllre extends StatefulWidget {
@@ -28,12 +26,9 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre> {
   void initState() {
     super.initState();
 
-    // // ///加载音乐
-    // Application.playerService
-    //     .loadMusic(
-    //         Application.playerService.musicModel!.getCurrentMusicEntity())
-    //     .then((value) => log.i("加载音乐完成"))
-    //     .catchError((e) => log.e("异常$e"));
+    AudioService.customEventStream.listen((event) {
+      log.i("接受到的customEventStream： $event");
+    });
   }
 
   @override
@@ -98,18 +93,13 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre> {
 
   ///播放或者暂停
   void playOrPaused() {
-    // AudioService.playbackState
-    // if (Application.playerService.playState == PlayStatus.playing) {
-    //   log.i("暂停");
-    //   // Application.playerService.puase();
-    //   AudioService.pause();
-    // } else {
-    //   log.i("开始播放");
-    //   // Application.playerService.play();
-    //   AudioService.play();
-    // }
-
-    AudioService.play();
+    if (AudioService.playbackState.playing) {
+      log.i("暂停");
+      AudioService.pause();
+    } else {
+      log.i("开始播放");
+      AudioService.play();
+    }
   }
 
   ///下一首

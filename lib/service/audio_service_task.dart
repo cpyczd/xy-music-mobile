@@ -2,47 +2,41 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-02 00:25:53
+ * @LastEditTime: 2021-07-02 16:58:57
  */
 
 import 'package:audio_service/audio_service.dart';
+import 'package:logger/logger.dart';
+import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/service/player_service.dart';
+import 'package:xy_music_mobile/util/index.dart';
 
 class AudioPlayerBackageTask extends BackgroundAudioTask {
-  final PlayerService service;
+  final Logger logger = log;
 
-  AudioPlayerBackageTask(this.service);
+  late final PlayerService service;
+
+  AudioPlayerBackageTask() {
+    Application.applicationInit();
+    HttpUtil.logOpen();
+    service = PlayerService();
+  }
 
   @override
   Future<void> onStart(Map<String, dynamic>? params) async {
-    print("onStart: params: $params");
-    // var mediaList = service.musicModel!.musicList
-    //     .map((item) => MediaItem(
-    //         id: item.playUrl!,
-    //         album: item.albumName ?? "-",
-    //         title: item.songName,
-    //         artist: item.singer,
-    //         duration: Duration(microseconds: item.duration),
-    //         artUri: Uri.http(item.picImage ?? "", "")))
-    //     .toList();
-    // AudioServiceBackground.setQueue(mediaList);
-    print(AudioServiceBackground.queue);
-    AudioServiceBackground.setMediaItem(AudioServiceBackground.queue!.first);
-    // await service.play();
-    AudioServiceBackground.setState(
-      playing: true,
-      controls: [
-        MediaControl.pause,
-        MediaControl.stop,
-      ],
-    );
+    logger.d("onStart params: $params");
+
+    bool state =
+        await service.loadMusic(service.musicModel!.getCurrentMusicEntity());
+    logger.d("onStart=>loadMusic=>$state");
     return;
   }
 
   @override
   Future<void> onPlay() async {
-    print("onPlay 调用");
-    await service.play();
+    logger.d("onPlay 调用 Response:${await service.play()}");
+    // await service.play()
     AudioServiceBackground.setState(
       playing: true,
       controls: [
@@ -84,5 +78,11 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       await service.play();
     }
     return super.onSkipToPrevious();
+  }
+
+  @override
+  Future<void> onStop() async {
+    await service.dispose();
+    return super.onStop();
   }
 }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-07-01 22:48:17
+ * @LastEditTime: 2021-07-02 16:56:04
  */
 
 import 'package:event_bus/event_bus.dart';
@@ -21,7 +21,7 @@ class Application {
 
   static late BuildContext context;
 
-  static late final PlayerService playerService = PlayerService();
+  // static late final PlayerService playerService = PlayerService();
 
   ///IOS 可侧滑返回的跳转界面
   static Future navigateToIos(BuildContext context, String path,

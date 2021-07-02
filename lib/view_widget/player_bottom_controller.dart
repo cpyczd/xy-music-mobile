@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-01 23:58:50
+ * @LastEditTime: 2021-07-02 17:08:30
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -28,12 +28,12 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre> {
   void initState() {
     super.initState();
 
-    // ///加载音乐
-    Application.playerService
-        .loadMusic(
-            Application.playerService.musicModel!.getCurrentMusicEntity())
-        .then((value) => log.i("加载音乐完成"))
-        .catchError((e) => log.e("异常$e"));
+    // // ///加载音乐
+    // Application.playerService
+    //     .loadMusic(
+    //         Application.playerService.musicModel!.getCurrentMusicEntity())
+    //     .then((value) => log.i("加载音乐完成"))
+    //     .catchError((e) => log.e("异常$e"));
   }
 
   @override
@@ -98,19 +98,25 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre> {
 
   ///播放或者暂停
   void playOrPaused() {
-    if (Application.playerService.playState == PlayStatus.playing) {
-      log.i("暂停");
-      // Application.playerService.puase();
-      AudioService.pause();
-    } else {
-      log.i("开始播放");
-      // Application.playerService.play();
-      AudioService.play();
-    }
+    // AudioService.playbackState
+    // if (Application.playerService.playState == PlayStatus.playing) {
+    //   log.i("暂停");
+    //   // Application.playerService.puase();
+    //   AudioService.pause();
+    // } else {
+    //   log.i("开始播放");
+    //   // Application.playerService.play();
+    //   AudioService.play();
+    // }
+
+    AudioService.play();
   }
 
   ///下一首
-  void next() {}
+  void next() async {
+    log.d("停止Service线程");
+    await AudioService.stop();
+  }
 
   ///显示播放列表
   void showMusicList() {}

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-07-02 00:22:17
+ * @LastEditTime: 2021-07-02 17:07:47
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -11,6 +11,7 @@ import 'package:hive/hive.dart';
 import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
+import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/service/audio_service_task.dart';
 import 'package:xy_music_mobile/util/index.dart';
@@ -49,9 +50,10 @@ class _HomePageState extends State<HomePage>
     super.initState();
     WidgetsBinding.instance!.addObserver(this);
     Future.delayed(Duration.zero).then((value) async {
+      log.d("初始化Task任务 开始");
       var state = await AudioService.start(
           backgroundTaskEntrypoint: _entrypoint, params: {"test": "success"});
-      log.d("初始化Start:$state");
+      log.d("初始化Task任务结束 结果=>:$state");
     });
   }
 
@@ -202,5 +204,5 @@ class _HomePageState extends State<HomePage>
   bool get wantKeepAlive => true;
 }
 
-void _entrypoint() async => AudioServiceBackground.run(
-    () => AudioPlayerBackageTask(Application.playerService));
+void _entrypoint() async =>
+    await AudioServiceBackground.run(() => AudioPlayerBackageTask());

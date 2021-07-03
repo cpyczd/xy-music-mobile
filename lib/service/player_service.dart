@@ -2,12 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-03 00:22:53
+ * @LastEditTime: 2021-07-03 23:09:02
  */
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:event_bus/event_bus.dart';
 import 'package:xy_music_mobile/common/event/player/index.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -18,8 +17,6 @@ import 'package:xy_music_mobile/model/player_list_model.dart';
 
 ///播放服务
 class PlayerService {
-  EventBus _musicEventBus = EventBus();
-
   ///播放列表
   PlayerListModel? _playerListModel;
 
@@ -33,8 +30,6 @@ class PlayerService {
   PlayStatus get playState => this._status;
 
   set playState(PlayStatus status) => this._status = status;
-
-  EventBus get bus => _musicEventBus;
 
   PlayerListModel? get musicModel => _playerListModel;
 
@@ -63,10 +58,15 @@ class PlayerService {
           duration: 133998,
           durationStr: "02:13",
           picImage:
-              "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
+              // "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
+              "http://pic3.zhimg.com/50/v2-c524149a6e4126baf8a64cecf8eb2db3_hd.jpg",
           originData: {})
     ]);
+    this.syncQueue();
+  }
 
+  ///同步播放队列
+  void syncQueue() {
     var mediaList = _playerListModel!.musicList
         .map((e) => MediaItem(
             id: e.uuid!,
@@ -204,23 +204,44 @@ class PlayerService {
     _audioPlayer!.onAudioPositionChanged.listen((Duration p) {
       position = p;
       // log.i("当前播放进度: $p");
-      // AudioServiceBackground.sendCustomEvent(PlayerPositionChangedEvent(
-      //     p, _playerListModel!.getCurrentMusicEntity()));
+      AudioServiceBackground.sendCustomEvent(PlayerPositionChangedEvent(
+          p, _playerListModel!.getCurrentMusicEntity()!));
     });
     //播放状态
     _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
       log.i("播放状态: $s");
-      position = Duration.zero;
+      PlayStatus status = PlayStatus.stop;
+      switch (s) {
+        case PlayerState.PAUSED:
+          status = PlayStatus.paused;
+          break;
+        case PlayerState.PLAYING:
+          status = PlayStatus.playing;
+          break;
+        case PlayerState.STOPPED:
+          status = PlayStatus.stop;
+          break;
+        case PlayerState.COMPLETED:
+          status = PlayStatus.completed;
+          position = Duration.zero;
+          break;
+      }
+      AudioServiceBackground.sendCustomEvent(PlayerChangeEvent(
+          status, _playerListModel!.getCurrentMusicEntity()!));
     });
-    _audioPlayer!.onPlayerCompletion.listen((event) {
-      log.i("播放完成");
-      AudioServiceBackground.sendCustomEvent(
-          PlayerCompletionEvent(_playerListModel!.getCurrentMusicEntity()));
-    });
+
+    // _audioPlayer!.onPlayerCompletion.listen((event) {
+    //   log.i("播放完成");
+    //   position = Duration.zero;
+    //   AudioServiceBackground.sendCustomEvent(
+    //       PlayerCompletionEvent(_playerListModel!.getCurrentMusicEntity()!));
+    // });
     _audioPlayer!.onPlayerError.listen((msg) {
       log.e("播放出现异常: $msg");
-      _musicEventBus.fire(
-          PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()));
+      AudioServiceBackground.sendCustomEvent(
+          PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()!));
+      // _musicEventBus.fire(
+      //     PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()!));
     });
   }
 

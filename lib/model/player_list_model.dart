@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-02 23:31:56
+ * @LastEditTime: 2021-07-03 14:42:53
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -56,7 +56,10 @@ class PlayerListModel {
   }
 
   ///返回当前的播放列表
-  MusicEntity getCurrentMusicEntity() {
+  MusicEntity? getCurrentMusicEntity() {
+    if (musicList.isEmpty) {
+      return null;
+    }
     if (playIndex > musicList.length) {
       throw new Exception("playe index out");
     }
@@ -147,6 +150,25 @@ class PlayerListModel {
     }
   }
 
+  ///调整顺序到指定位置
+  bool toPositionIndex(int index) {
+    if (index < 0 || index >= musicList.length) {
+      return false;
+    }
+    playIndex = index;
+    return true;
+  }
+
+  ///调整顺序到指定位置
+  bool toPosition(MusicEntity entity) {
+    var index =
+        this.musicList.indexWhere((element) => element.uuid == entity.uuid);
+    if (index == -1) {
+      return false;
+    }
+    return toPositionIndex(index);
+  }
+
   ///插入音乐
   void addMusic(MusicEntity entity) {
     this.musicList.insert(0, entity);
@@ -191,6 +213,11 @@ class PlayerListModel {
     this.musicList.remove(source);
     this.musicList.insert(this.musicList.indexOf(target), source);
     _callSave();
+  }
+
+  void clear() {
+    this.musicList.clear();
+    this.playIndex = 0;
   }
 
   PlayerListModel copyWith({

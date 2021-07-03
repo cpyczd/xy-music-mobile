@@ -7,7 +7,7 @@ import 'package:xy_music_mobile/model/base_entity.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-07-02 22:42:57
+ * @LastEditTime: 2021-07-03 21:34:41
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -66,26 +66,26 @@ class MusicEntity extends BaseEntity {
 
   final Map originData;
 
-  MusicEntity({
-    int? id,
-    this.songmId,
-    this.albumId,
-    this.albumName,
-    this.singer,
-    this.playUrl,
-    required this.songName,
-    this.songnameOriginal,
-    required this.source,
-    required this.duration,
-    this.durationStr,
-    this.picImage,
-    this.lrc,
-    this.hash,
-    this.quality,
-    this.qualityFileSize,
-    this.types,
-    required this.originData,
-  }) {
+  MusicEntity(
+      {int? id,
+      this.songmId,
+      this.albumId,
+      this.albumName,
+      this.singer,
+      this.playUrl,
+      required this.songName,
+      this.songnameOriginal,
+      required this.source,
+      required this.duration,
+      this.durationStr,
+      this.picImage,
+      this.lrc,
+      this.hash,
+      this.quality,
+      this.qualityFileSize,
+      this.types,
+      required this.originData,
+      this.uuid}) {
     super.id = id;
   }
 
@@ -149,33 +149,38 @@ class MusicEntity extends BaseEntity {
       'hash': hash,
       'quality': quality,
       'qualityFileSize': qualityFileSize,
-      'types': jsonEncode(types),
+      'types': types != null ? jsonEncode(types) : null,
       'originData': jsonEncode(originData),
+      'uuid': this.uuid
     };
   }
 
   factory MusicEntity.fromMap(Map<String, dynamic> map) {
     return MusicEntity(
-      id: map['id'],
-      songmId: map['songmId'],
-      albumId: map['albumId'],
-      albumName: map['albumName'],
-      singer: map['singer'],
-      songName: map['songName'],
-      songnameOriginal: map['songnameOriginal'],
-      source:
-          EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
-      duration: map['duration'],
-      durationStr: map['durationStr'],
-      picImage: map['picImage'],
-      lrc: map['lrc'],
-      hash: map['hash'],
-      playUrl: map['playUrl'],
-      quality: map['quality'],
-      qualityFileSize: map['qualityFileSize'],
-      types: List<String>.from(jsonDecode(map['types'])),
-      originData: Map<String, dynamic>.from(jsonDecode(map['originData'])),
-    );
+        id: map['id'],
+        songmId: map['songmId'],
+        albumId: map['albumId'],
+        albumName: map['albumName'],
+        singer: map['singer'],
+        songName: map['songName'],
+        songnameOriginal: map['songnameOriginal'],
+        source:
+            EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
+        duration: map['duration'],
+        durationStr: map['durationStr'],
+        picImage: map['picImage'],
+        lrc: map['lrc'],
+        hash: map['hash'],
+        playUrl: map['playUrl'],
+        quality: map['quality'],
+        qualityFileSize: map['qualityFileSize'],
+        types: StringUtils.isNotBlank(map['types'])
+            ? List<String>.from(jsonDecode(map['types']))
+            : null,
+        originData: StringUtils.isNotBlank(map['originData'])
+            ? Map<String, dynamic>.from(jsonDecode(map['originData']))
+            : {},
+        uuid: map["uuid"]);
   }
 
   String toJson() => json.encode(toMap());
@@ -185,7 +190,7 @@ class MusicEntity extends BaseEntity {
 
   @override
   String toString() {
-    return 'MusicEntity(id: $id, songmId: $songmId, albumId: $albumId, albumName: $albumName, singer: $singer, songName: $songName, songnameOriginal: $songnameOriginal, source: $source, duration: $duration, durationStr: $durationStr, picImage: $picImage, lrc: $lrc, hash: $hash, quality: $quality, qualityFileSize: $qualityFileSize, types: $types, playUrl: $playUrl, originData: $originData)';
+    return 'MusicEntity(id: $id,uuid: $uuid songmId: $songmId, albumId: $albumId, albumName: $albumName, singer: $singer, songName: $songName, songnameOriginal: $songnameOriginal, source: $source, duration: $duration, durationStr: $durationStr, picImage: $picImage, lrc: $lrc, hash: $hash, quality: $quality, qualityFileSize: $qualityFileSize, types: $types, playUrl: $playUrl, originData: $originData)';
   }
 
   @override

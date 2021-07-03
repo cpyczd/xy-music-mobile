@@ -28,3 +28,16 @@ String getFormattedNumber(int number) {
   number = number ~/ 10000;
   return "$number万";
 }
+
+///字符串工具类
+class StringUtils {
+  ///判断字符串是否不为空
+  static bool isNotBlank(String? str) {
+    return str != null && str.isNotEmpty;
+  }
+
+  ///判断字符串是否为空
+  static bool isBlank(String? str) {
+    return str == null && str!.isEmpty;
+  }
+}

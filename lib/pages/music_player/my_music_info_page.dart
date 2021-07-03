@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 21:01:25
- * @LastEditTime: 2021-07-01 13:50:21
+ * @LastEditTime: 2021-07-03 22:01:18
  */
 import 'dart:ui';
 
@@ -33,7 +33,8 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> {
     super.initState();
     //设置状态栏的颜色为亮色
     //设置状态栏的颜色
-    setUiOverlayStyle(Brightness.light);
+    Future.delayed(Duration.zero)
+        .then((value) => setUiOverlayStyle(Brightness.dark));
   }
 
   @override

@@ -115,25 +115,14 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
                       style: ordinaryStyle,
                     ),
                     widget.info.desc != null && widget.info.desc!.isNotEmpty
-                        ? GestureDetector(
-                            onTap: () {
-                              log.d("点击了描述");
-                            },
-                            child: Row(
-                              children: [
-                                Expanded(
-                                    child: Text(
-                                  widget.info.desc ?? "",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: ordinaryStyle,
-                                )),
-                                Icon(
-                                  Icons.arrow_right,
-                                  color: Colors.white,
-                                )
-                              ],
+                        ? Expanded(
+                            child: SingleChildScrollView(
+                            child: Text(
+                              widget.info.desc ?? "",
+                              // overflow: TextOverflow.ellipsis,
+                              style: ordinaryStyle,
                             ),
-                          )
+                          ))
                         : SizedBox.expand()
                   ],
                 ))

@@ -7,7 +7,7 @@ import 'package:xy_music_mobile/model/base_entity.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-07-03 21:34:41
+ * @LastEditTime: 2021-07-04 18:02:33
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -39,7 +39,7 @@ class MusicEntity extends BaseEntity {
   MusicSourceConstant source;
 
   ///时长
-  final int duration;
+  final Duration duration;
 
   ///时长字符串
   String? durationStr;
@@ -99,7 +99,7 @@ class MusicEntity extends BaseEntity {
     String? songName,
     String? songnameOriginal,
     MusicSourceConstant? source,
-    int? duration,
+    Duration? duration,
     String? durationStr,
     String? picImage,
     String? lrc,
@@ -142,7 +142,7 @@ class MusicEntity extends BaseEntity {
       'songName': songName,
       'songnameOriginal': songnameOriginal,
       'source': source.name,
-      'duration': duration,
+      'duration': duration.inMilliseconds,
       'durationStr': durationStr,
       'picImage': picImage,
       'lrc': lrc,
@@ -166,7 +166,7 @@ class MusicEntity extends BaseEntity {
         songnameOriginal: map['songnameOriginal'],
         source:
             EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
-        duration: map['duration'],
+        duration: Duration(milliseconds: map['duration']),
         durationStr: map['durationStr'],
         picImage: map['picImage'],
         lrc: map['lrc'],

@@ -2,13 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-03 23:35:58
+ * @LastEditTime: 2021-07-04 18:10:01
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/common/event/player/index.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -29,7 +30,17 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onStart(Map<String, dynamic>? params) async {
     logger.d("onStart() params: $params");
-    service = PlayerService();
+    service = PlayerService(this);
+    var currMusic = service.musicModel!.getCurrentMusicEntity();
+    //初始化当前播放的列表
+    if (currMusic != null) {
+      var mediaItem = AudioServiceBackground.queue!
+          .firstWhere((element) => element.id == currMusic.uuid);
+      AudioServiceBackground.setMediaItem(mediaItem);
+      //发送一个初始化的事件过去
+      AudioServiceBackground.sendCustomEvent(
+          PlayerChangeEvent(service.playState, currMusic));
+    }
     return;
   }
 
@@ -107,6 +118,23 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       );
     }
     return super.onSkipToNext();
+  }
+
+  ///显示控制器
+  void _setShowControll() {
+    var controll = <MediaControl>[];
+    if (AudioServiceBackground.state.playing) {
+      controll.add(MediaControl.pause);
+    } else {
+      controll.add(MediaControl.play);
+    }
+    if (service.musicModel!.hasNext()) {
+      controll.add(MediaControl.skipToNext);
+    }
+    if (service.musicModel!.hasPrevious()) {
+      controll.add(MediaControl.skipToPrevious);
+    }
+    AudioServiceBackground.setState(controls: controll);
   }
 
   ///上一曲
@@ -187,6 +215,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   Future<void> onAddQueueItem(MediaItem mediaItem) async {
     AudioServiceBackground.queue!.add(mediaItem);
     service.musicModel!.addMusic(MusicEntity.fromMap(mediaItem.extras!));
+    _setShowControll();
     return;
   }
 
@@ -194,7 +223,8 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onRemoveQueueItem(MediaItem mediaItem) {
     AudioServiceBackground.queue!.remove(mediaItem);
-    service.musicModel!.remove(MusicEntity.fromMap(mediaItem.extras!));
+    service.musicModel!.removeByUuid(mediaItem.id);
+    _setShowControll();
     return super.onRemoveQueueItem(mediaItem);
   }
 
@@ -243,6 +273,10 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
         } else {
           return Future.error("arguments it need to be {PlayMode} ");
         }
+      case "moveToIndex":
+        service.musicModel!
+            .moveIndex(arguments["oldIndex"], arguments["newIndex"]);
+        return Future.value(true);
     }
     return Future.error("not action");
   }
@@ -266,15 +300,16 @@ class PlayerTaskHelper {
   }
 
   ///添加一首音乐到列队
-  static void pushQueue(MusicEntity entity) async {
+  static Future<void> pushQueue(MusicEntity entity) async {
     entity.uuid = _uuid.v1();
     Uri? uri;
     if (StringUtils.isBlank(entity.picImage)) {
       //如果为空就获取图片的地址
-      await musicServiceProviderMange
+      var url = await musicServiceProviderMange
           .getSupportProvider(entity.source)
           .first
           .getPic(entity);
+      entity.picImage = url;
     }
     if (StringUtils.isNotBlank(entity.picImage)) {
       uri = Uri.parse(entity.picImage!);
@@ -285,7 +320,7 @@ class PlayerTaskHelper {
         album: entity.albumName ?? "-",
         title: entity.songName,
         artist: entity.singer,
-        duration: Duration(milliseconds: entity.duration),
+        duration: entity.duration,
         extras: entity.toMap(),
         artUri: uri);
     AudioService.addQueueItem(item);
@@ -342,6 +377,18 @@ class PlayerTaskHelper {
     AudioService.queue!
         .where((element) => uuids.indexWhere((uid) => uid == element.id) != -1)
         .forEach((element) => AudioService.removeQueueItem(element));
+  }
+
+  ///移动播放列表项顺序
+  static Future<bool> moveToIndex(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || newIndex < 0) {
+      return Future.error("index cannot be less than 0");
+    }
+    return _transformation(
+      AudioService.customAction(
+          "moveToIndex", {"oldIndex", oldIndex, "newIndex", newIndex}),
+      cast: (val) => val is bool ? val : null,
+    );
   }
 
   static Future<T> _transformation<T>(Future future, {_OnCast? cast}) {

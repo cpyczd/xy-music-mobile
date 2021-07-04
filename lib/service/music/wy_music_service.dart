@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-07-02 00:15:50
+ * @LastEditTime: 2021-07-04 18:15:12
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -90,6 +90,9 @@ class WyMusicServiceImpl extends BaseMusicService {
     if (resp["code"] != 200) {
       return Future.error("请求失败");
     }
+    if (resp["result"]["songs"] == null) {
+      return List.empty();
+    }
     List<String> songsId = (resp["result"]["songs"] as List)
         .map((e) => e["id"].toString())
         .toList();
@@ -115,7 +118,7 @@ class WyMusicServiceImpl extends BaseMusicService {
             albumName: e["al"]["name"],
             albumId: e["al"]["id"].toString(),
             originData: e,
-            duration: e["dt"],
+            duration: Duration(milliseconds: e["dt"]),
             picImage: e["al"]["picUrl"],
             durationStr: formatPlayTime(e["dt"] / 1000),
             source: MusicSourceConstant.wy))

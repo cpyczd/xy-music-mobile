@@ -45,7 +45,7 @@ class KgRankingListServiceImpl extends BaseSongRankingService {
             songName: e["songname"],
             singer: e["singername"],
             album: e["album_name"],
-            duration: e["duration"],
+            duration: Duration(seconds: e["duration"]),
             durationStr: formatPlayTime(e["duration"] / 1000),
             source: MusicSourceConstant.kg,
             originalData: e))

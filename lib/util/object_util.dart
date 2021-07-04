@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-05-21 23:21:12
+ * @LastEditTime: 2021-07-04 16:49:19
  */
 import 'package:collection/collection.dart';
 
@@ -38,6 +38,6 @@ class StringUtils {
 
   ///判断字符串是否为空
   static bool isBlank(String? str) {
-    return str == null && str!.isEmpty;
+    return str == null || str.isEmpty;
   }
 }

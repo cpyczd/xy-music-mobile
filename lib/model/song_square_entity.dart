@@ -354,7 +354,7 @@ class SongSquareMusic {
   final Map originalData;
 
   ///时长
-  int? duration;
+  Duration? duration;
 
   ///时长字符串
   String? durationStr;
@@ -378,7 +378,7 @@ class SongSquareMusic {
     String? singer,
     String? album,
     Map? originalData,
-    int? duration,
+    Duration? duration,
     String? durationStr,
     MusicSourceConstant? source,
   }) {

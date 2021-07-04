@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-03 23:09:02
+ * @LastEditTime: 2021-07-04 17:50:23
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -15,8 +15,12 @@ import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/player_list_model.dart';
 
+import 'audio_service_task.dart';
+
 ///播放服务
 class PlayerService {
+  final AudioPlayerBackageTask backageTask;
+
   ///播放列表
   PlayerListModel? _playerListModel;
 
@@ -36,7 +40,7 @@ class PlayerService {
   ///当前播放的进度
   Duration position = Duration.zero;
 
-  PlayerService() {
+  PlayerService(this.backageTask) {
     //初始化播放列表
     _audioPlayer =
         AudioPlayer(mode: PlayerMode.MEDIA_PLAYER, playerId: _playerInstanceId);
@@ -55,7 +59,7 @@ class PlayerService {
           songName: "不该用情",
           songnameOriginal: null,
           source: MusicSourceConstant.wy,
-          duration: 133998,
+          duration: Duration(milliseconds: 133998),
           durationStr: "02:13",
           picImage:
               // "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
@@ -73,7 +77,7 @@ class PlayerService {
             album: e.albumName ?? "-",
             title: e.songName,
             artist: e.singer,
-            duration: Duration(milliseconds: e.duration),
+            duration: e.duration,
             extras: e.toMap(),
             artUri: _getImage(e)))
         .toList();
@@ -103,19 +107,31 @@ class PlayerService {
   Future<bool> loadMusicForUrl(String url) async {
     // await dispose();
     _createPlayerInstance();
+    AudioServiceBackground.setState(
+        processingState: AudioProcessingState.buffering);
     _status = PlayStatus.loading;
+
     bool s = await _audioPlayer!.setUrl(url) == 1 ? true : false;
     if (s) {
       _status = PlayStatus.ready;
+      AudioServiceBackground.setState(
+          processingState: AudioProcessingState.ready);
       initListener();
     } else {
       _status = PlayStatus.error;
+      AudioServiceBackground.setState(
+          processingState: AudioProcessingState.error);
     }
     return s;
   }
 
   ///加载音乐 根据音乐数据Model
   Future<bool> loadMusic(MusicEntity entity) async {
+    AudioServiceBackground.setState(
+        processingState: AudioProcessingState.buffering);
+    _status = PlayStatus.loading;
+    //发送Laoding事件
+    AudioServiceBackground.sendCustomEvent(PlayerChangeEvent(_status, entity));
     if (entity.playUrl != null && entity.playUrl!.isNotEmpty) {
       return await loadMusicForUrl(entity.playUrl!);
     }
@@ -178,6 +194,8 @@ class PlayerService {
     if (res) {
       position = Duration.zero;
       this.playState = PlayStatus.stop;
+      AudioServiceBackground.setState(
+          processingState: AudioProcessingState.stopped);
     } else {
       this.playState = PlayStatus.error;
     }
@@ -203,7 +221,6 @@ class PlayerService {
     ///播放进度
     _audioPlayer!.onAudioPositionChanged.listen((Duration p) {
       position = p;
-      // log.i("当前播放进度: $p");
       AudioServiceBackground.sendCustomEvent(PlayerPositionChangedEvent(
           p, _playerListModel!.getCurrentMusicEntity()!));
     });
@@ -220,29 +237,60 @@ class PlayerService {
           break;
         case PlayerState.STOPPED:
           status = PlayStatus.stop;
+          AudioServiceBackground.setState(
+              processingState: AudioProcessingState.stopped);
           break;
         case PlayerState.COMPLETED:
           status = PlayStatus.completed;
           position = Duration.zero;
+          _playCompletedHandler();
+          AudioServiceBackground.setState(
+              processingState: AudioProcessingState.completed);
           break;
       }
       AudioServiceBackground.sendCustomEvent(PlayerChangeEvent(
           status, _playerListModel!.getCurrentMusicEntity()!));
     });
 
-    // _audioPlayer!.onPlayerCompletion.listen((event) {
-    //   log.i("播放完成");
-    //   position = Duration.zero;
-    //   AudioServiceBackground.sendCustomEvent(
-    //       PlayerCompletionEvent(_playerListModel!.getCurrentMusicEntity()!));
-    // });
     _audioPlayer!.onPlayerError.listen((msg) {
       log.e("播放出现异常: $msg");
       AudioServiceBackground.sendCustomEvent(
           PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()!));
-      // _musicEventBus.fire(
-      //     PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()!));
+      AudioServiceBackground.setState(
+          processingState: AudioProcessingState.error);
     });
+  }
+
+  ///播放完成直接自动进行下一首的逻辑操作
+  void _playCompletedHandler() async {
+    //记录错误的次数
+    Map<String, int> errorMap = Map();
+    //最大错误的次数
+    int errorMax = 3;
+    while (musicModel!.next()) {
+      var music = musicModel!.getCurrentMusicEntity();
+      if (music == null) {
+        continue;
+      }
+      if (await this.loadMusic(music)) {
+        //加载成功直接播放
+        backageTask.onPlay();
+      } else {
+        log.e("自动播放下一首音乐LoadMusic发送错误:$music");
+        //记录错误次数
+        errorMap.update(
+          music.uuid!,
+          (value) => value + 1,
+          ifAbsent: () => 1,
+        );
+        //如果超过最大错误次数 直接结束循环
+        if (errorMap[music.uuid!]! > errorMax) {
+          log.e("超过错误最大次数=$music 错误次数=${errorMap[music.uuid!]!}");
+          break;
+        }
+        continue;
+      }
+    }
   }
 
   ///销毁示例释放资源

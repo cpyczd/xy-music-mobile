@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-16 14:37:49
- * @LastEditTime: 2021-06-16 15:46:32
+ * @LastEditTime: 2021-07-04 17:55:55
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -119,7 +119,7 @@ class SongRankingListItemEntity {
   final String album;
 
   ///时长
-  int? duration;
+  Duration? duration;
 
   ///时长字符串
   String? durationStr;
@@ -145,7 +145,7 @@ class SongRankingListItemEntity {
     String? songName,
     String? singer,
     String? album,
-    int? duration,
+    Duration? duration,
     String? durationStr,
     MusicSourceConstant? source,
     Map? originalData,

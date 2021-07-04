@@ -34,7 +34,7 @@ class KgSquareServiceImpl extends BaseSongSquareService {
               singer: e["singername"],
               album: e["album_name"],
               source: MusicSourceConstant.kg,
-              duration: e["duration"],
+              duration: Duration(seconds: e["duration"]),
               durationStr: formatPlayTime(e["duration"] / 1000),
               originalData: e))
           .skip((current - 1) * size)

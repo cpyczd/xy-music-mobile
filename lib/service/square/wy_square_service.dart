@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-21 15:13:53
+ * @LastEditTime: 2021-07-04 17:57:35
  */
 
 import 'dart:convert';
@@ -70,7 +70,7 @@ class WySquareServiceImpl extends BaseSongSquareService {
             singer: (e["ar"] as List).map((e) => e["name"]).join("、"),
             album: e["al"]["name"],
             originalData: e,
-            duration: e["dt"],
+            duration: Duration(milliseconds: e["dt"]),
             durationStr: formatPlayTime(e["dt"] / 1000),
             source: MusicSourceConstant.wy))
         .toList();

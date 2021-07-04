@@ -85,7 +85,7 @@ class _PlayerPageState extends State<PlayerPage>
         .getLyric(MusicEntity(
             songName: "songName",
             source: MusicSourceConstant.wy,
-            duration: 0,
+            duration: Duration.zero,
             songmId: "1847256510",
             originData: {}))
         .then((value) {

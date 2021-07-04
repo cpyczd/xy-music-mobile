@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-24 14:33:31
- * @LastEditTime: 2021-06-18 23:08:38
+ * @LastEditTime: 2021-07-04 17:54:28
  */
 import 'dart:convert';
 
@@ -108,7 +108,7 @@ class TxMusicServiceImpl extends BaseMusicService {
           songName: map["title"],
           songnameOriginal: map["name"],
           source: MusicSourceConstant.tx,
-          duration: map["interval"],
+          duration: Duration(seconds: map["interval"]),
           durationStr: util.getTimeStamp(map["interval"]),
           picImage: ((map["album"]["name"] as String).isEmpty ||
                   (map["album"]["name"] as String) == '空')

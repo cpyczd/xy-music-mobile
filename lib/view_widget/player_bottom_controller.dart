@@ -2,8 +2,10 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-04 00:34:24
+ * @LastEditTime: 2021-07-04 17:34:37
  */
+
+import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -20,6 +22,7 @@ import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/audio_service_task.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
+import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
 
 class PlayerBottomControllre extends StatefulWidget {
   const PlayerBottomControllre({Key? key}) : super(key: key);
@@ -43,31 +46,47 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
   ///当前的播放模式控件样式
   Map<String, dynamic>? currentModeSryle;
 
-  PlayerChangeEvent? _playEvent;
+  MusicEntity? currentMusic;
+
+  StreamSubscription<PlayerChangeEvent>? _streamPlayerStateChange;
+  StreamSubscription<PlayerPositionChangedEvent>? _streamPlayerPositionChange;
 
   @override
   void initState() {
     super.initState();
-    PlayerTaskHelper.bus
+    _streamPlayerStateChange = PlayerTaskHelper.bus
         .on<PlayerChangeEvent>()
         .listen((PlayerChangeEvent event) {
-      _playEvent = event;
+      currentMusic = event.musicEntity;
       getLine(_playSateKey).setData(event.state);
       getLine(_playInfoKey).setData(event.musicEntity);
+      //如果没有在播放就重置进度为0
+      if (event.state != PlayStatus.playing &&
+          event.state != PlayStatus.paused) {
+        Future.delayed(Duration(seconds: 2)).then((value) =>
+            getLine<Duration>(_playProgressKey)
+                .setData(Duration(milliseconds: 0)));
+      }
     });
 
-    PlayerTaskHelper.bus
+    _streamPlayerPositionChange = PlayerTaskHelper.bus
         .on<PlayerPositionChangedEvent>()
         .listen((PlayerPositionChangedEvent event) {
-      // log.d("PlayerPositionChangedEvent ==> ${event.duration}");
-      // getLine(_playInfoKey).setData(event.duration);
-      getLine(_playProgressKey).setData(event.duration);
+      if (currentMusic == null ||
+          event.musicEntity.uuid != currentMusic!.uuid) {
+        currentMusic = event.musicEntity;
+        getLine(_playSateKey).setData(PlayStatus.playing);
+        getLine(_playInfoKey).setData(event.musicEntity);
+      }
+      getLine<Duration>(_playProgressKey).setData(event.duration);
     });
   }
 
   @override
   void dispose() {
     disposeDataLine();
+    _streamPlayerPositionChange?.cancel();
+    _streamPlayerStateChange?.cancel();
     super.dispose();
   }
 
@@ -84,7 +103,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
               Application.router.navigateTo(context, "/player",
                   transition: TransitionType.fadeIn);
             },
-            child: getLine<MusicEntity>(_playInfoKey, initData: null)
+            child: getLine<MusicEntity>(_playInfoKey)
                 .addObserver((context, pack) => CircleAvatar(
                       backgroundImage: pack.data?.picImage != null
                           ? CachedNetworkImageProvider(pack.data!.picImage!)
@@ -93,13 +112,16 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                               initData: Duration.zero)
                           .addObserver((context, pack) {
                         var media = AudioService.currentMediaItem;
-                        var total = media!.duration!.inSeconds;
-                        double val =
-                            pack.data!.inSeconds.toDouble() / total.toDouble();
+                        double val = 0;
+                        if (media != null) {
+                          var total = media.duration!.inMilliseconds;
+                          val = pack.data!.inMilliseconds.toDouble() /
+                              total.toDouble();
+                        }
                         return CircularProgressIndicator(
                           value: val,
-                          strokeWidth: 2,
-                          backgroundColor: Colors.black12,
+                          strokeWidth: 2.5,
+                          backgroundColor: Colors.black38,
                           valueColor: AlwaysStoppedAnimation<Color>(
                               Color(AppTheme.getCurrentTheme().primaryColor)),
                         );
@@ -134,7 +156,10 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
           SizedBox.fromSize(size: Size.fromWidth(15)),
           getLine(_playSateKey, initData: PlayStatus.stop).addObserver(
               (context, pack) => _createIconButton(
-                  pack.data != PlayStatus.playing ? 0xe701 : 0xe67b,
+                  pack.data != PlayStatus.playing &&
+                          pack.data != PlayStatus.loading
+                      ? 0xe701
+                      : 0xe67b,
                   callback: playOrPaused)),
           SizedBox.fromSize(size: Size.fromWidth(15)),
           _createIconButton(0xe602, callback: next),
@@ -147,6 +172,12 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
 
   ///播放或者暂停
   void playOrPaused() {
+    //如果是加载中就不做任何操作
+    if (AudioService.playbackState.processingState ==
+        AudioProcessingState.buffering) {
+      log.i("playOrPaused 加载音乐资源中不可进行播或者暂停的操作");
+      return;
+    }
     if (AudioService.playbackState.playing) {
       log.i("暂停");
       AudioService.pause();
@@ -195,6 +226,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
       currentModeSryle = modeStyles[i];
       PlayerTaskHelper.setPlayMode(currentModeSryle!["mode"]);
     };
+    //显示控件
     showModalBottomSheet(
         backgroundColor:
             Color(AppTheme.getCurrentTheme().scaffoldBackgroundColor),
@@ -259,98 +291,109 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                           if (sp.hasData) {
                             var list = sp.data!;
                             var mediaItem = AudioService.currentMediaItem;
-                            log.d("获取当前的播放Item=$mediaItem");
                             //当前播放的Index下标
                             var cindx = -1;
-                            // var cindx = 0;
                             if (mediaItem != null) {
-                              log.d("MusicList => $list");
                               cindx = list.indexWhere(
                                   (element) => element.uuid == mediaItem.id);
                             }
-                            return SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                    (context, index) {
-                              MusicEntity music = list[index];
-                              return Container(
-                                height: 50,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 23),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    (() {
-                                      if (index == cindx) {
-                                        return CircleAvatar(
-                                          foregroundColor: Colors.greenAccent,
-                                          backgroundImage:
-                                              CachedNetworkImageProvider(
-                                                  music.picImage!),
-                                        );
-                                      } else {
-                                        return Text(
-                                            (index + 1) < 10
-                                                ? "0${index + 1}"
-                                                : "${(index + 1)}",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: Colors.black));
-                                      }
-                                    })(),
-                                    SizedBox.fromSize(
-                                      size: Size.fromWidth(15),
-                                    ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            music.songName,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                color: cindx == index
-                                                    ? Colors.redAccent.shade200
-                                                    : Colors.black,
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                          SizedBox.fromSize(
-                                            size: Size.fromHeight(5),
-                                          ),
-                                          Text(
-                                            music.singer ?? "",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black54),
-                                          )
-                                        ],
+                            return SliverReorderableList(
+                              onReorder: (oldIndex, newIndex) {
+                                //移动列表
+                                PlayerTaskHelper.moveToIndex(oldIndex, newIndex)
+                                    .then((value) {
+                                  if (value) {
+                                    setState(() {});
+                                  }
+                                });
+                              },
+                              itemBuilder: (context, index) {
+                                MusicEntity music = list[index];
+                                return Container(
+                                  key: ValueKey(music.uuid),
+                                  height: 50,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 23),
+                                  margin: const EdgeInsets.only(bottom: 15),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      (() {
+                                        if (index == cindx) {
+                                          return CircleAvatar(
+                                            foregroundColor: Colors.greenAccent,
+                                            backgroundImage:
+                                                CachedNetworkImageProvider(
+                                                    music.picImage!),
+                                          );
+                                        } else {
+                                          return Text(
+                                              (index + 1) < 10
+                                                  ? "0${index + 1}"
+                                                  : "${(index + 1)}",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Colors.black));
+                                        }
+                                      })(),
+                                      SizedBox.fromSize(
+                                        size: Size.fromWidth(15),
                                       ),
-                                    ),
-                                    Expanded(child: SizedBox()),
-                                    IconButton(
-                                        padding: EdgeInsets.zero,
-                                        constraints:
-                                            BoxConstraints(maxWidth: 25),
-                                        onPressed: () {},
-                                        icon:
-                                            iconFont(hex16: 0xe603, size: 17)),
-                                    IconButton(
-                                        padding: EdgeInsets.zero,
-                                        onPressed: () {
-                                          _removeMusic([music], state);
-                                        },
-                                        icon: iconFont(hex16: 0xe67d, size: 17))
-                                  ],
-                                ),
-                              );
-                            }, childCount: list.length));
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              music.songName,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: cindx == index
+                                                      ? Colors
+                                                          .redAccent.shade200
+                                                      : Colors.black,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                            SizedBox.fromSize(
+                                              size: Size.fromHeight(5),
+                                            ),
+                                            Text(
+                                              music.singer ?? "",
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black54),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      IconButton(
+                                          padding: EdgeInsets.zero,
+                                          constraints:
+                                              BoxConstraints(maxWidth: 25),
+                                          onPressed: () {},
+                                          icon: iconFont(
+                                              hex16: 0xe603, size: 17)),
+                                      IconButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            _removeMusic([music], state);
+                                          },
+                                          icon:
+                                              iconFont(hex16: 0xe67d, size: 17))
+                                    ],
+                                  ),
+                                );
+                              },
+                              itemCount: list.length,
+                            );
                           } else if (sp.connectionState ==
                               ConnectionState.waiting) {
                             return SliverToBoxAdapter(
@@ -363,7 +406,9 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                           } else {
                             return SliverToBoxAdapter(
                               child: Center(
-                                child: Text("空空的"),
+                                child: TextIconButton(
+                                    icon: svg(name: "empty"),
+                                    text: "还没音乐快去听歌吧!"),
                               ),
                             );
                           }

@@ -48,7 +48,7 @@ class KGMusicServiceImpl extends BaseMusicService {
           source: MusicSourceConstant.kg,
           songmId: e["audio_id"].toString(),
           albumId: e["album_id"].toString(),
-          duration: e["duration"],
+          duration: Duration(seconds: e["duration"]),
           durationStr: util.getTimeStamp(e["duration"]),
           albumName: e["album_name"]);
       return setQuality(entity, e);
@@ -157,6 +157,7 @@ class KGMusicServiceImpl extends BaseMusicService {
       int size = info["imgsize"][0];
       url = url.replaceAll("{size}", size.toString());
     }
+    entity.picImage = url;
     return url;
   }
 

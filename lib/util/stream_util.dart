@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:33:42
- * @LastEditTime: 2021-06-20 16:28:18
+ * @LastEditTime: 2021-07-04 15:31:01
  */
 import 'dart:async';
 
@@ -199,11 +199,11 @@ mixin MultDataLine {
   final Map<String, SingleDataLine> dataBus = Map();
 
   SingleDataLine<T> getLine<T>(String key,
-      {T? initData, dynamic initpParams, Widget? waitWidget}) {
+      {T? initData, dynamic initParams, Widget? waitWidget}) {
     if (!dataBus.containsKey(key)) {
       SingleDataLine<T> dataLine = new SingleDataLine<T>(
           initData: SinglePackageData(
-              data: initData, params: initpParams, waitWidget: waitWidget));
+              data: initData, params: initParams, waitWidget: waitWidget));
       dataBus[key] = dataLine;
     }
     return dataBus[key] as SingleDataLine<T>;

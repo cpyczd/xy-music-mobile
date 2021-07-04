@@ -97,7 +97,7 @@ class MgMusicServiceImpl extends BaseMusicService {
           picImage: img,
           hash: item["copyrightId"],
           source: MusicSourceConstant.mg,
-          duration: 0,
+          duration: Duration.zero,
           durationStr: "-",
           originData: item);
       setQuality(entity, item);

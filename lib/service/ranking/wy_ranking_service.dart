@@ -68,7 +68,7 @@ class WyRankingListServiceImpl extends BaseSongRankingService {
             singer: (e["ar"] as List).map((e) => e["name"]).join("、"),
             album: e["al"]["name"],
             originalData: e,
-            duration: e["dt"],
+            duration: Duration(milliseconds: e["dt"]),
             durationStr: formatPlayTime(e["dt"] / 1000),
             source: MusicSourceConstant.wy))
         .toList();

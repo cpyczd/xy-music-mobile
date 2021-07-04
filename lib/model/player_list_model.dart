@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-03 14:42:53
+ * @LastEditTime: 2021-07-04 17:10:45
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -105,7 +105,7 @@ class PlayerListModel {
           return false;
         }
         if (!_toNext()) {
-          playIndex = 0;
+          return false;
         }
         return true;
       case PlayMode.random:
@@ -171,7 +171,7 @@ class PlayerListModel {
 
   ///插入音乐
   void addMusic(MusicEntity entity) {
-    this.musicList.insert(0, entity);
+    this.musicList.add(entity);
     _checkData(entity);
     _callSave();
   }
@@ -179,25 +179,41 @@ class PlayerListModel {
   ///插入音乐
   void addMusicAll(List<MusicEntity> entityList) {
     entityList.forEach((element) => _checkData(element));
-    this.musicList.insertAll(0, entityList);
+    this.musicList.addAll(entityList);
     _callSave();
   }
 
   ///根据下标移除音乐
   void removeAt(int index) {
     this.musicList.removeAt(index);
-    if (playIndex >= this.musicList.length) {
+    if (playIndex > this.musicList.length) {
       playIndex = this.musicList.length - 1;
     }
     _callSave();
   }
 
+  ///根据下标移除音乐
+  void removeByUuid(String uuid) {
+    var index = this.musicList.indexWhere((element) => element.uuid == uuid);
+    if (index != -1) {
+      this.removeAt(index);
+    }
+  }
+
   ///根据对象移除音乐
   void remove(MusicEntity entity) {
     this.musicList.remove(entity);
-    if (playIndex >= this.musicList.length) {
+    if (playIndex > this.musicList.length) {
       playIndex = this.musicList.length - 1;
     }
+    _callSave();
+  }
+
+  ///移动音乐到指定位置
+  void moveIndex(int oldIndex, int newIndex) {
+    var oldItem = this.musicList[oldIndex];
+    this.musicList.removeAt(oldIndex);
+    this.musicList.insert(newIndex, oldItem);
     _callSave();
   }
 

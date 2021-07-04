@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-30 23:21:43
+ * @LastEditTime: 2021-07-04 16:35:47
  */
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/config/service_manage.dart'
@@ -10,9 +10,11 @@ import 'package:xy_music_mobile/config/service_manage.dart'
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/service/audio_service_task.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/search_helper.dart';
+import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
 class SearchPage extends StatefulWidget {
@@ -434,13 +436,15 @@ class _SearchPageState extends State<SearchPage> {
                                 children: [
                                   IconButton(
                                     constraints: BoxConstraints(maxWidth: 20),
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      _addMusicQueue(entity);
+                                    },
                                     icon: iconFont(
                                       hex16: 0xe615,
                                       size: 20,
                                     ),
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
+                                    // splashColor: Colors.transparent,
+                                    // highlightColor: Colors.transparent,
                                     padding: EdgeInsets.zero,
                                   ),
                                   Expanded(
@@ -559,5 +563,11 @@ class _SearchPageState extends State<SearchPage> {
                 _moreLoading = false;
               }));
     });
+  }
+
+  ///添加音乐到播放队列
+  void _addMusicQueue(MusicEntity entity) async {
+    await PlayerTaskHelper.pushQueue(entity);
+    ToastUtil.show(msg: "已添加到播放列表");
   }
 }

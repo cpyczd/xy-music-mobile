@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-04 17:50:23
+ * @LastEditTime: 2021-07-04 22:11:47
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -14,6 +14,7 @@ import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/player_list_model.dart';
+import 'package:xy_music_mobile/util/index.dart';
 
 import 'audio_service_task.dart';
 
@@ -137,7 +138,15 @@ class PlayerService {
     }
     var service =
         musicServiceProviderMange.getSupportProvider(entity.source).first;
-    await service.getMusicPlayUrl(entity);
+    try {
+      await service.getMusicPlayUrl(entity);
+    } catch (e) {
+      log.e("PlayerService => 音乐解析失败");
+      ToastUtil.show(msg: "音乐播放失败");
+      //直接进行播放下一首
+      _playCompletedHandler();
+      return Future.error(e);
+    }
     if (entity.playUrl == null) {
       return false;
     }
@@ -154,6 +163,7 @@ class PlayerService {
       return false;
     }
     if (_status == PlayStatus.stop) {
+      log.e("PalyerService play() => 无法播放因为PlayStatus状态是STOP");
       return false;
     }
     if (_audioPlayer?.state != PlayerState.PLAYING) {
@@ -197,11 +207,13 @@ class PlayerService {
       AudioServiceBackground.setState(
           processingState: AudioProcessingState.stopped);
     } else {
+      log.e("PlayerService stop() ==> 失败");
       this.playState = PlayStatus.error;
     }
     return res;
   }
 
+  ///跳转到
   Future<bool> seekTo(Duration duration) async {
     if (_audioPlayer == null) {
       return false;
@@ -264,6 +276,7 @@ class PlayerService {
   ///播放完成直接自动进行下一首的逻辑操作
   void _playCompletedHandler() async {
     //记录错误的次数
+    await this.stop();
     Map<String, int> errorMap = Map();
     //最大错误的次数
     int errorMax = 3;
@@ -275,6 +288,7 @@ class PlayerService {
       if (await this.loadMusic(music)) {
         //加载成功直接播放
         backageTask.onPlay();
+        break;
       } else {
         log.e("自动播放下一首音乐LoadMusic发送错误:$music");
         //记录错误次数

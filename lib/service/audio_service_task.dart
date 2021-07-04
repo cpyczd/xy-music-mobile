@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-04 18:10:01
+ * @LastEditTime: 2021-07-04 23:10:14
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -117,24 +117,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
         ],
       );
     }
-    return super.onSkipToNext();
-  }
-
-  ///显示控制器
-  void _setShowControll() {
-    var controll = <MediaControl>[];
-    if (AudioServiceBackground.state.playing) {
-      controll.add(MediaControl.pause);
-    } else {
-      controll.add(MediaControl.play);
-    }
-    if (service.musicModel!.hasNext()) {
-      controll.add(MediaControl.skipToNext);
-    }
-    if (service.musicModel!.hasPrevious()) {
-      controll.add(MediaControl.skipToPrevious);
-    }
-    AudioServiceBackground.setState(controls: controll);
+    return;
   }
 
   ///上一曲
@@ -159,7 +142,24 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
     return super.onSkipToPrevious();
   }
 
-  ///音量调整
+  ///显示控制器
+  void _setShowControll() {
+    var controll = <MediaControl>[];
+    if (AudioServiceBackground.state.playing) {
+      controll.add(MediaControl.pause);
+    } else {
+      controll.add(MediaControl.play);
+    }
+    if (service.musicModel!.hasNext()) {
+      controll.add(MediaControl.skipToNext);
+    }
+    if (service.musicModel!.hasPrevious()) {
+      controll.add(MediaControl.skipToPrevious);
+    }
+    AudioServiceBackground.setState(controls: controll);
+  }
+
+  ///进度调整
   @override
   Future<void> onSeekTo(Duration position) {
     log.d("onSeekTo: position = $position");
@@ -182,8 +182,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       return;
     }
     await service.stop();
-    this.onPlay();
-    return super.onPlayFromMediaId(mediaId);
+    return this.onPlay();
   }
 
   ///player播放到指定位置
@@ -214,18 +213,43 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onAddQueueItem(MediaItem mediaItem) async {
     AudioServiceBackground.queue!.add(mediaItem);
-    service.musicModel!.addMusic(MusicEntity.fromMap(mediaItem.extras!));
+    var music = MusicEntity.fromMap(mediaItem.extras!);
+    service.musicModel!.addMusic(music);
+    notificationUpdateQueue();
     _setShowControll();
+
+    ///发送播放列表改变事件
+    AudioServiceBackground.sendCustomEvent(PlayListChangeEvent(
+        PlayListChangeState.add, service.musicModel!.musicList.length, music));
     return;
   }
 
   ///移除音乐从播放列表
   @override
-  Future<void> onRemoveQueueItem(MediaItem mediaItem) {
-    AudioServiceBackground.queue!.remove(mediaItem);
+  Future<void> onRemoveQueueItem(MediaItem mediaItem) async {
+    //判断是否是当前的播放音乐
+    if (AudioServiceBackground.mediaItem!.id == mediaItem.id) {
+      //如果是当前的音乐直接停止掉播放下一首音乐
+      this.onSkipToNext();
+    }
+    AudioServiceBackground.queue!
+        .removeWhere((element) => element.id == mediaItem.id);
     service.musicModel!.removeByUuid(mediaItem.id);
+    notificationUpdateQueue();
     _setShowControll();
+
+    ///发送播放列表改变事件
+    var music = MusicEntity.fromMap(mediaItem.extras!);
+    AudioServiceBackground.sendCustomEvent(PlayListChangeEvent(
+        PlayListChangeState.delete,
+        service.musicModel!.musicList.length,
+        music));
     return super.onRemoveQueueItem(mediaItem);
+  }
+
+  ///通知更新队列
+  void notificationUpdateQueue() {
+    AudioServiceBackground.setQueue(AudioServiceBackground.queue!);
   }
 
   @override

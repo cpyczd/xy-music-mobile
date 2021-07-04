@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-04 17:34:37
+ * @LastEditTime: 2021-07-04 22:48:50
  */
 
 import 'dart:async';
@@ -50,10 +50,13 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
 
   StreamSubscription<PlayerChangeEvent>? _streamPlayerStateChange;
   StreamSubscription<PlayerPositionChangedEvent>? _streamPlayerPositionChange;
+  StreamSubscription<PlayListChangeEvent>? _streamPlayerListChange;
 
   @override
   void initState() {
     super.initState();
+
+    ///监听播放改变事件
     _streamPlayerStateChange = PlayerTaskHelper.bus
         .on<PlayerChangeEvent>()
         .listen((PlayerChangeEvent event) {
@@ -69,6 +72,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
       }
     });
 
+    ///监听进度改变事件
     _streamPlayerPositionChange = PlayerTaskHelper.bus
         .on<PlayerPositionChangedEvent>()
         .listen((PlayerPositionChangedEvent event) {
@@ -80,6 +84,15 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
       }
       getLine<Duration>(_playProgressKey).setData(event.duration);
     });
+
+    ///播放列表改变的事件
+    _streamPlayerListChange =
+        PlayerTaskHelper.bus.on<PlayListChangeEvent>().listen((event) {
+      if (event.state == PlayListChangeState.delete && event.listLength == 0) {
+        getLine(_playSateKey).setData(PlayStatus.stop);
+        getLine(_playInfoKey).setData(null);
+      }
+    });
   }
 
   @override
@@ -87,6 +100,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
     disposeDataLine();
     _streamPlayerPositionChange?.cancel();
     _streamPlayerStateChange?.cancel();
+    _streamPlayerListChange?.cancel();
     super.dispose();
   }
 
@@ -103,7 +117,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
               Application.router.navigateTo(context, "/player",
                   transition: TransitionType.fadeIn);
             },
-            child: getLine<MusicEntity>(_playInfoKey)
+            child: getLine<MusicEntity>(_playInfoKey, showNull: true)
                 .addObserver((context, pack) => CircleAvatar(
                       backgroundImage: pack.data?.picImage != null
                           ? CachedNetworkImageProvider(pack.data!.picImage!)
@@ -132,7 +146,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
             size: Size.fromWidth(15),
           ),
           Expanded(
-            child: getLine<MusicEntity>(_playInfoKey)
+            child: getLine<MusicEntity>(_playInfoKey, showNull: true)
                 .addObserver((context, pack) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -189,8 +203,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
 
   ///下一首
   void next() async {
-    log.d("停止Service线程");
-    await AudioService.stop();
+    await AudioService.skipToNext();
   }
 
   ///显示播放列表
@@ -199,17 +212,18 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
   }
 
   ///创建按钮
-  Widget _createIconButton(int hex16, {VoidCallback? callback}) {
+  Widget _createIconButton(int hex16,
+      {VoidCallback? callback, double size = 23}) {
     return IconButton(
       onPressed: callback,
       icon: iconFont(
           hex16: hex16,
-          size: 18,
+          size: size,
           color: Color(AppTheme.getCurrentTheme().primaryColor)),
       padding: EdgeInsets.all(0),
       // splashColor: Colors.transparent,
       // highlightColor: Colors.transparent,
-      constraints: BoxConstraints(maxHeight: 18, minHeight: 18),
+      constraints: BoxConstraints(maxWidth: 26, minWidth: 26),
     );
   }
 
@@ -218,14 +232,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
     PlayMode currentMode = await PlayerTaskHelper.getPlayMode();
     currentModeSryle =
         modeStyles.firstWhere((element) => element["mode"] == currentMode);
-    var onModePressed = () async {
-      PlayMode currentMode = await PlayerTaskHelper.getPlayMode();
-      int index =
-          modeStyles.indexWhere((element) => element["mode"] == currentMode);
-      var i = (index + 1) % modeStyles.length;
-      currentModeSryle = modeStyles[i];
-      PlayerTaskHelper.setPlayMode(currentModeSryle!["mode"]);
-    };
+
     //显示控件
     showModalBottomSheet(
         backgroundColor:
@@ -256,9 +263,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                                     overlayColor: MaterialStateProperty.all(
                                         Colors.transparent)),
                                 onPressed: () {
-                                  state(() {
-                                    onModePressed();
-                                  });
+                                  _replacePlayMode(state);
                                 },
                                 icon: currentModeSryle!["icon"],
                                 label: Text(
@@ -266,12 +271,11 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                                         .desc)),
                             Expanded(child: SizedBox()),
                             IconButton(
-                                constraints: BoxConstraints(maxWidth: 25),
                                 padding: EdgeInsets.zero,
                                 splashColor: Colors.transparent,
                                 hoverColor: Colors.transparent,
                                 onPressed: () {},
-                                icon: iconFont(hex16: 0xe603, size: 17)),
+                                icon: iconFont(hex16: 0xe603, size: 20)),
                             IconButton(
                                 padding: EdgeInsets.zero,
                                 splashColor: Colors.transparent,
@@ -281,14 +285,14 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                                       await PlayerTaskHelper.getMusicList(),
                                       state);
                                 },
-                                icon: iconFont(hex16: 0xe67d, size: 17)),
+                                icon: iconFont(hex16: 0xe67d, size: 20)),
                           ],
                         ),
                       ),
                       sliver: FutureBuilder<List<MusicEntity>>(
                         future: PlayerTaskHelper.getMusicList(),
                         builder: (context, sp) {
-                          if (sp.hasData) {
+                          if (sp.hasData && sp.data!.isNotEmpty) {
                             var list = sp.data!;
                             var mediaItem = AudioService.currentMediaItem;
                             //当前播放的Index下标
@@ -310,85 +314,88 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                               itemBuilder: (context, index) {
                                 MusicEntity music = list[index];
                                 return Container(
-                                  key: ValueKey(music.uuid),
                                   height: 50,
+                                  key: ValueKey(music.uuid),
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 23),
                                   margin: const EdgeInsets.only(bottom: 15),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      (() {
-                                        if (index == cindx) {
-                                          return CircleAvatar(
-                                            foregroundColor: Colors.greenAccent,
-                                            backgroundImage:
-                                                CachedNetworkImageProvider(
-                                                    music.picImage!),
-                                          );
-                                        } else {
-                                          return Text(
-                                              (index + 1) < 10
-                                                  ? "0${index + 1}"
-                                                  : "${(index + 1)}",
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.black));
-                                        }
-                                      })(),
-                                      SizedBox.fromSize(
-                                        size: Size.fromWidth(15),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              music.songName,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: cindx == index
-                                                      ? Colors
-                                                          .redAccent.shade200
-                                                      : Colors.black,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                            SizedBox.fromSize(
-                                              size: Size.fromHeight(5),
-                                            ),
-                                            Text(
-                                              music.singer ?? "",
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.black54),
-                                            )
-                                          ],
+                                  child: GestureDetector(
+                                    onTap: () => _playTo(music, state),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        (() {
+                                          if (index == cindx) {
+                                            return CircleAvatar(
+                                              foregroundColor:
+                                                  Colors.greenAccent,
+                                              backgroundImage:
+                                                  CachedNetworkImageProvider(
+                                                      music.picImage!),
+                                            );
+                                          } else {
+                                            return Text(
+                                                (index + 1) < 10
+                                                    ? "0${index + 1}"
+                                                    : "${(index + 1)}",
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black));
+                                          }
+                                        })(),
+                                        SizedBox.fromSize(
+                                          size: Size.fromWidth(15),
                                         ),
-                                      ),
-                                      IconButton(
-                                          padding: EdgeInsets.zero,
-                                          constraints:
-                                              BoxConstraints(maxWidth: 25),
-                                          onPressed: () {},
-                                          icon: iconFont(
-                                              hex16: 0xe603, size: 17)),
-                                      IconButton(
-                                          padding: EdgeInsets.zero,
-                                          onPressed: () {
-                                            _removeMusic([music], state);
-                                          },
-                                          icon:
-                                              iconFont(hex16: 0xe67d, size: 17))
-                                    ],
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                music.songName,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: cindx == index
+                                                        ? Colors
+                                                            .redAccent.shade200
+                                                        : Colors.black,
+                                                    fontWeight:
+                                                        FontWeight.w500),
+                                              ),
+                                              SizedBox.fromSize(
+                                                size: Size.fromHeight(5),
+                                              ),
+                                              Text(
+                                                music.singer ?? "",
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.black54),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () {},
+                                            icon: iconFont(
+                                                hex16: 0xe603, size: 20)),
+                                        IconButton(
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () {
+                                              _removeMusic([music], state);
+                                            },
+                                            icon: iconFont(
+                                                hex16: 0xe67d, size: 20))
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -423,9 +430,26 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
         });
   }
 
+  ///点击切换播放循环模式
+  void _replacePlayMode(StateSetter setter) async {
+    PlayMode currentMode = await PlayerTaskHelper.getPlayMode();
+    int index =
+        modeStyles.indexWhere((element) => element["mode"] == currentMode);
+    var i = (index + 1) % modeStyles.length;
+    currentModeSryle = modeStyles[i];
+    PlayerTaskHelper.setPlayMode(currentModeSryle!["mode"]);
+    setter(() {});
+  }
+
   ///移除音乐从播放列表
   void _removeMusic(List<MusicEntity> list, StateSetter setter) {
     PlayerTaskHelper.removeQueueByUuid(list.map((e) => e.uuid ?? "").toList());
+    setter(() {});
+  }
+
+  ///播放到指定的位置
+  void _playTo(MusicEntity music, StateSetter setter) async {
+    await AudioService.playFromMediaId(music.uuid!);
     setter(() {});
   }
 }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:33:42
- * @LastEditTime: 2021-07-04 15:31:01
+ * @LastEditTime: 2021-07-04 21:24:57
  */
 import 'dart:async';
 
@@ -16,12 +16,10 @@ class SinglePackageData<T> {
   T? data;
   dynamic params;
   Widget? waitWidget;
+  bool showNull;
 
-  SinglePackageData({
-    this.data,
-    this.params,
-    this.waitWidget,
-  });
+  SinglePackageData(
+      {this.data, this.params, this.waitWidget, this.showNull = false});
 
   @override
   String toString() =>
@@ -34,21 +32,25 @@ class SinglePackageData<T> {
     return other is SinglePackageData<T> &&
         other.data == data &&
         other.params == params &&
+        other.showNull == showNull &&
         other.waitWidget == waitWidget;
   }
 
   @override
-  int get hashCode => data.hashCode ^ params.hashCode ^ waitWidget.hashCode;
+  int get hashCode =>
+      showNull.hashCode ^ data.hashCode ^ params.hashCode ^ waitWidget.hashCode;
 
   SinglePackageData<T> copyWith({
     T? data,
     dynamic params,
     Widget? waitWidget,
+    bool? showNull,
   }) {
     return SinglePackageData<T>(
       data: data ?? this.data,
       params: params ?? this.params,
       waitWidget: waitWidget ?? this.waitWidget,
+      showNull: showNull ?? this.showNull,
     );
   }
 }
@@ -80,7 +82,7 @@ class SingleDataLine<T> {
     if (currentData == null) {
       currentData = SinglePackageData(data: t);
     } else {
-      currentData?.data = t!;
+      currentData?.data = t;
     }
     inner.add(currentData!);
   }
@@ -173,9 +175,10 @@ class _DataObserverWidgetState<T> extends State<DataObserverWidget<T>> {
       stream: widget.dataLine.outer,
       builder: (context, AsyncSnapshot snapshot) {
         if (snapshot.data != null &&
-            (snapshot.data as SinglePackageData<T>).data != null) {
+            ((snapshot.data as SinglePackageData<T>).showNull ||
+                (snapshot.data as SinglePackageData<T>).data != null)) {
           return widget.observer(
-              context, snapshot.data as SinglePackageData<T>);
+              context, (snapshot.data as SinglePackageData<T>));
         } else {
           if (snapshot.data == null) {
             return Container();
@@ -198,12 +201,22 @@ class _DataObserverWidgetState<T> extends State<DataObserverWidget<T>> {
 mixin MultDataLine {
   final Map<String, SingleDataLine> dataBus = Map();
 
+  ///[key] is Unique index
+  ///[initData] loading init data
+  ///[initParams] lading init other params
+  ///[showNull] Whether the [data] is empty or not
   SingleDataLine<T> getLine<T>(String key,
-      {T? initData, dynamic initParams, Widget? waitWidget}) {
+      {T? initData,
+      dynamic initParams,
+      Widget? waitWidget,
+      bool showNull = false}) {
     if (!dataBus.containsKey(key)) {
       SingleDataLine<T> dataLine = new SingleDataLine<T>(
           initData: SinglePackageData(
-              data: initData, params: initParams, waitWidget: waitWidget));
+              data: initData,
+              params: initParams,
+              waitWidget: waitWidget,
+              showNull: showNull));
       dataBus[key] = dataLine;
     }
     return dataBus[key] as SingleDataLine<T>;

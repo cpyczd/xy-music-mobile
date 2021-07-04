@@ -2,8 +2,9 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-30 17:17:11
+ * @LastEditTime: 2021-07-04 21:00:02
  */
+import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -104,7 +105,14 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             onPressed: () =>
                 Application.navigateToIos(_context, "/squareListPage"),
           ),
-          TextIconButton(icon: svg(name: "custom"), text: "推荐管理"),
+          TextIconButton(
+            icon: svg(name: "custom"),
+            text: "推荐管理",
+            onPressed: () async {
+              log.i("停止线程");
+              await AudioService.stop();
+            },
+          ),
         ]));
   }
 

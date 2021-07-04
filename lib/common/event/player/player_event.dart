@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 20:57:41
- * @LastEditTime: 2021-07-03 23:02:38
+ * @LastEditTime: 2021-07-04 21:06:26
  */
 
 import 'package:xy_music_mobile/common/event/player/player_base_event.dart';
@@ -29,4 +29,14 @@ class PlayerChangeEvent extends PlayerBaseEvent {
   final PlayStatus state;
 
   PlayerChangeEvent(this.state, musicEntity) : super(musicEntity);
+}
+
+///播放列表改变事件
+class PlayListChangeEvent extends PlayerBaseEvent {
+  final int listLength;
+
+  final PlayListChangeState state;
+
+  PlayListChangeEvent(this.state, this.listLength, musicEntity)
+      : super(musicEntity);
 }

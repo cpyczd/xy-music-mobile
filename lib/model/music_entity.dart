@@ -7,7 +7,7 @@ import 'package:xy_music_mobile/model/base_entity.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-07-04 18:02:33
+ * @LastEditTime: 2021-07-04 20:50:59
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -151,7 +151,7 @@ class MusicEntity extends BaseEntity {
       'qualityFileSize': qualityFileSize,
       'types': types != null ? jsonEncode(types) : null,
       'originData': jsonEncode(originData),
-      'uuid': this.uuid
+      'uuid': uuid
     };
   }
 

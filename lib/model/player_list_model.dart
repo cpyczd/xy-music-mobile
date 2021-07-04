@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-04 17:10:45
+ * @LastEditTime: 2021-07-04 23:07:18
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -186,6 +186,9 @@ class PlayerListModel {
   ///根据下标移除音乐
   void removeAt(int index) {
     this.musicList.removeAt(index);
+    if (playIndex > index) {
+      playIndex--;
+    }
     if (playIndex > this.musicList.length) {
       playIndex = this.musicList.length - 1;
     }
@@ -202,11 +205,7 @@ class PlayerListModel {
 
   ///根据对象移除音乐
   void remove(MusicEntity entity) {
-    this.musicList.remove(entity);
-    if (playIndex > this.musicList.length) {
-      playIndex = this.musicList.length - 1;
-    }
-    _callSave();
+    removeByUuid(entity.uuid!);
   }
 
   ///移动音乐到指定位置
@@ -214,21 +213,36 @@ class PlayerListModel {
     var oldItem = this.musicList[oldIndex];
     this.musicList.removeAt(oldIndex);
     this.musicList.insert(newIndex, oldItem);
+    if (oldIndex == playIndex) {
+      playIndex = newIndex;
+    }
+    if (newIndex == playIndex) {
+      playIndex = oldIndex;
+    }
     _callSave();
   }
 
   ///移动音乐到指定位置
   void moveAt(MusicEntity source, int index) {
-    this.musicList.remove(source);
-    this.musicList.insert(index, source);
-    _callSave();
+    var i = this.musicList.indexWhere((element) => element.uuid == source.uuid);
+    if (i == -1) {
+      return;
+    }
+    moveIndex(i, index);
   }
 
   ///移动音乐到指定位置
   void move(MusicEntity source, MusicEntity target) {
-    this.musicList.remove(source);
-    this.musicList.insert(this.musicList.indexOf(target), source);
-    _callSave();
+    var i = this.musicList.indexWhere((element) => element.uuid == source.uuid);
+    if (i == -1) {
+      return;
+    }
+    var i2 =
+        this.musicList.indexWhere((element) => element.uuid == target.uuid);
+    if (i2 == -1) {
+      return;
+    }
+    moveIndex(i, i2);
   }
 
   void clear() {

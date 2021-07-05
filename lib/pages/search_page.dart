@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-07-05 16:21:58
+ * @LastEditTime: 2021-07-05 22:24:04
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -482,16 +482,21 @@ class _SearchPageState extends State<SearchPage> {
                                                       '歌手: ' +
                                                           (entity.singer ??
                                                               "-"),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                       style: subStyle),
                                                   (() {
-                                                    return entity
-                                                                .songnameOriginal !=
-                                                            entity.songName
+                                                    return entity.songnameOriginal !=
+                                                                entity
+                                                                    .songName &&
+                                                            entity.songnameOriginal !=
+                                                                null
                                                         ? Text(
-                                                            'Cover: ' +
-                                                                (entity.songnameOriginal ??
-                                                                    "-"),
+                                                            'Cover: ${entity.songnameOriginal}',
                                                             style: subStyle,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                           )
                                                         : SizedBox();
                                                   })(),

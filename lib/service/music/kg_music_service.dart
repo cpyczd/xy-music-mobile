@@ -49,7 +49,8 @@ class KGMusicServiceImpl extends BaseMusicService {
           songmId: e["audio_id"].toString(),
           albumId: e["album_id"].toString(),
           duration: Duration(seconds: e["duration"]),
-          durationStr: util.getTimeStamp(e["duration"]),
+          durationStr: util
+              .getTimeStamp(Duration(seconds: e["duration"]).inMilliseconds),
           albumName: e["album_name"]);
       return setQuality(entity, e);
     }).toList();

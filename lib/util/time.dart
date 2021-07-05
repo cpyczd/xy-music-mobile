@@ -35,14 +35,6 @@ String getTimeStamp(int milliseconds) {
   return "$minutesStr:$secondsStr";
 }
 
-String formatPlayTime(num time) {
-  var m = time ~/ 60;
-  var s = (time % 60).toInt();
-  return m == 0 && s == 0
-      ? '--/--'
-      : "${(m < 10 ? '0$m' : m)}" + ':' + "${(s < 10 ? '0$s' : s)}";
-}
-
 /**
  * @Author: Sky24n
  * @GitHub: https://github.com/Sky24n

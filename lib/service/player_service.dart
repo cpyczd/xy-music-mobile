@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-05 16:19:40
+ * @LastEditTime: 2021-07-05 22:49:07
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -11,7 +11,6 @@ import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:xy_music_mobile/common/event/player/index.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
-import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/store_config.dart';
@@ -66,21 +65,6 @@ class PlayerService {
 
   ///加载播放列表
   void loadPalyList() {
-    // _playListModel = PlayListModel(musicList: [
-    //   MusicEntity(
-    //       songmId: "1847256510",
-    //       albumId: "127828248",
-    //       albumName: "不该用情",
-    //       singer: "叫莫姐姐",
-    //       songName: "不该用情",
-    //       songnameOriginal: null,
-    //       source: MusicSourceConstant.wy,
-    //       duration: Duration(milliseconds: 133998),
-    //       durationStr: "02:13",
-    //       picImage:
-    //           "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
-    //       originData: {})
-    // ]);
     //从Hive进行加载
     if (_db.containsKey(_boxModelKey)) {
       //如果存在就读取
@@ -254,6 +238,14 @@ class PlayerService {
     return await _audioPlayer!.seek(duration) == 1 ? true : false;
   }
 
+  ///加载歌词
+  void loadLrc(String uuid) {
+    var music = musicModel!.findByUuid(uuid);
+    if (music == null) {
+      return;
+    }
+  }
+
   ///初始化监听器
   initListener() {
     if (_audioPlayer == null) {
@@ -263,8 +255,11 @@ class PlayerService {
     ///播放进度
     _audioPlayer!.onAudioPositionChanged.listen((Duration p) {
       position = p;
-      AudioServiceBackground.sendCustomEvent(PlayerPositionChangedEvent(
-          p, _playListModel!.getCurrentMusicEntity()!));
+      var music = _playListModel!.getCurrentMusicEntity();
+      if (music != null) {
+        AudioServiceBackground.sendCustomEvent(
+            PlayerPositionChangedEvent(p, music));
+      }
     });
     //播放状态
     _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
@@ -290,14 +285,19 @@ class PlayerService {
               processingState: AudioProcessingState.completed);
           break;
       }
-      AudioServiceBackground.sendCustomEvent(
-          PlayerChangeEvent(status, _playListModel!.getCurrentMusicEntity()!));
+      var music = _playListModel!.getCurrentMusicEntity();
+      if (music != null) {
+        AudioServiceBackground.sendCustomEvent(
+            PlayerChangeEvent(status, music));
+      }
     });
 
     _audioPlayer!.onPlayerError.listen((msg) {
       logger.e("播放出现异常: $msg");
-      AudioServiceBackground.sendCustomEvent(
-          PlayerErrorEvent(msg, _playListModel!.getCurrentMusicEntity()!));
+      var music = _playListModel!.getCurrentMusicEntity();
+      if (music != null) {
+        AudioServiceBackground.sendCustomEvent(PlayerErrorEvent(msg, music));
+      }
       AudioServiceBackground.setState(
           processingState: AudioProcessingState.error);
     });

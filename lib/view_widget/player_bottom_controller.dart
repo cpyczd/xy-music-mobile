@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-05 18:13:49
+ * @LastEditTime: 2021-07-05 21:03:36
  */
 
 import 'dart:async';
@@ -77,7 +77,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
         .on<PlayerPositionChangedEvent>()
         .listen((PlayerPositionChangedEvent event) {
       if (currentMusic == null ||
-          event.musicEntity.uuid != currentMusic!.uuid) {
+          event.musicEntity!.uuid != currentMusic!.uuid) {
         currentMusic = event.musicEntity;
         getLine(_playSateKey).setData(PlayStatus.playing);
         getLine(_playInfoKey).setData(event.musicEntity);
@@ -313,84 +313,90 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
           return SliverReorderableList(
             onReorder: (oldIndex, newIndex) {
               //移动列表
-              PlayerTaskHelper.moveToIndex(oldIndex, newIndex).then((value) {
-                if (value) {
-                  setState(() {});
-                }
+              if (newIndex - 1 >= 0 && newIndex - 1 < list.length) {
+                newIndex--;
+              }
+              state(() {
+                var old = list[oldIndex];
+                list[oldIndex] = list[newIndex];
+                list[newIndex] = old;
               });
+              PlayerTaskHelper.moveToIndex(oldIndex, newIndex);
             },
             itemBuilder: (context, index) {
               MusicEntity music = list[index];
               return ReorderableDragStartListener(
                 index: index,
                 key: ValueKey(music.uuid),
-                child: Container(
-                  height: 50,
-                  padding: const EdgeInsets.symmetric(horizontal: 23),
-                  margin: const EdgeInsets.only(bottom: 15),
-                  child: InkWell(
-                    onTap: () => _playTo(music, state),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        (() {
-                          if (index == cindx) {
-                            return CircleAvatar(
-                              backgroundImage:
-                                  CachedNetworkImageProvider(music.picImage!),
-                            );
-                          } else {
-                            return Text(
-                                (index + 1) < 10
-                                    ? "0${index + 1}"
-                                    : "${(index + 1)}",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 14, color: Colors.black));
-                          }
-                        })(),
-                        SizedBox.fromSize(
-                          size: Size.fromWidth(15),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                music.songName,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: cindx == index
-                                        ? Colors.redAccent.shade200
-                                        : Colors.black,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              SizedBox.fromSize(
-                                size: Size.fromHeight(5),
-                              ),
-                              Text(
-                                music.singer ?? "",
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    fontSize: 12, color: Colors.black54),
-                              )
-                            ],
+                child: Material(
+                  child: Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(horizontal: 23),
+                    margin: const EdgeInsets.only(bottom: 15),
+                    child: InkWell(
+                      onTap: () => _playTo(music, state),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          (() {
+                            if (index == cindx) {
+                              return CircleAvatar(
+                                backgroundImage:
+                                    CachedNetworkImageProvider(music.picImage!),
+                              );
+                            } else {
+                              return Text(
+                                  (index + 1) < 10
+                                      ? "0${index + 1}"
+                                      : "${(index + 1)}",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 14, color: Colors.black));
+                            }
+                          })(),
+                          SizedBox.fromSize(
+                            size: Size.fromWidth(15),
                           ),
-                        ),
-                        IconButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {},
-                            icon: iconFont(hex16: 0xe603, size: 20)),
-                        IconButton(
-                            padding: EdgeInsets.zero,
-                            onPressed: () {
-                              _removeMusic([music], state);
-                            },
-                            icon: iconFont(hex16: 0xe67d, size: 20))
-                      ],
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  music.songName,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      color: cindx == index
+                                          ? Colors.redAccent.shade200
+                                          : Colors.black,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                                SizedBox.fromSize(
+                                  size: Size.fromHeight(5),
+                                ),
+                                Text(
+                                  music.singer ?? "",
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.black54),
+                                )
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {},
+                              icon: iconFont(hex16: 0xe603, size: 20)),
+                          IconButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                _removeMusic([music], state);
+                              },
+                              icon: iconFont(hex16: 0xe67d, size: 20))
+                        ],
+                      ),
                     ),
                   ),
                 ),

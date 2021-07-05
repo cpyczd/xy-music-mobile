@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-05 16:20:09
+ * @LastEditTime: 2021-07-05 21:48:01
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -107,10 +107,10 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onSkipToNext() async {
     log.d("onSkipToNext()=>播放下一曲");
+    await service.stop();
     var state = service.musicModel!.next();
     if (state) {
       AudioServiceBackground.setState(playing: false);
-      await service.stop();
       return this.onPlay();
     } else {
       AudioServiceBackground.setState(
@@ -129,10 +129,10 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onSkipToPrevious() async {
     log.d("onSkipToPrevious()=>播放上一曲");
+    await service.stop();
     var state = service.musicModel!.previous();
     if (state) {
       AudioServiceBackground.setState(playing: false);
-      await service.stop();
       return this.onPlay();
     } else {
       AudioServiceBackground.setState(
@@ -233,13 +233,14 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   ///移除音乐从播放列表
   @override
   Future<void> onRemoveQueueItem(MediaItem mediaItem) async {
-    //判断是否是当前的播放音乐
-    if (AudioServiceBackground.mediaItem!.id == mediaItem.id) {
-      //如果是当前的音乐直接停止掉播放下一首音乐
-      this.onSkipToNext();
+    var currentMusic = service.musicModel!.getCurrentMusicEntity();
+    var index = AudioServiceBackground.queue!
+        .indexWhere((element) => element.id == mediaItem.id);
+    if (index != -1) {
+      AudioServiceBackground.queue!.removeAt(index);
+    } else {
+      return;
     }
-    AudioServiceBackground.queue!
-        .removeWhere((element) => element.id == mediaItem.id);
     service.musicModel!.removeByUuid(mediaItem.id);
     notificationUpdateQueue();
     _setShowControll();
@@ -250,6 +251,16 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
         PlayListChangeState.delete,
         service.musicModel!.musicList.length,
         music));
+    //判断是否是当前的播放音乐
+    if (currentMusic?.uuid == mediaItem.id) {
+      if (service.musicModel!.currentIndex >= 0 &&
+          service.musicModel!.musicList.isNotEmpty) {
+        await this.onPlayFromMediaId(service
+            .musicModel!.musicList[service.musicModel!.currentIndex].uuid!);
+      } else {
+        await service.stop();
+      }
+    }
     return super.onRemoveQueueItem(mediaItem);
   }
 
@@ -298,7 +309,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       case "setPlayMode":
         var mode = EnumUtil.enumFromString(PlayMode.values, arguments);
         if (mode != null) {
-          service.musicModel!.mode = mode;
+          service.musicModel!.setPlayMode(mode);
           return Future.value(true);
         } else {
           return Future.error("arguments it need to be {PlayMode} ");
@@ -416,7 +427,7 @@ class PlayerTaskHelper {
     }
     return _transformation(
       AudioService.customAction(
-          "moveToIndex", {"oldIndex", oldIndex, "newIndex", newIndex}),
+          "moveToIndex", {"oldIndex": oldIndex, "newIndex": newIndex}),
       cast: (val) => val is bool ? val : null,
     );
   }

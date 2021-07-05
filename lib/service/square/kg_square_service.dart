@@ -11,6 +11,7 @@ import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
+import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 import '../base_music_service.dart';
 
@@ -35,7 +36,8 @@ class KgSquareServiceImpl extends BaseSongSquareService {
               album: e["album_name"],
               source: MusicSourceConstant.kg,
               duration: Duration(seconds: e["duration"]),
-              durationStr: formatPlayTime(e["duration"] / 1000),
+              durationStr:
+                  getTimeStamp(Duration(seconds: e["duration"]).inMilliseconds),
               originalData: e))
           .skip((current - 1) * size)
           .take(size)

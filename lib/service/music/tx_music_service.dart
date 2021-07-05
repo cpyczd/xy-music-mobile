@@ -109,7 +109,8 @@ class TxMusicServiceImpl extends BaseMusicService {
           songnameOriginal: map["name"],
           source: MusicSourceConstant.tx,
           duration: Duration(seconds: map["interval"]),
-          durationStr: util.getTimeStamp(map["interval"]),
+          durationStr: util
+              .getTimeStamp(Duration(seconds: map["interval"]).inMilliseconds),
           picImage: ((map["album"]["name"] as String).isEmpty ||
                   (map["album"]["name"] as String) == '空')
               ? "https://y.gtimg.cn/music/photo_new/T001R500x500M000${map['singer'][0]['mid']}.jpg"

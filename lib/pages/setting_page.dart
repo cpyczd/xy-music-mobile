@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:39:29
- * @LastEditTime: 2021-07-05 16:36:59
+ * @LastEditTime: 2021-07-05 20:16:21
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -39,7 +39,7 @@ class _SettingPageState extends State<SettingPage> {
               log.d("停止线程...");
               await AudioService.stop();
             }, color: Colors.redAccent),
-            _createButtn("清空Music Box数据", () async {
+            _createButtn("清空音乐数据库数据", () async {
               final String _boxDb = "xy-music-play-storeDb";
               log.d("清空MusicBox数据...");
               Box<PlayListModel> box =
@@ -47,7 +47,7 @@ class _SettingPageState extends State<SettingPage> {
               await box.clear();
               await box.close();
             }, color: Colors.redAccent),
-            _createButtn("打印Music Box数据", () async {
+            _createButtn("打印音乐数据库数据", () async {
               final String _boxDb = "xy-music-play-storeDb";
               final String _boxModelKey = "xy-music-play-storeDb-key-model1";
               log.d("打印Music Box数据...");
@@ -56,12 +56,12 @@ class _SettingPageState extends State<SettingPage> {
               var data = box.get(_boxModelKey);
               log.i(
                   "Box数据:=====> currentIndex:${data!.currentIndex},mode:${data.mode},musciLength:${data.musicList.length}");
-              log.i("Box数据:MusicItems=====>${data.musicList.map((e) => {
+              log.i("Box数据:MusicItems=====>\n${data.musicList.map((e) => {
                     'songName': e.songName,
                     'uuid': e.uuid,
                     'playUrl': e.playUrl,
                     'picImage': e.picImage,
-                  }).toString()}");
+                  }).join('\n').toString()}");
               await box.close();
             }),
             _createButtn("重新Reload音乐数据", () async {

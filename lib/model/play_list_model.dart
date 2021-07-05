@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-05 14:17:02
+ * @LastEditTime: 2021-07-05 21:41:52
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -45,6 +45,9 @@ class PlayListModel extends HiveObject {
     this.currentIndex = 0,
   }) {
     //初始化赋值
+    if (currentIndex < 0) {
+      currentIndex = 0;
+    }
     if (musicList.isNotEmpty && musicList.length > currentIndex) {
       currentMusic = musicList[currentIndex];
     }
@@ -66,16 +69,26 @@ class PlayListModel extends HiveObject {
     }
   }
 
+  ///根据UUID查找
+  MusicEntity? findByUuid(String uuid) {
+    var index = this.musicList.indexWhere((element) => element.uuid == uuid);
+    if (index == -1) {
+      return null;
+    }
+    return this.musicList[index];
+  }
+
+  void setPlayMode(PlayMode mode) {
+    this.mode = mode;
+    _callSave();
+  }
+
   ///返回当前的播放列表
   MusicEntity? getCurrentMusicEntity() {
     if (musicList.isEmpty) {
       return null;
     }
     return currentMusic;
-    // if (currentIndex > musicList.length) {
-    //   throw new Exception("playe index out");
-    // }
-    // return musicList[currentIndex];
   }
 
   ///设置当前的播放音乐
@@ -102,6 +115,7 @@ class PlayListModel extends HiveObject {
     }
     currentIndex++;
     this.currentMusic = this.musicList[currentIndex];
+    _callSave();
     return true;
   }
 
@@ -112,11 +126,19 @@ class PlayListModel extends HiveObject {
     }
     currentIndex--;
     this.currentMusic = this.musicList[currentIndex];
+    _callSave();
     return true;
   }
 
   ///切换下一首
   bool next() {
+    if (currentIndex < 0) {
+      currentIndex = 0;
+      currentMusic = null;
+      if (musicList.isNotEmpty) {
+        currentMusic = musicList[currentIndex];
+      }
+    }
     switch (mode) {
       case PlayMode.loop:
         return true;
@@ -179,6 +201,7 @@ class PlayListModel extends HiveObject {
     }
     currentIndex = index;
     this.currentMusic = this.musicList[currentIndex];
+    _callSave();
     return true;
   }
 
@@ -211,12 +234,10 @@ class PlayListModel extends HiveObject {
     this.musicList.removeAt(index);
     if (currentIndex > index) {
       currentIndex--;
+      currentMusic = musicList[currentIndex];
     }
     if (currentIndex > this.musicList.length) {
       currentIndex = this.musicList.length - 1;
-    }
-    //如果移除后发现和主体不一致就直接替换当前主体
-    if (musicList[currentIndex] != currentMusic) {
       currentMusic = musicList[currentIndex];
     }
     _callSave();
@@ -238,17 +259,13 @@ class PlayListModel extends HiveObject {
   ///移动音乐到指定位置
   void moveIndex(int oldIndex, int newIndex) {
     var oldItem = this.musicList[oldIndex];
-    this.musicList.removeAt(oldIndex);
-    this.musicList.insert(newIndex, oldItem);
+    this.musicList[oldIndex] = this.musicList[newIndex];
+    this.musicList[newIndex] = oldItem;
     if (oldIndex == currentIndex) {
       currentIndex = newIndex;
     }
     if (newIndex == currentIndex) {
       currentIndex = oldIndex;
-    }
-    //如果移动后发现和主体不一致就直接替换当前主体
-    if (musicList[currentIndex] != currentMusic) {
-      currentMusic = musicList[currentIndex];
     }
     _callSave();
   }

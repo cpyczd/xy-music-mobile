@@ -120,7 +120,8 @@ class WyMusicServiceImpl extends BaseMusicService {
             originData: e,
             duration: Duration(milliseconds: e["dt"]),
             picImage: e["al"]["picUrl"],
-            durationStr: formatPlayTime(e["dt"] / 1000),
+            durationStr:
+                getTimeStamp(Duration(milliseconds: e["dt"]).inMilliseconds),
             source: MusicSourceConstant.wy))
         .toList();
   }

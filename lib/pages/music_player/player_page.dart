@@ -2,11 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:07:33
- * @LastEditTime: 2021-07-01 17:36:31
+ * @LastEditTime: 2021-07-05 22:18:31
  */
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,10 +42,7 @@ class _PlayerPageState extends State<PlayerPage>
   ///主色调
   Color primaryColor = Color(AppTheme.getCurrentTheme().primaryColor);
 
-  String url =
-      // "https://imgessl.kugou.com/uploadpic/softhead/240/20210608/20210608172539722.jpg";
-      "https://imgessl.kugou.com/uploadpic/softhead/240/20210602/20210602150924868.jpg";
-  // "http://p2.music.126.net/EjksfQRGUB2_i0qz-AHOJA==/109951165928359140.jpg?param=140y140";
+  MusicEntity? _music;
 
   List<Lyric> lyric = [];
 
@@ -59,26 +57,42 @@ class _PlayerPageState extends State<PlayerPage>
   @override
   void initState() {
     super.initState();
-    PaletteGenerator.fromImageProvider(CachedNetworkImageProvider(url),
-            size: Size(500, 1000), region: Offset.zero & Size(10, 10))
-        .then((value) {
-      setState(() {
-        _paletteGenerator = value;
-        if (_paletteGenerator?.dominantColor?.color.value != null) {
-          var reversalColor =
-              AppTheme.reversal(_paletteGenerator!.dominantColor!.color.value);
-          //计算是否接近白色
-          var Y = 0.2126 * reversalColor.red +
-              0.7152 * reversalColor.green +
-              0.0722 * reversalColor.blue;
-          primaryColor = Y < 128 ? Colors.black : Colors.white;
-          //设置状态栏的颜色
-          setUiOverlayStyle(primaryColor == Colors.black
-              ? Brightness.dark
-              : Brightness.light);
-        }
-      });
+    var mediaItem = AudioService.currentMediaItem;
+    if (mediaItem != null) {
+      _music = MusicEntity.fromMap(mediaItem.extras!);
+      log.i("MusicEntity====> $_music");
+      if (_music!.picImage != null) {
+        //颜色分析
+        PaletteGenerator.fromImageProvider(
+                CachedNetworkImageProvider(_music!.picImage!),
+                size: Size(500, 1000),
+                region: Offset.zero & Size(10, 10))
+            .then((value) {
+          setState(() {
+            _paletteGenerator = value;
+            if (_paletteGenerator?.dominantColor?.color.value != null) {
+              var reversalColor = AppTheme.reversal(
+                  _paletteGenerator!.dominantColor!.color.value);
+              //计算是否接近白色
+              var Y = 0.2126 * reversalColor.red +
+                  0.7152 * reversalColor.green +
+                  0.0722 * reversalColor.blue;
+              primaryColor = Y < 128 ? Colors.black : Colors.white;
+              //设置状态栏的颜色
+              setUiOverlayStyle(primaryColor == Colors.black
+                  ? Brightness.light
+                  : Brightness.dark);
+            }
+          });
+        });
+      }
+    }
+
+    Future.delayed(Duration.zero).then((value) {
+      getLine<String>(_endTimeKey).setData(_music?.durationStr ?? "00:00");
     });
+
+    ///加载歌词
     musicServiceProviderMange
         .getSupportProvider(MusicSourceConstant.wy)
         .first
@@ -94,7 +108,6 @@ class _PlayerPageState extends State<PlayerPage>
         _lyricWidget = LyricWidget(lyric, 0, primaryColor: primaryColor);
         _task = Timer.periodic(Duration(milliseconds: 1000), (t) {
           currentOffset++;
-          log.i("执行动画:$currentOffset");
           startLineAnim(currentOffset);
           _lyricWidget!.curLine = currentOffset;
         });
@@ -119,7 +132,10 @@ class _PlayerPageState extends State<PlayerPage>
         child: Stack(
           fit: StackFit.expand,
           children: [
-            SliverFadeDelegate.vague(url, sigmaX: 50, sigmaY: 50),
+            _music?.picImage != null
+                ? SliverFadeDelegate.vague(_music!.picImage!,
+                    sigmaX: 50, sigmaY: 50)
+                : SizedBox(),
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: SafeArea(
@@ -156,7 +172,7 @@ class _PlayerPageState extends State<PlayerPage>
         Align(
             alignment: Alignment.center,
             child: Text(
-              "我们的歌",
+              _music?.songName ?? "暂未播放",
               style: TextStyle(
                   color: primaryColor,
                   fontSize: 17,
@@ -200,7 +216,7 @@ class _PlayerPageState extends State<PlayerPage>
                                   },
                                 ),
                               )))),
-              getLine<String>(_startTimeKey, initData: "00:00")
+              getLine<String>(_endTimeKey, initData: "00:00")
                   .addObserver((context, pack) => Text(
                         pack.data!,
                         style: TextStyle(

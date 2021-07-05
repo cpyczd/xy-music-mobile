@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-07-02 16:01:00
+ * @LastEditTime: 2021-07-05 15:44:46
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
     // HttpUtil.logOpen();
     // HttpUtil.openProxy();
     // log.close();
-    // store.Store.flutterInit();
+    store.Store.flutterInit();
 
     return MaterialApp(
       title: 'Xy-Music',

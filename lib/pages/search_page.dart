@@ -2,8 +2,9 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-07-04 16:35:47
+ * @LastEditTime: 2021-07-05 16:21:58
  */
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:xy_music_mobile/config/service_manage.dart'
     show musicServiceProviderMange;
@@ -427,93 +428,98 @@ class _SearchPageState extends State<SearchPage> {
                             var subStyle =
                                 TextStyle(color: Colors.grey, fontSize: 12);
                             var entity = _searchResultList[index];
-                            return Container(
-                              height: 60,
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
-                              width: double.infinity,
-                              child: Row(
-                                children: [
-                                  IconButton(
-                                    constraints: BoxConstraints(maxWidth: 20),
-                                    onPressed: () {
-                                      _addMusicQueue(entity);
-                                    },
-                                    icon: iconFont(
-                                      hex16: 0xe615,
-                                      size: 20,
+                            return InkWell(
+                              onTap: () => _playClickItem(entity),
+                              child: Container(
+                                height: 60,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 10),
+                                width: double.infinity,
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      constraints: BoxConstraints(maxWidth: 20),
+                                      onPressed: () {
+                                        _addMusicQueue(entity);
+                                      },
+                                      icon: iconFont(
+                                        hex16: 0xe615,
+                                        size: 20,
+                                      ),
+                                      // splashColor: Colors.transparent,
+                                      // highlightColor: Colors.transparent,
+                                      padding: EdgeInsets.zero,
                                     ),
-                                    // splashColor: Colors.transparent,
-                                    // highlightColor: Colors.transparent,
-                                    padding: EdgeInsets.zero,
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 20),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            entity.songName,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 5),
-                                            child: Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                    '歌手: ' +
-                                                        (entity.singer ?? "-"),
-                                                    style: subStyle),
-                                                (() {
-                                                  return entity
-                                                              .songnameOriginal !=
-                                                          entity.songName
-                                                      ? Text(
-                                                          'Cover: ' +
-                                                              (entity.songnameOriginal ??
-                                                                  "-"),
-                                                          style: subStyle,
-                                                        )
-                                                      : SizedBox();
-                                                })(),
-                                              ],
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              entity.songName,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w400),
                                             ),
-                                          ),
-                                        ],
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.only(top: 5),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      '歌手: ' +
+                                                          (entity.singer ??
+                                                              "-"),
+                                                      style: subStyle),
+                                                  (() {
+                                                    return entity
+                                                                .songnameOriginal !=
+                                                            entity.songName
+                                                        ? Text(
+                                                            'Cover: ' +
+                                                                (entity.songnameOriginal ??
+                                                                    "-"),
+                                                            style: subStyle,
+                                                          )
+                                                        : SizedBox();
+                                                  })(),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.end,
-                                        children: [
-                                          IconButton(
-                                              onPressed: () {},
-                                              icon: Icon(
-                                                Icons.more_vert,
-                                                size: 20,
-                                              )),
-                                        ],
-                                      ))
-                                ],
+                                    Expanded(
+                                        flex: 1,
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            IconButton(
+                                                onPressed: () {},
+                                                icon: Icon(
+                                                  Icons.more_vert,
+                                                  size: 20,
+                                                )),
+                                          ],
+                                        ))
+                                  ],
+                                ),
                               ),
                             );
                           }
@@ -569,5 +575,12 @@ class _SearchPageState extends State<SearchPage> {
   void _addMusicQueue(MusicEntity entity) async {
     await PlayerTaskHelper.pushQueue(entity);
     ToastUtil.show(msg: "已添加到播放列表");
+  }
+
+  ///点击后添加到播放列表并开始播放
+  void _playClickItem(MusicEntity entity) async {
+    ToastUtil.show(msg: "开始播放 ${entity.songName}");
+    await PlayerTaskHelper.pushQueue(entity);
+    await AudioService.playFromMediaId(entity.uuid!);
   }
 }

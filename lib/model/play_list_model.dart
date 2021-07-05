@@ -7,24 +7,31 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-04 23:07:18
+ * @LastEditTime: 2021-07-05 14:17:02
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/util/index.dart';
-
+import 'package:hive/hive.dart';
 import 'music_entity.dart';
+part 'play_list_model.g.dart';
 
 ///当前音乐播放列表
-class PlayerListModel {
+@HiveType(typeId: 1)
+class PlayListModel extends HiveObject {
   //播放列表
+  @HiveField(0)
   List<MusicEntity> musicList;
 
   //播放模式
+  @HiveField(1)
   PlayMode mode;
 
   ///播放的歌曲下标
-  int playIndex;
+  @HiveField(2)
+  int currentIndex;
+
+  MusicEntity? currentMusic;
 
   Random? _random;
 
@@ -32,11 +39,15 @@ class PlayerListModel {
 
   var _uuid = Uuid();
 
-  PlayerListModel({
+  PlayListModel({
     required this.musicList,
     this.mode = PlayMode.order,
-    this.playIndex = 0,
+    this.currentIndex = 0,
   }) {
+    //初始化赋值
+    if (musicList.isNotEmpty && musicList.length > currentIndex) {
+      currentMusic = musicList[currentIndex];
+    }
     for (var v in this.musicList) {
       _checkData(v);
     }
@@ -60,16 +71,23 @@ class PlayerListModel {
     if (musicList.isEmpty) {
       return null;
     }
-    if (playIndex > musicList.length) {
-      throw new Exception("playe index out");
-    }
-    return musicList[playIndex];
+    return currentMusic;
+    // if (currentIndex > musicList.length) {
+    //   throw new Exception("playe index out");
+    // }
+    // return musicList[currentIndex];
   }
 
   ///设置当前的播放音乐
   int setCurrentMusic(MusicEntity entity) {
-    this.playIndex = this.musicList.indexOf(entity);
-    return this.playIndex;
+    int index =
+        this.musicList.indexWhere((element) => element.uuid == entity.uuid);
+    if (index == -1) {
+      return -1;
+    }
+    this.currentIndex = index;
+    this.currentMusic = this.musicList[index];
+    return this.currentIndex;
   }
 
   ///保存到本地数据
@@ -79,19 +97,21 @@ class PlayerListModel {
 
   ///偏移下一首
   bool _toNext() {
-    if (playIndex + 1 >= musicList.length) {
+    if (currentIndex + 1 >= musicList.length) {
       return false;
     }
-    playIndex++;
+    currentIndex++;
+    this.currentMusic = this.musicList[currentIndex];
     return true;
   }
 
   ///偏移上一首
   bool _toPrevious() {
-    if (playIndex - 1 < 0) {
+    if (currentIndex - 1 < 0) {
       return false;
     }
-    playIndex--;
+    currentIndex--;
+    this.currentMusic = this.musicList[currentIndex];
     return true;
   }
 
@@ -112,7 +132,8 @@ class PlayerListModel {
         if (_random == null) {
           _random = Random();
         }
-        this.playIndex = _random!.nextInt(musicList.length);
+        this.currentIndex = _random!.nextInt(musicList.length);
+        this.currentMusic = this.musicList[currentIndex];
         return true;
       default:
         return false;
@@ -123,14 +144,15 @@ class PlayerListModel {
   bool previous() {
     var state = _toPrevious();
     if (!state && mode == PlayMode.random) {
-      playIndex = 0;
+      currentIndex = 0;
+      this.currentMusic = this.musicList[currentIndex];
     }
     return state;
   }
 
   ///是否有下一首
   bool hasPrevious() {
-    if (playIndex - 1 < 0) {
+    if (currentIndex - 1 < 0) {
       return false;
     }
     return true;
@@ -138,7 +160,7 @@ class PlayerListModel {
 
   ///是否有上一首
   bool hasNext() {
-    if (playIndex + 1 >= musicList.length) {
+    if (currentIndex + 1 >= musicList.length) {
       return false;
     }
     return true;
@@ -155,7 +177,8 @@ class PlayerListModel {
     if (index < 0 || index >= musicList.length) {
       return false;
     }
-    playIndex = index;
+    currentIndex = index;
+    this.currentMusic = this.musicList[currentIndex];
     return true;
   }
 
@@ -186,11 +209,15 @@ class PlayerListModel {
   ///根据下标移除音乐
   void removeAt(int index) {
     this.musicList.removeAt(index);
-    if (playIndex > index) {
-      playIndex--;
+    if (currentIndex > index) {
+      currentIndex--;
     }
-    if (playIndex > this.musicList.length) {
-      playIndex = this.musicList.length - 1;
+    if (currentIndex > this.musicList.length) {
+      currentIndex = this.musicList.length - 1;
+    }
+    //如果移除后发现和主体不一致就直接替换当前主体
+    if (musicList[currentIndex] != currentMusic) {
+      currentMusic = musicList[currentIndex];
     }
     _callSave();
   }
@@ -213,11 +240,15 @@ class PlayerListModel {
     var oldItem = this.musicList[oldIndex];
     this.musicList.removeAt(oldIndex);
     this.musicList.insert(newIndex, oldItem);
-    if (oldIndex == playIndex) {
-      playIndex = newIndex;
+    if (oldIndex == currentIndex) {
+      currentIndex = newIndex;
     }
-    if (newIndex == playIndex) {
-      playIndex = oldIndex;
+    if (newIndex == currentIndex) {
+      currentIndex = oldIndex;
+    }
+    //如果移动后发现和主体不一致就直接替换当前主体
+    if (musicList[currentIndex] != currentMusic) {
+      currentMusic = musicList[currentIndex];
     }
     _callSave();
   }
@@ -245,20 +276,22 @@ class PlayerListModel {
     moveIndex(i, i2);
   }
 
+  ///清空全部数据
   void clear() {
     this.musicList.clear();
-    this.playIndex = 0;
+    this.currentIndex = 0;
+    this.currentMusic = null;
   }
 
-  PlayerListModel copyWith({
+  PlayListModel copyWith({
     List<MusicEntity>? musicList,
     PlayMode? mode,
     int? playIndex,
   }) {
-    return PlayerListModel(
+    return PlayListModel(
       musicList: musicList ?? this.musicList,
       mode: mode ?? this.mode,
-      playIndex: playIndex ?? this.playIndex,
+      currentIndex: playIndex ?? this.currentIndex,
     );
   }
 
@@ -266,38 +299,39 @@ class PlayerListModel {
     return {
       'musicList': musicList.map((x) => x.toMap()).toList(),
       'mode': EnumUtil.enumToString(mode),
-      'playIndex': playIndex,
+      'playIndex': currentIndex,
     };
   }
 
-  factory PlayerListModel.fromMap(Map<String, dynamic> map) {
-    return PlayerListModel(
+  factory PlayListModel.fromMap(Map<String, dynamic> map) {
+    return PlayListModel(
       musicList: List<MusicEntity>.from(
           map['musicList']?.map((x) => MusicEntity.fromMap(x))),
       mode: EnumUtil.enumFromString(PlayMode.values, map['mode'])!,
-      playIndex: map['playIndex'],
+      currentIndex: map['playIndex'],
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory PlayerListModel.fromJson(String source) =>
-      PlayerListModel.fromMap(json.decode(source));
+  factory PlayListModel.fromJson(String source) =>
+      PlayListModel.fromMap(json.decode(source));
 
   @override
   String toString() =>
-      'PlayerListModel(musicList: $musicList, mode: $mode, playIndex: $playIndex)';
+      'PlayerListModel(musicList: $musicList, mode: $mode, playIndex: $currentIndex)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is PlayerListModel &&
+    return other is PlayListModel &&
         listEquals(other.musicList, musicList) &&
         other.mode == mode &&
-        other.playIndex == playIndex;
+        other.currentIndex == currentIndex;
   }
 
   @override
-  int get hashCode => musicList.hashCode ^ mode.hashCode ^ playIndex.hashCode;
+  int get hashCode =>
+      musicList.hashCode ^ mode.hashCode ^ currentIndex.hashCode;
 }

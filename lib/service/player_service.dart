@@ -2,32 +2,41 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-04 22:11:47
+ * @LastEditTime: 2021-07-05 16:19:40
  */
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:hive/hive.dart';
+import 'package:logger/logger.dart';
 import 'package:xy_music_mobile/common/event/player/index.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
+import 'package:xy_music_mobile/config/store_config.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
-import 'package:xy_music_mobile/model/player_list_model.dart';
+import 'package:xy_music_mobile/model/play_list_model.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 import 'audio_service_task.dart';
 
 ///播放服务
 class PlayerService {
+  final Logger logger = log;
+
+  final String _boxDb = "xy-music-play-storeDb";
+  final String _boxModelKey = "xy-music-play-storeDb-key-model1";
+  final String _playerInstanceId = "xy-music-play-id";
+
+  late final Box<PlayListModel> _db;
+
   final AudioPlayerBackageTask backageTask;
 
   ///播放列表
-  PlayerListModel? _playerListModel;
+  PlayListModel? _playListModel;
 
   AudioPlayer? _audioPlayer;
-
-  final String _playerInstanceId = "xy-music-play-id";
 
   ///播放状态
   PlayStatus _status = PlayStatus.stop;
@@ -36,43 +45,63 @@ class PlayerService {
 
   set playState(PlayStatus status) => this._status = status;
 
-  PlayerListModel? get musicModel => _playerListModel;
+  PlayListModel? get musicModel => _playListModel;
 
   ///当前播放的进度
   Duration position = Duration.zero;
 
   PlayerService(this.backageTask) {
-    //初始化播放列表
+    _playListModel = PlayListModel(musicList: []);
+    Store.openBox<PlayListModel>(_boxDb).then((value) {
+      _db = value;
+      loadPalyList();
+    }).catchError((e) {
+      logger.e("PlayerService===>初始化DbBox失败", e);
+    });
+
+    //初始化播放器
     _audioPlayer =
         AudioPlayer(mode: PlayerMode.MEDIA_PLAYER, playerId: _playerInstanceId);
-    loadPalyList();
   }
 
   ///加载播放列表
   void loadPalyList() {
+    // _playListModel = PlayListModel(musicList: [
+    //   MusicEntity(
+    //       songmId: "1847256510",
+    //       albumId: "127828248",
+    //       albumName: "不该用情",
+    //       singer: "叫莫姐姐",
+    //       songName: "不该用情",
+    //       songnameOriginal: null,
+    //       source: MusicSourceConstant.wy,
+    //       duration: Duration(milliseconds: 133998),
+    //       durationStr: "02:13",
+    //       picImage:
+    //           "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
+    //       originData: {})
+    // ]);
     //从Hive进行加载
-    _playerListModel = PlayerListModel(musicList: [
-      MusicEntity(
-          songmId: "1847256510",
-          albumId: "127828248",
-          albumName: "不该用情",
-          singer: "叫莫姐姐",
-          songName: "不该用情",
-          songnameOriginal: null,
-          source: MusicSourceConstant.wy,
-          duration: Duration(milliseconds: 133998),
-          durationStr: "02:13",
-          picImage:
-              // "https://p2.music.126.net/wds8BOwCnqiCF9ZX6yWGOA==/109951166004556685.jpg",
-              "http://pic3.zhimg.com/50/v2-c524149a6e4126baf8a64cecf8eb2db3_hd.jpg",
-          originData: {})
-    ]);
+    if (_db.containsKey(_boxModelKey)) {
+      //如果存在就读取
+      var obj = _db.get(_boxModelKey);
+      if (obj != null) {
+        _playListModel = obj;
+        logger.i("Task从数据库读取到的数据:===>$_playListModel");
+      }
+    } else {
+      _db.put(_boxModelKey, _playListModel!);
+    }
+    //设置保存触发方法
+    _playListModel!.setSaveFun(() {
+      _playListModel!.save();
+    });
     this.syncQueue();
   }
 
   ///同步播放队列
   void syncQueue() {
-    var mediaList = _playerListModel!.musicList
+    var mediaList = _playListModel!.musicList
         .map((e) => MediaItem(
             id: e.uuid!,
             album: e.albumName ?? "-",
@@ -106,7 +135,6 @@ class PlayerService {
 
   ///加载音乐
   Future<bool> loadMusicForUrl(String url) async {
-    // await dispose();
     _createPlayerInstance();
     AudioServiceBackground.setState(
         processingState: AudioProcessingState.buffering);
@@ -140,8 +168,10 @@ class PlayerService {
         musicServiceProviderMange.getSupportProvider(entity.source).first;
     try {
       await service.getMusicPlayUrl(entity);
+      //播放URL加载成功后保存到数据库
+      _playListModel!.save();
     } catch (e) {
-      log.e("PlayerService => 音乐解析失败");
+      logger.e("PlayerService => 音乐解析失败");
       ToastUtil.show(msg: "音乐播放失败");
       //直接进行播放下一首
       _playCompletedHandler();
@@ -163,7 +193,7 @@ class PlayerService {
       return false;
     }
     if (_status == PlayStatus.stop) {
-      log.e("PalyerService play() => 无法播放因为PlayStatus状态是STOP");
+      logger.e("PalyerService play() => 无法播放因为PlayStatus状态是STOP还未加载音乐资源");
       return false;
     }
     if (_audioPlayer?.state != PlayerState.PLAYING) {
@@ -207,7 +237,7 @@ class PlayerService {
       AudioServiceBackground.setState(
           processingState: AudioProcessingState.stopped);
     } else {
-      log.e("PlayerService stop() ==> 失败");
+      logger.e("PlayerService stop() ==> 失败");
       this.playState = PlayStatus.error;
     }
     return res;
@@ -234,11 +264,11 @@ class PlayerService {
     _audioPlayer!.onAudioPositionChanged.listen((Duration p) {
       position = p;
       AudioServiceBackground.sendCustomEvent(PlayerPositionChangedEvent(
-          p, _playerListModel!.getCurrentMusicEntity()!));
+          p, _playListModel!.getCurrentMusicEntity()!));
     });
     //播放状态
     _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
-      log.i("播放状态: $s");
+      logger.i("播放状态: $s");
       PlayStatus status = PlayStatus.stop;
       switch (s) {
         case PlayerState.PAUSED:
@@ -260,14 +290,14 @@ class PlayerService {
               processingState: AudioProcessingState.completed);
           break;
       }
-      AudioServiceBackground.sendCustomEvent(PlayerChangeEvent(
-          status, _playerListModel!.getCurrentMusicEntity()!));
+      AudioServiceBackground.sendCustomEvent(
+          PlayerChangeEvent(status, _playListModel!.getCurrentMusicEntity()!));
     });
 
     _audioPlayer!.onPlayerError.listen((msg) {
-      log.e("播放出现异常: $msg");
+      logger.e("播放出现异常: $msg");
       AudioServiceBackground.sendCustomEvent(
-          PlayerErrorEvent(msg, _playerListModel!.getCurrentMusicEntity()!));
+          PlayerErrorEvent(msg, _playListModel!.getCurrentMusicEntity()!));
       AudioServiceBackground.setState(
           processingState: AudioProcessingState.error);
     });
@@ -290,7 +320,7 @@ class PlayerService {
         backageTask.onPlay();
         break;
       } else {
-        log.e("自动播放下一首音乐LoadMusic发送错误:$music");
+        logger.e("自动播放下一首音乐LoadMusic发送错误:$music");
         //记录错误次数
         errorMap.update(
           music.uuid!,
@@ -299,7 +329,7 @@ class PlayerService {
         );
         //如果超过最大错误次数 直接结束循环
         if (errorMap[music.uuid!]! > errorMax) {
-          log.e("超过错误最大次数=$music 错误次数=${errorMap[music.uuid!]!}");
+          logger.e("超过错误最大次数=$music 错误次数=${errorMap[music.uuid!]!}");
           break;
         }
         continue;
@@ -312,5 +342,6 @@ class PlayerService {
     _status = PlayStatus.stop;
     await _audioPlayer?.stop();
     await _audioPlayer?.dispose();
+    await _db.close();
   }
 }

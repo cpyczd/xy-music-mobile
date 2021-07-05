@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-07-02 17:07:47
+ * @LastEditTime: 2021-07-05 15:31:30
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -96,8 +96,8 @@ class _HomePageState extends State<HomePage>
     List<Widget> list = [
       MyMusicPage(),
       SongSquarePage(),
-      HotPage(),
-      // SettingPage()
+      // HotPage(),
+      SettingPage()
     ];
     return list;
   }

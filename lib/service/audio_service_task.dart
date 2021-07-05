@@ -2,10 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-04 23:10:14
+ * @LastEditTime: 2021-07-05 16:20:09
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
+import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:uuid/uuid.dart';
 import 'package:xy_music_mobile/application.dart';
@@ -13,6 +14,7 @@ import 'package:xy_music_mobile/common/event/player/index.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
+import 'package:xy_music_mobile/config/store_config.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/player_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
@@ -22,7 +24,9 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
 
   late final PlayerService service;
 
+  ///构造器
   AudioPlayerBackageTask() {
+    ///初始化使用的参数
     Application.applicationInit();
     HttpUtil.logOpen();
   }
@@ -30,6 +34,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onStart(Map<String, dynamic>? params) async {
     logger.d("onStart() params: $params");
+    await Store.flutterInit(initBox: false);
     service = PlayerService(this);
     var currMusic = service.musicModel!.getCurrentMusicEntity();
     //初始化当前播放的列表
@@ -106,7 +111,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
     if (state) {
       AudioServiceBackground.setState(playing: false);
       await service.stop();
-      this.onPlay();
+      return this.onPlay();
     } else {
       AudioServiceBackground.setState(
         playing: false,
@@ -128,7 +133,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
     if (state) {
       AudioServiceBackground.setState(playing: false);
       await service.stop();
-      this.onPlay();
+      return this.onPlay();
     } else {
       AudioServiceBackground.setState(
         playing: false,
@@ -205,6 +210,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   @override
   Future<void> onStop() async {
     await service.dispose();
+    await Hive.close();
     await super.onStop();
     return;
   }
@@ -264,7 +270,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       case "getMusicList":
         return Future.value(
             service.musicModel!.musicList.map((e) => e.toMap()).toList());
-      case "loadQueue":
+      case "reloadMusic":
         service.loadPalyList();
         return Future.value(true);
       case "syncQueue":
@@ -361,8 +367,8 @@ class PlayerTaskHelper {
   }
 
   ///重新从存储中加载数据到内存队列中去
-  static Future<bool> loadQueue() {
-    return AudioService.customAction("loadQueue") as Future<bool>;
+  static Future<bool> reloadMusic() {
+    return AudioService.customAction("reloadMusic") as Future<bool>;
   }
 
   ///主动刷新同步内存队列到 => AudioServie Queue队列里

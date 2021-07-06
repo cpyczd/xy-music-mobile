@@ -2,10 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 18:29:30
- * @LastEditTime: 2021-06-18 23:32:24
+ * @LastEditTime: 2021-07-06 15:54:24
  */
 import 'dart:async';
 
+import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_ranking_list_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
@@ -39,6 +40,9 @@ abstract class BaseMusicService extends BaseCommon {
 
   ///获取音乐详情
   Future<MusicEntity> getMusicPlayUrl(MusicEntity entity);
+
+  ///解析歌词
+  List<Lyric> formatLyric(String lyricStr);
 
   ///获取品质
   MusicEntity setQuality(MusicEntity entity, Map map);

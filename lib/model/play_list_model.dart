@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-05 21:41:52
+ * @LastEditTime: 2021-07-06 21:33:35
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -78,6 +78,7 @@ class PlayListModel extends HiveObject {
     return this.musicList[index];
   }
 
+  ///设置播放模式
   void setPlayMode(PlayMode mode) {
     this.mode = mode;
     _callSave();
@@ -259,13 +260,10 @@ class PlayListModel extends HiveObject {
   ///移动音乐到指定位置
   void moveIndex(int oldIndex, int newIndex) {
     var oldItem = this.musicList[oldIndex];
-    this.musicList[oldIndex] = this.musicList[newIndex];
-    this.musicList[newIndex] = oldItem;
+    this.musicList.removeAt(oldIndex);
+    this.musicList.insert(newIndex, oldItem);
     if (oldIndex == currentIndex) {
-      currentIndex = newIndex;
-    }
-    if (newIndex == currentIndex) {
-      currentIndex = oldIndex;
+      this.currentIndex = newIndex;
     }
     _callSave();
   }

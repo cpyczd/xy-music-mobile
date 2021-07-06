@@ -17,8 +17,9 @@ class LyricWidget extends CustomPainter with ChangeNotifier {
   Size canvasSize = Size.zero;
   int? dragLineTime;
 
-  final Color primaryColor;
-  late Color otherColor;
+  ///色彩配置
+  final Color primaryColor = Colors.white;
+  late Color otherColor = Colors.white70;
 
   double get offsetY => _offsetY;
 
@@ -40,8 +41,7 @@ class LyricWidget extends CustomPainter with ChangeNotifier {
     notifyListeners();
   }
 
-  LyricWidget(this.lyric, this.curLine, {this.primaryColor = Colors.white}) {
-    otherColor = primaryColor == Colors.white ? Colors.black : Colors.red;
+  LyricWidget(this.lyric, this.curLine) {
     linePaint = Paint()
       ..color = Colors.white12
       ..strokeWidth = 1;
@@ -70,8 +70,8 @@ class LyricWidget extends CustomPainter with ChangeNotifier {
           lyricPaints[i].text = TextSpan(
               text: lyric[i].lyric,
               style: TextStyle(
-                  fontSize: 16,
-                  color: otherColor,
+                  fontSize: 15,
+                  color: primaryColor,
                   fontWeight: FontWeight.w600));
           lyricPaints[i].layout();
         } else if (isDragging &&
@@ -79,12 +79,13 @@ class LyricWidget extends CustomPainter with ChangeNotifier {
           // 如果是拖动状态中的当前行
           lyricPaints[i].text = TextSpan(
               text: lyric[i].lyric,
-              style: TextStyle(fontSize: 16, color: otherColor.withAlpha(255)));
+              style:
+                  TextStyle(fontSize: 16, color: primaryColor.withAlpha(255)));
           lyricPaints[i].layout();
         } else {
           lyricPaints[i].text = TextSpan(
               text: lyric[i].lyric,
-              style: TextStyle(fontSize: 16, color: primaryColor));
+              style: TextStyle(fontSize: 13, color: otherColor));
           lyricPaints[i].layout();
         }
 

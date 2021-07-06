@@ -2,13 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-06-18 23:07:43
+ * @LastEditTime: 2021-07-06 16:36:35
  */
 
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
 import '../base_music_service.dart';
@@ -208,6 +209,41 @@ class KGMusicServiceImpl extends BaseMusicService {
   @override
   MusicSourceConstant? supportSource({Object? fliter}) {
     return MusicSourceConstant.kg;
+  }
+
+  @override
+  List<Lyric> formatLyric(String lyricStr) {
+    //KRC转LRC
+    RegExp reg = RegExp(r"^\[\d{2}");
+    RegExp replaceAll = RegExp(r"(\d)");
+    var lrc = lyricStr
+        .split("\n")
+        .where((r) => reg.hasMatch(r))
+        .map((e) {
+          String left = e.substring(1, e.indexOf("]"));
+          String right = e.substring(e.indexOf(']') + 1);
+          //先转换事件
+          var sb = StringBuffer();
+          var time = DateTime.fromMillisecondsSinceEpoch(
+              int.parse(left.split(",")[0]).toInt());
+
+          sb.write("[");
+          sb.write(util.DateUtil.formatDate(time, format: "mm:ss.SSS"));
+          sb.write("]");
+          //右边内容
+          right = right
+              .replaceAll("<", "")
+              .replaceAll(">", "")
+              .replaceAll(",", "")
+              .replaceAll(replaceAll, "");
+
+          // replaceAll.
+          sb.write(right);
+          return sb.toString();
+        })
+        .join("\n")
+        .toString();
+    return defaultFormatLyric(lrc);
   }
 }
 

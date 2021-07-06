@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:27
- * @LastEditTime: 2021-06-30 17:13:40
+ * @LastEditTime: 2021-07-06 21:25:30
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +25,8 @@ class _MyMusicPageState extends State<MyMusicPage> {
     return Scaffold(
       body: Container(
         child: CustomScrollView(
+          physics:
+              BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             _headMenu(), _mySquare(),
             // _myCollect()

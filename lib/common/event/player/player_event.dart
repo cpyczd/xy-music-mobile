@@ -40,3 +40,11 @@ class PlayListChangeEvent extends PlayerBaseEvent {
   PlayListChangeEvent(this.state, this.listLength, musicEntity)
       : super(musicEntity);
 }
+
+///播放循环模式改变事件
+class PlayModeChangeEvent {
+  final PlayMode mode;
+  PlayModeChangeEvent({
+    required this.mode,
+  });
+}

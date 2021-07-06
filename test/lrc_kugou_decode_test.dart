@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 17:36:00
- * @LastEditTime: 2021-06-18 23:09:17
+ * @LastEditTime: 2021-07-06 16:11:21
  */
 import 'dart:convert';
 import 'dart:io';
@@ -15,6 +15,12 @@ main() async {
   // MusicService service = KGMusicServiceImpl();
   // var res = await service.getHotSearch();
   // print(res);
-  print(WyWebApi()
-      .webapi({"s": "晴天", "type": 1, "limit": 10, "offset": (1 - 1) * 10}));
+  // print(WyWebApi()
+  //     .webapi({"s": "晴天", "type": 1, "limit": 10, "offset": (1 - 1) * 10}));
+
+  print(Duration(milliseconds: 15321));
+  print(Duration(milliseconds: 1875));
+  print("-----");
+  print(Duration(milliseconds: 17196));
+  print(Duration(milliseconds: 2072));
 }

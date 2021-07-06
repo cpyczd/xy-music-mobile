@@ -5,12 +5,12 @@
  * @LastEditTime: 2021-07-04 18:15:12
  */
 import 'package:dio/dio.dart';
+import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import '../square/wy_square_service.dart' show WyWebApi;
-import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 
 class WyMusicServiceImpl extends BaseMusicService {
   late final WyWebApi webApi;
@@ -139,5 +139,11 @@ class WyMusicServiceImpl extends BaseMusicService {
   @override
   MusicSourceConstant? supportSource({Object? fliter}) {
     return MusicSourceConstant.wy;
+  }
+
+  ///解析歌词
+  @override
+  List<Lyric> formatLyric(String lyricStr) {
+    return defaultFormatLyric(lyricStr);
   }
 }

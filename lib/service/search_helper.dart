@@ -2,20 +2,31 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-13 22:37:08
- * @LastEditTime: 2021-06-13 22:37:59
+ * @LastEditTime: 2021-07-06 22:56:45
  */
 import 'package:xy_music_mobile/util/http_util.dart';
 import 'package:dio/dio.dart';
+import 'package:xy_music_mobile/util/sp_util.dart';
 
 class SearchHelper {
   static CancelToken? _cancelToken;
 
+  static final _tokenKey = "SearchHelper-token";
+
   ///搜索建议获取 Token
   static Future<String> getToken() async {
-    var response = await HttpUtil.getBaseHttp().get("http://www.kuwo.cn/");
-    var cookie = response.headers.value('set-cookie') as String;
-    print("Cookie: $cookie");
-    return cookie.split(";")[0].replaceAll("kw_token=", "").trim();
+    Map? map = await SpUtil.getVal(_tokenKey);
+    String token;
+    if (map == null) {
+      var response = await HttpUtil.getBaseHttp().get("http://www.kuwo.cn/");
+      var cookie = response.headers.value('set-cookie') as String;
+      token = cookie.split(";")[0].replaceAll("kw_token=", "").trim();
+      await SpUtil.save(_tokenKey, {"token": token},
+          exprie: 1, level: TimeExpireLevel.MINUTES);
+    } else {
+      token = map["token"];
+    }
+    return token;
   }
 
   ///搜索建议
@@ -26,7 +37,6 @@ class SearchHelper {
     }
     _cancelToken?.cancel(null);
     _cancelToken = CancelToken();
-
     Map result = await HttpUtil.get(
         "http://www.kuwo.cn/api/www/search/searchKey",
         data: {"key": keyWord},

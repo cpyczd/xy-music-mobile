@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-05 21:03:36
+ * @LastEditTime: 2021-07-06 21:24:41
  */
 
 import 'dart:async';
@@ -33,18 +33,9 @@ class PlayerBottomControllre extends StatefulWidget {
 
 class _PlayerBottomControllreState extends State<PlayerBottomControllre>
     with MultDataLine {
-  final modeStyles = <Map<String, dynamic>>[
-    {"mode": PlayMode.order, "icon": iconFont(hex16: 0xe658)},
-    {"mode": PlayMode.loop, "icon": iconFont(hex16: 0xe6ae)},
-    {"mode": PlayMode.random, "icon": iconFont(hex16: 0xe6a0)}
-  ];
-
   final String _playSateKey = "_playSateKey";
   final String _playInfoKey = "_playInfoKey";
   final String _playProgressKey = "_playProgressKey";
-
-  ///当前的播放模式控件样式
-  Map<String, dynamic>? currentModeSryle;
 
   MusicEntity? currentMusic;
 
@@ -208,7 +199,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
 
   ///显示播放列表
   void showMusicList() {
-    showCurrentPlayerList();
+    CurrentPlayListUtil.showCurrentPlayerList(context);
   }
 
   ///创建按钮
@@ -221,16 +212,26 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
           size: size,
           color: Color(AppTheme.getCurrentTheme().primaryColor)),
       padding: EdgeInsets.all(0),
-      // splashColor: Colors.transparent,
-      // highlightColor: Colors.transparent,
       constraints: BoxConstraints(maxWidth: 26, minWidth: 26),
     );
   }
+}
+
+///显示当前播放列表工具类
+class CurrentPlayListUtil {
+  static final modeStyles = <Map<String, dynamic>>[
+    {"mode": PlayMode.order, "icon": iconFont(hex16: 0xe6af)},
+    {"mode": PlayMode.loop, "icon": iconFont(hex16: 0xe6ae)},
+    {"mode": PlayMode.random, "icon": iconFont(hex16: 0xe6a0)}
+  ];
+
+  ///当前的播放模式控件样式
+  static Map<String, dynamic>? _currentModeSryle;
 
   ///显示当前的播放列表
-  void showCurrentPlayerList() async {
+  static void showCurrentPlayerList(BuildContext context) async {
     PlayMode currentMode = await PlayerTaskHelper.getPlayMode();
-    currentModeSryle =
+    _currentModeSryle =
         modeStyles.firstWhere((element) => element["mode"] == currentMode);
 
     //显示控件
@@ -248,6 +249,8 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
               return Container(
                 margin: EdgeInsets.only(top: 16),
                 child: CustomScrollView(
+                  physics: BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics()),
                   slivers: [
                     SliverStickyHeader(
                       header: _sliverHeader(state),
@@ -262,7 +265,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
   }
 
   ///返回Sliver头部构建Widget
-  Widget _sliverHeader(StateSetter state) {
+  static Widget _sliverHeader(StateSetter state) {
     return Container(
       color: Color(AppTheme.getCurrentTheme().scaffoldBackgroundColor),
       padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
@@ -275,8 +278,8 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
               onPressed: () {
                 _replacePlayMode(state);
               },
-              icon: currentModeSryle!["icon"],
-              label: Text((currentModeSryle!["mode"] as PlayMode).desc)),
+              icon: _currentModeSryle!["icon"],
+              label: Text((_currentModeSryle!["mode"] as PlayMode).desc)),
           Expanded(child: SizedBox()),
           IconButton(
               padding: EdgeInsets.zero,
@@ -298,7 +301,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
   }
 
   ///返回Sliver内容List构造Widget
-  Widget _sliverContent(StateSetter state) {
+  static Widget _sliverContent(StateSetter state) {
     return FutureBuilder<List<MusicEntity>>(
       future: PlayerTaskHelper.getMusicList(),
       builder: (context, sp) {
@@ -318,14 +321,14 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
               }
               state(() {
                 var old = list[oldIndex];
-                list[oldIndex] = list[newIndex];
-                list[newIndex] = old;
+                list.removeAt(oldIndex);
+                list.insert(newIndex, old);
               });
               PlayerTaskHelper.moveToIndex(oldIndex, newIndex);
             },
             itemBuilder: (context, index) {
               MusicEntity music = list[index];
-              return ReorderableDragStartListener(
+              return ReorderableDelayedDragStartListener(
                 index: index,
                 key: ValueKey(music.uuid),
                 child: Material(
@@ -425,24 +428,24 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
   }
 
   ///点击切换播放循环模式
-  void _replacePlayMode(StateSetter setter) async {
+  static void _replacePlayMode(StateSetter setter) async {
     PlayMode currentMode = await PlayerTaskHelper.getPlayMode();
     int index =
         modeStyles.indexWhere((element) => element["mode"] == currentMode);
     var i = (index + 1) % modeStyles.length;
-    currentModeSryle = modeStyles[i];
-    PlayerTaskHelper.setPlayMode(currentModeSryle!["mode"]);
+    _currentModeSryle = modeStyles[i];
+    PlayerTaskHelper.setPlayMode(_currentModeSryle!["mode"]);
     setter(() {});
   }
 
   ///移除音乐从播放列表
-  void _removeMusic(List<MusicEntity> list, StateSetter setter) {
+  static void _removeMusic(List<MusicEntity> list, StateSetter setter) {
     PlayerTaskHelper.removeQueueByUuid(list.map((e) => e.uuid ?? "").toList());
     setter(() {});
   }
 
   ///播放到指定的位置
-  void _playTo(MusicEntity music, StateSetter setter) async {
+  static void _playTo(MusicEntity music, StateSetter setter) async {
     await AudioService.playFromMediaId(music.uuid!);
     setter(() {});
   }

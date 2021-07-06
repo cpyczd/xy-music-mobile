@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-05 22:49:07
+ * @LastEditTime: 2021-07-06 15:59:09
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -14,6 +14,7 @@ import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/store_config.dart';
+import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/play_list_model.dart';
 import 'package:xy_music_mobile/util/index.dart';
@@ -239,10 +240,33 @@ class PlayerService {
   }
 
   ///加载歌词
-  void loadLrc(String uuid) {
+  Future<List<Lyric>?> loadLyric(String uuid) async {
     var music = musicModel!.findByUuid(uuid);
     if (music == null) {
-      return;
+      return null;
+    }
+    //加载歌词
+    if (music.lrc != null && music.lrc!.isNotEmpty) {
+      return musicServiceProviderMange
+          .getSupportProvider(music.source)
+          .first
+          .formatLyric(music.lrc!);
+    }
+    try {
+      String lrc = await musicServiceProviderMange
+          .getSupportProvider(music.source)
+          .first
+          .getLyric(music);
+
+      //保存到数据库
+      musicModel!.save();
+      return musicServiceProviderMange
+          .getSupportProvider(music.source)
+          .first
+          .formatLyric(lrc);
+    } catch (e) {
+      logger.e("下载歌词失败:=====>", e);
+      return null;
     }
   }
 

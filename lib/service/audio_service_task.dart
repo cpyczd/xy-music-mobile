@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-05 21:48:01
+ * @LastEditTime: 2021-07-06 18:28:32
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -15,6 +15,7 @@ import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/store_config.dart';
+import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/player_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
@@ -310,6 +311,9 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
         var mode = EnumUtil.enumFromString(PlayMode.values, arguments);
         if (mode != null) {
           service.musicModel!.setPlayMode(mode);
+          //发送播放循环模式改变事件
+          AudioServiceBackground.sendCustomEvent(
+              PlayModeChangeEvent(mode: mode));
           return Future.value(true);
         } else {
           return Future.error("arguments it need to be {PlayMode} ");
@@ -318,8 +322,14 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
         service.musicModel!
             .moveIndex(arguments["oldIndex"], arguments["newIndex"]);
         return Future.value(true);
+      case "loadLyric":
+        var lrcList = await service.loadLyric(arguments);
+        if (lrcList == null) {
+          return Future.error("lrc load fial");
+        }
+        return Future.value(lrcList.map((e) => e.toMap()).toList());
     }
-    return Future.error("not action");
+    return Future.error("no action");
   }
 }
 
@@ -432,16 +442,32 @@ class PlayerTaskHelper {
     );
   }
 
+  ///加载音乐歌词文件
+  static Future<List<Lyric>> loadLyric(String uuid) {
+    if (uuid.isEmpty) {
+      return Future.error("uuid not empty");
+    }
+    return _transformation(AudioService.customAction("loadLyric", uuid),
+        cast: (val) => val is List
+            ? val
+                .map((e) => Lyric.fromMap(Map<String, dynamic>.from(e)))
+                .toList()
+            : null);
+  }
+
   static Future<T> _transformation<T>(Future future, {_OnCast? cast}) {
-    return future.then((value) {
+    return future.then<T>((value) {
       if (cast != null) {
         var res = cast(value);
         if (res == null) {
-          throw new Exception(value);
+          throw new Exception("ERROR: " + value);
         }
         return res;
       }
       return value;
+    }).onError((error, stackTrace) {
+      log.e("_transformation:", error, stackTrace);
+      return Future.error(error!, stackTrace);
     });
   }
 }

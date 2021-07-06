@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-07-05 22:14:08
+ * @LastEditTime: 2021-07-06 16:33:50
  */
 
 import 'dart:convert';
@@ -14,7 +14,6 @@ import 'package:intl/intl.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
-import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 import 'package:xy_music_mobile/util/index.dart';
 import '../base_music_service.dart';
 

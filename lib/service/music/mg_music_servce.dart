@@ -6,6 +6,7 @@
  */
 
 import 'package:dio/dio.dart';
+import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
@@ -138,5 +139,10 @@ class MgMusicServiceImpl extends BaseMusicService {
   @override
   MusicSourceConstant? supportSource({Object? fliter}) {
     return MusicSourceConstant.mg;
+  }
+
+  @override
+  List<Lyric> formatLyric(String lyricStr) {
+    return defaultFormatLyric(lyricStr);
   }
 }

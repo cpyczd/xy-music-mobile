@@ -1,8 +1,10 @@
+import 'dart:convert';
+
 /*
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 14:24:54
- * @LastEditTime: 2021-07-01 14:31:06
+ * @LastEditTime: 2021-07-06 16:13:36
  */
 
 class Lyric {
@@ -10,17 +12,76 @@ class Lyric {
   Duration? startTime;
   Duration? endTime;
   double? offset;
+  Lyric({
+    required this.lyric,
+    this.startTime,
+    this.endTime,
+    this.offset,
+  });
 
-  Lyric(this.lyric, {this.startTime, this.endTime, this.offset});
+  Lyric copyWith({
+    String? lyric,
+    Duration? startTime,
+    Duration? endTime,
+    double? offset,
+  }) {
+    return Lyric(
+      lyric: lyric ?? this.lyric,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      offset: offset ?? this.offset,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'lyric': lyric,
+      'startTime': startTime?.inMilliseconds,
+      'endTime': endTime?.inMilliseconds,
+      'offset': offset,
+    };
+  }
+
+  factory Lyric.fromMap(Map<String, dynamic> map) {
+    return Lyric(
+      lyric: map['lyric'],
+      startTime: Duration(milliseconds: map['startTime']),
+      endTime: Duration(milliseconds: map['endTime']),
+      offset: map['offset'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Lyric.fromJson(String source) => Lyric.fromMap(json.decode(source));
 
   @override
   String toString() {
-    return 'Lyric{lyric: $lyric, startTime: $startTime, endTime: $endTime}';
+    return 'Lyric(lyric: $lyric, startTime: $startTime, endTime: $endTime, offset: $offset)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Lyric &&
+        other.lyric == lyric &&
+        other.startTime == startTime &&
+        other.endTime == endTime &&
+        other.offset == offset;
+  }
+
+  @override
+  int get hashCode {
+    return lyric.hashCode ^
+        startTime.hashCode ^
+        endTime.hashCode ^
+        offset.hashCode;
   }
 }
 
 /// 格式化歌词
-List<Lyric> formatLyric(String lyricStr) {
+List<Lyric> defaultFormatLyric(String lyricStr) {
   RegExp reg = RegExp(r"^\[\d{2}");
 
   List<Lyric> result =
@@ -31,7 +92,7 @@ List<Lyric> formatLyric(String lyricStr) {
     int hourSeparatorIndex = time.indexOf(":");
     int minuteSeparatorIndex = time.indexOf(".");
     return Lyric(
-      lyric,
+      lyric: lyric,
       startTime: Duration(
         minutes: int.parse(
           time.substring(0, hourSeparatorIndex),

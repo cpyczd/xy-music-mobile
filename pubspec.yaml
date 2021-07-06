@@ -58,17 +58,17 @@ dependencies:
   #时间格式化工具与国际化插件
   intl: ^0.17.0
   #图片放大预览
-  photo_view: ^0.11.1
+  # photo_view: ^0.11.1
   #监听网络状态
   connectivity: ^3.0.4
   #保存到图片到本地
-  image_gallery_saver: '^1.6.9'
+  # image_gallery_saver: '^1.6.9'
   #获取版本号
   get_version: ^0.2.2
   #NoSql数据库
   hive: ^2.0.4
   #ListView滚动到列表中指定item
-  scrollable_positioned_list: ^0.1.10
+  # scrollable_positioned_list: ^0.1.10
   #音乐播放组件
   audioplayers: ^0.19.0
   # just_audio: ^0.8.0

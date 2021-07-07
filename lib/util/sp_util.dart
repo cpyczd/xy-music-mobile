@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-16 10:10:02
- * @LastEditTime: 2021-07-06 22:14:17
+ * @LastEditTime: 2021-07-07 22:43:25
  */
 
 import 'dart:convert';
@@ -123,7 +123,9 @@ class _SpData {
 
   factory _SpData.fromMap(Map<String, dynamic> map) {
     return _SpData(
-      level: EnumUtil.enumFromString(TimeExpireLevel.values, map['level']),
+      level: map['level'] != null
+          ? EnumUtil.enumFromString(TimeExpireLevel.values, map['level'])
+          : null,
       time: map['time'],
       data: Map.from(map['data']),
     );

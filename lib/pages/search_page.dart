@@ -2,10 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-07-06 22:58:56
+ * @LastEditTime: 2021-07-07 23:04:01
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/common/store_constant.dart';
 import 'package:xy_music_mobile/config/service_manage.dart'
     show musicServiceProviderMange;
 import 'package:xy_music_mobile/config/theme.dart';
@@ -16,6 +17,8 @@ import 'package:xy_music_mobile/service/music/kg_music_service.dart';
 import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/search_helper.dart';
 import 'package:xy_music_mobile/util/index.dart';
+import 'package:xy_music_mobile/util/sp_util.dart';
+import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
 class SearchPage extends StatefulWidget {
@@ -25,7 +28,9 @@ class SearchPage extends StatefulWidget {
   _SearchPageState createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage> with MultDataLine {
+  final String _searchLineKey = "_searchLineKey";
+
   ///输入框控制器
   TextEditingController _textControl = TextEditingController();
 
@@ -71,12 +76,14 @@ class _SearchPageState extends State<SearchPage> {
       _token = await SearchHelper.getToken();
       _loadResultController();
       _loadHotSearchList();
+      _loadSearchHistory();
     });
     musicSourceSupport = musicServiceProviderMange.getSupportSourceList();
   }
 
   @override
   void dispose() {
+    disposeDataLine();
     super.dispose();
     _textControl.dispose();
     _scrollResultListController.dispose();
@@ -105,6 +112,12 @@ class _SearchPageState extends State<SearchPage> {
         }
       }
     });
+  }
+
+  ///加载搜索历史
+  void _loadSearchHistory() {
+    _SearchHistoryStore.getKeyList()
+        .then((value) => getLine(_searchLineKey).setData(value));
   }
 
   @override
@@ -232,32 +245,45 @@ class _SearchPageState extends State<SearchPage> {
                   child: SizedBox(
                       height: 25,
                       width: double.infinity,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        physics: BouncingScrollPhysics(),
-                        addAutomaticKeepAlives: true,
-                        itemCount: 5,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Center(
-                              child: Text(
-                                "世界美好:$index",
-                                style: TextStyle(
-                                    fontSize: 13, color: Colors.black),
-                              ),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) =>
-                            VerticalDivider(
-                          width: 16.0,
-                          color: Color(0xFFFFFFFF),
-                        ),
-                      )),
+                      child: getLine(_searchLineKey, initData: <String>[])
+                          .addObserver((context, pack) => ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                physics: BouncingScrollPhysics(
+                                    parent: AlwaysScrollableScrollPhysics()),
+                                addAutomaticKeepAlives: true,
+                                itemCount: pack.data!.length,
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Center(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          var key = pack.data![index];
+                                          _searchKeyWord = key;
+                                          _onSearch();
+                                        },
+                                        child: Text(
+                                          pack.data![index],
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.black),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                separatorBuilder:
+                                    (BuildContext context, int index) =>
+                                        VerticalDivider(
+                                  width: 16.0,
+                                  color: Color(0xFFFFFFFF),
+                                ),
+                              ))),
                 ),
               )
             ],
@@ -547,6 +573,7 @@ class _SearchPageState extends State<SearchPage> {
     if (_searchKeyWord.isEmpty) {
       return;
     }
+    _SearchHistoryStore.save(_searchKeyWord);
 
     ///切换显示的页面为序号2
     pageIndex = 2;
@@ -587,5 +614,40 @@ class _SearchPageState extends State<SearchPage> {
     ToastUtil.show(msg: "开始播放 ${entity.songName}");
     await PlayerTaskHelper.pushQueue(entity);
     await AudioService.playFromMediaId(entity.uuid!);
+  }
+}
+
+///搜索记录保存
+class _SearchHistoryStore {
+  static final String _storeKey = StoreSpKey.SEARCH_HISTOTY_KEY.key;
+  static final int _maxLength = 20;
+
+  ///保存一个关键字
+  static Future<void> save(String keyWorkd) async {
+    Map? res = await SpUtil.getVal(_storeKey);
+    if (res == null) {
+      res = Map.from({"list": []});
+    }
+    List list = res["list"];
+
+    if (list.length > _maxLength) {
+      list = list.sublist(0, _maxLength - 1);
+    }
+    if (list.isNotEmpty && list[0] == keyWorkd) {
+      return;
+    }
+    list.insert(0, keyWorkd);
+    res["list"] = list;
+    await SpUtil.save(_storeKey, res.cast<String, dynamic>());
+    return;
+  }
+
+  ///获取Keywords
+  static Future<List<String>> getKeyList() async {
+    Map? res = await SpUtil.getVal(_storeKey);
+    if (res == null) {
+      res = Map.from({"list": []});
+    }
+    return (res["list"] as List).cast<String>();
   }
 }

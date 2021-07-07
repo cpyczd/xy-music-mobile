@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-07-04 18:15:12
+ * @LastEditTime: 2021-07-08 00:17:01
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/lyric.dart';
@@ -43,26 +43,6 @@ class WyMusicServiceImpl extends BaseMusicService {
     String lrc = resp["lrc"]["lyric"];
     entity.lrc = lrc;
     return lrc;
-  }
-
-  @override
-  Future<MusicEntity> getMusicPlayUrl(MusicEntity entity) async {
-    Map result = await HttpUtil.post("https://music.sonimei.cn/",
-        data: {
-          "input": entity.songmId,
-          "type": "netease",
-          "filter": "id",
-          "page": 1
-        },
-        options: Options(headers: {
-          "x-requested-with": "XMLHttpRequest",
-          "Content-Type": "multipart/form-data"
-        }));
-    if (result["code"] != 200) {
-      return Future.error("解析失败");
-    }
-    entity.playUrl = result["data"][0]["url"];
-    return entity;
   }
 
   @override
@@ -145,5 +125,37 @@ class WyMusicServiceImpl extends BaseMusicService {
   @override
   List<Lyric> formatLyric(String lyricStr) {
     return defaultFormatLyric(lyricStr);
+  }
+
+  @override
+  List<BaseParseMusicPlayUrl> getParseRouters() {
+    return [_AlphaMusicParse()];
+  }
+}
+
+class _AlphaMusicParse extends BaseParseMusicPlayUrl {
+  @override
+  PlayUrlParseRoutesEnum getParseRoute() {
+    return PlayUrlParseRoutesEnum.ALPHA;
+  }
+
+  @override
+  Future<String> parsePlayUrl(MusicEntity entity) async {
+    Map result = await HttpUtil.post("https://music.sonimei.cn/",
+        data: {
+          "input": entity.songmId,
+          "type": "netease",
+          "filter": "id",
+          "page": 1
+        },
+        options: Options(headers: {
+          "x-requested-with": "XMLHttpRequest",
+          "Content-Type": "multipart/form-data"
+        }));
+    if (result["code"] != 200) {
+      return Future.error("解析失败");
+    }
+    entity.playUrl = result["data"][0]["url"];
+    return entity.playUrl!;
   }
 }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:49:36
- * @LastEditTime: 2021-06-20 23:45:14
+ * @LastEditTime: 2021-07-07 23:30:24
  * 
  * 
  * {
@@ -33,6 +33,7 @@
 
 import 'package:flutter/foundation.dart';
 
+///播放源
 enum MusicSourceConstant { kg, kw, tx, wy, mg, xm, none }
 
 extension MusicSourceExtension on MusicSourceConstant {
@@ -86,4 +87,20 @@ class MusicSupportQualitys {
   static final List<String> tx = ['128k', '320k', 'flac'];
   static final List<String> wy = ['128k', '320k', 'flac'];
   static final List<String> mg = ['128k', '320k', 'flac'];
+}
+
+///播放地址源解析路线
+enum PlayUrlParseRoutesEnum {
+  ///稳定的:代表全部如果有失败的继续下一个路由去请求直到成功或者没有路线可进行.
+  STABLE,
+
+  ///测试的 路线接口
+  BETA,
+
+  ///实验的 路线接口
+  ALPHA,
+}
+
+extension PlayUrlParseTypeEnumEnhance on PlayUrlParseRoutesEnum {
+  String get name => describeEnum(this);
 }

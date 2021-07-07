@@ -152,7 +152,7 @@ class PlayerService {
     var service =
         musicServiceProviderMange.getSupportProvider(entity.source).first;
     try {
-      await service.getMusicPlayUrl(entity);
+      await service.getPlayUrl(entity);
       //播放URL加载成功后保存到数据库
       _playListModel!.save();
     } catch (e) {

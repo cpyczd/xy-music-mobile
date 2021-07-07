@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-07-06 16:36:35
+ * @LastEditTime: 2021-07-08 00:14:12
  */
 
 import 'dart:convert';
@@ -101,27 +101,6 @@ class KGMusicServiceImpl extends BaseMusicService {
     } else {
       return Future.error("获取歌词失败");
     }
-  }
-
-  ///获取播放Url
-  @override
-  Future<MusicEntity> getMusicPlayUrl(MusicEntity entity) async {
-    Map result = await util.HttpUtil.post("https://music.sonimei.cn/",
-        data: {
-          "input": entity.hash,
-          "type": "kugou",
-          "filter": "id",
-          "page": 1
-        },
-        options: Options(headers: {
-          "x-requested-with": "XMLHttpRequest",
-          "Content-Type": "multipart/form-data"
-        }));
-    if (result["code"] != 200) {
-      return Future.error("解析失败");
-    }
-    entity.playUrl = result["data"][0]["url"];
-    return entity;
   }
 
   @override
@@ -244,6 +223,38 @@ class KGMusicServiceImpl extends BaseMusicService {
         .join("\n")
         .toString();
     return defaultFormatLyric(lrc);
+  }
+
+  @override
+  List<BaseParseMusicPlayUrl> getParseRouters() {
+    return [_AlphaMusicParse()];
+  }
+}
+
+class _AlphaMusicParse extends BaseParseMusicPlayUrl {
+  @override
+  PlayUrlParseRoutesEnum getParseRoute() {
+    return PlayUrlParseRoutesEnum.ALPHA;
+  }
+
+  @override
+  Future<String> parsePlayUrl(MusicEntity entity) async {
+    Map result = await util.HttpUtil.post("https://music.sonimei.cn/",
+        data: {
+          "input": entity.hash,
+          "type": "kugou",
+          "filter": "id",
+          "page": 1
+        },
+        options: Options(headers: {
+          "x-requested-with": "XMLHttpRequest",
+          "Content-Type": "multipart/form-data"
+        }));
+    if (result["code"] != 200) {
+      return Future.error("解析失败");
+    }
+    entity.playUrl = result["data"][0]["url"];
+    return entity.playUrl!;
   }
 }
 

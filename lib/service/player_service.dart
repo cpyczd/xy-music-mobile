@@ -2,11 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-06 15:59:09
+ * @LastEditTime: 2021-07-10 00:15:38
  */
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
 import 'package:logger/logger.dart';
 import 'package:xy_music_mobile/common/event/player/index.dart';
@@ -289,6 +290,7 @@ class PlayerService {
     _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
       logger.i("播放状态: $s");
       PlayStatus status = PlayStatus.stop;
+      var music = _playListModel!.getCurrentMusicEntity();
       switch (s) {
         case PlayerState.PAUSED:
           status = PlayStatus.paused;
@@ -307,9 +309,16 @@ class PlayerService {
           _playCompletedHandler();
           AudioServiceBackground.setState(
               processingState: AudioProcessingState.completed);
+          //Check检查播放完成了但是和实际时长差距很大就可能是试听音乐
+          if (music != null) {
+            int min = 30;
+            int diffce = (music.duration.inSeconds - this.position.inSeconds);
+            if (diffce > min) {
+              ToastUtil.show(msg: "此音乐可能是十几秒的试听音乐", length: Toast.LENGTH_LONG);
+            }
+          }
           break;
       }
-      var music = _playListModel!.getCurrentMusicEntity();
       if (music != null) {
         AudioServiceBackground.sendCustomEvent(
             PlayerChangeEvent(status, music));

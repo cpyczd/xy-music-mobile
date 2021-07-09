@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:49:36
- * @LastEditTime: 2021-07-07 23:30:24
+ * @LastEditTime: 2021-07-10 00:00:05
  * 
  * 
  * {
@@ -98,7 +98,7 @@ enum PlayUrlParseRoutesEnum {
   BETA,
 
   ///实验的 路线接口
-  ALPHA,
+  ALPHA
 }
 
 extension PlayUrlParseTypeEnumEnhance on PlayUrlParseRoutesEnum {

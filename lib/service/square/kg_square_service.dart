@@ -12,7 +12,6 @@ import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
 import 'package:xy_music_mobile/util/index.dart';
-import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 import '../base_music_service.dart';
 
 ///酷狗歌单Service    Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销

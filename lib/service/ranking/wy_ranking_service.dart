@@ -12,7 +12,6 @@ import 'package:xy_music_mobile/model/song_ranking_list_entity.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 import 'dart:async';
-import 'package:xy_music_mobile/util/time.dart' show formatPlayTime;
 import '../base_music_service.dart';
 import '../square/wy_square_service.dart' show WyWebApi;
 

@@ -2,10 +2,11 @@
  * @Description: 服务注册发现
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:00:03
- * @LastEditTime: 2021-06-18 23:32:07
+ * @LastEditTime: 2021-07-09 23:53:04
  */
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
+import 'package:xy_music_mobile/service/music/kw_msuic_service.dart';
 import 'package:xy_music_mobile/service/music/mg_music_servce.dart';
 import 'package:xy_music_mobile/service/ranking/kg_ranking_service.dart';
 import 'package:xy_music_mobile/service/ranking/wy_ranking_service.dart';
@@ -27,6 +28,9 @@ void _registerMusicService() {
 
   ///网易音乐
   musicServiceProviderMange.register(WyMusicServiceImpl());
+
+  ///酷我音乐
+  musicServiceProviderMange.register(KwMusicServiceImpl());
 }
 
 ///歌单服务

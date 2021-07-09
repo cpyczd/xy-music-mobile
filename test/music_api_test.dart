@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 16:20:16
- * @LastEditTime: 2021-07-06 16:30:16
+ * @LastEditTime: 2021-07-09 14:58:05
  */
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
@@ -18,13 +18,13 @@ main() async {
   // var service = TxMusicServiceImpl();
   // var service = MgMusicServiceImpl();
   // var service = WyMusicServiceImpl();
-  List<MusicEntity> res = await service.searchMusic("别错过");
+  List<MusicEntity> res = await service.searchMusic("嘉宾");
   var music = res[0];
   print(music);
   //获取歌词
-  var lrc = await service.getLyric(music);
-  var lrcList = service.formatLyric(lrc);
-  print("转换后的Lrc对象: $lrcList");
+  // var lrc = await service.getLyric(music);
+  // var lrcList = service.formatLyric(lrc);
+  // print("转换后的Lrc对象: $lrcList");
   // print("歌词: \n $lrc");
   //获取图片
   var imgSrc = await service.getPic(music);

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-07-08 00:17:01
+ * @LastEditTime: 2021-07-09 15:42:48
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/lyric.dart';
@@ -133,6 +133,11 @@ class WyMusicServiceImpl extends BaseMusicService {
   }
 }
 
+///解析服务类
+///
+///
+///
+///END
 class _AlphaMusicParse extends BaseParseMusicPlayUrl {
   @override
   PlayUrlParseRoutesEnum getParseRoute() {

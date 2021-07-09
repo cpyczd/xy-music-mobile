@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 15:07:50
- * @LastEditTime: 2021-07-08 00:14:12
+ * @LastEditTime: 2021-07-09 15:41:42
  */
 
 import 'dart:convert';
@@ -147,20 +147,24 @@ class KGMusicServiceImpl extends BaseMusicService {
   MusicEntity setQuality(MusicEntity entity, Map map) {
     //Todo 从设置里获取音频设置
     //默认最高品质
-    var qualitys = MusicSupportQualitys.kg.reversed.toList();
-    if (map.containsKey("sqfilesize")) {
-      entity.quality = qualitys[0];
-      entity.hash = map["sqhash"];
-      entity.qualityFileSize = map["sqfilesize"];
-    } else if (map.containsKey("320filesize")) {
-      entity.quality = qualitys[1];
-      entity.hash = map["320hash"];
-      entity.qualityFileSize = map["320filesize"];
-    } else {
-      entity.quality = qualitys[2];
-      entity.hash = map["hash"];
-      entity.qualityFileSize = map["filesize"];
-    }
+    // var qualitys = MusicSupportQualitys.kg.toList();
+
+    // if (map.containsKey("sqfilesize")) {
+    //   entity.quality = qualitys[0];
+    //   entity.hash = map["sqhash"];
+    //   entity.qualityFileSize = map["sqfilesize"];
+    // } else if (map.containsKey("320filesize")) {
+    //   entity.quality = qualitys[1];
+    //   entity.hash = map["320hash"];
+    //   entity.qualityFileSize = map["320filesize"];
+    // } else {
+    //   entity.quality = qualitys[2];
+    //   entity.hash = map["hash"];
+    //   entity.qualityFileSize = map["filesize"];
+    // }
+    entity.quality = MusicSupportQualitys.kg[0];
+    entity.hash = map["hash"];
+    entity.qualityFileSize = map["filesize"];
     return entity;
   }
 
@@ -227,7 +231,34 @@ class KGMusicServiceImpl extends BaseMusicService {
 
   @override
   List<BaseParseMusicPlayUrl> getParseRouters() {
-    return [_AlphaMusicParse()];
+    return [_BetaMusicParse(), _AlphaMusicParse()];
+  }
+}
+
+///解析服务类
+///
+///
+///
+///END
+class _BetaMusicParse extends BaseParseMusicPlayUrl {
+  @override
+  PlayUrlParseRoutesEnum getParseRoute() {
+    return PlayUrlParseRoutesEnum.BETA;
+  }
+
+  @override
+  Future<String> parsePlayUrl(MusicEntity entity) async {
+    Map result = await util.HttpUtil.get(
+        "https://wwwapi.kugou.com/yy/index.php?r=play/getdata&hash=${entity.hash}&mid=68aa6f0242d4192a2a9e2b91e44c226d&album_id=${entity.albumId}");
+    if (result["err_code"] != 0) {
+      return Future.error("解析失败");
+    }
+    String playUrl = result["data"]["play_url"];
+    if (playUrl.isEmpty) {
+      return Future.error("解析失败");
+    }
+    entity.playUrl = playUrl;
+    return entity.playUrl!;
   }
 }
 

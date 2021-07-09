@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-24 14:33:31
- * @LastEditTime: 2021-07-08 00:16:18
+ * @LastEditTime: 2021-07-09 15:43:33
  */
 import 'dart:convert';
 
@@ -110,17 +110,19 @@ class TxMusicServiceImpl extends BaseMusicService {
   MusicEntity setQuality(MusicEntity entity, Map map) {
     Map file = map["file"];
     //默认最高品质
-    var qualitys = MusicSupportQualitys.tx.reversed.toList();
-    if (file["size_flac"] != 0) {
-      entity.quality = qualitys[0];
-      entity.qualityFileSize = file["size_flac"];
-    } else if (file["size_320mp3"] != 0) {
-      entity.quality = qualitys[1];
-      entity.qualityFileSize = file["size_320mp3"];
-    } else if (file["size_128mp3"] != 0) {
-      entity.quality = qualitys[2];
-      entity.qualityFileSize = file["size_128mp3"];
-    }
+    // var qualitys = MusicSupportQualitys.tx.reversed.toList();
+    // if (file["size_flac"] != 0) {
+    //   entity.quality = qualitys[0];
+    //   entity.qualityFileSize = file["size_flac"];
+    // } else if (file["size_320mp3"] != 0) {
+    //   entity.quality = qualitys[1];
+    //   entity.qualityFileSize = file["size_320mp3"];
+    // } else if (file["size_128mp3"] != 0) {
+    //   entity.quality = qualitys[2];
+    //   entity.qualityFileSize = file["size_128mp3"];
+    // }
+    entity.quality = MusicSupportQualitys.tx[0];
+    entity.qualityFileSize = file["size_128mp3"];
     return entity;
   }
 

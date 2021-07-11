@@ -2,24 +2,27 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:32:44
- * @LastEditTime: 2021-07-11 19:35:20
+ * @LastEditTime: 2021-07-11 22:25:35
  */
 
 import 'package:sqflite/sqflite.dart';
-import 'package:xy_music_mobile/config/database_config.dart';
+import 'package:xy_music_mobile/util/orm/orm.dart';
 import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 import 'package:xy_music_mobile/util/orm/orm_query_wapper.dart';
 import 'package:xy_music_mobile/util/orm/orm_update_wapper.dart';
 
 ///ORM-DAO 提供者父类对象
 abstract class OrmBaseDao<T extends OrmBaseModel> {
+  ///获取表名称
   String getTableName();
 
+  ///创建表的语句
   String getTableCreateSql();
 
   ///类型转换
-  T parse(Map<String, dynamic> map);
+  T modelCastFromMap(Map<String, dynamic> map);
 
+  ///数据库版本升级触发
   void upgrade(Database db, int oldVersion, int newVersion);
 
   ///获取数据库对象
@@ -28,15 +31,15 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
   }
 
   prepare() async {
-    var isTableExist = await SqlHelper.isTableExits(getTableName());
-    Database database = await SqlHelper.getCurrentDatabase();
+    var isTableExist = await OrmHelper.isTableExits(getTableName());
+    Database database = await OrmHelper.getCurrentDatabase();
     if (!isTableExist) {
       await database.execute(getTableCreateSql());
     }
     //判断是否需要更新
-    if (SqlHelper.oldVersion != null && SqlHelper.newVersion != null) {
-      if (SqlHelper.oldVersion!.compareTo(SqlHelper.newVersion!) > 0) {
-        upgrade(database, SqlHelper.oldVersion!, SqlHelper.newVersion!);
+    if (OrmHelper.oldVersion != null && OrmHelper.newVersion != null) {
+      if (OrmHelper.oldVersion!.compareTo(OrmHelper.newVersion!) > 0) {
+        upgrade(database, OrmHelper.oldVersion!, OrmHelper.newVersion!);
       }
     }
     return database;
@@ -67,7 +70,7 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     var list =
         await database.query(getTableName(), where: "_id = ?", whereArgs: [id]);
     if (list.isNotEmpty) {
-      return parse(list[0]);
+      return modelCastFromMap(list[0]);
     }
     return null;
   }
@@ -77,7 +80,7 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     Database database = await getDataBase();
     var list = await database.query(getTableName(),
         where: where, whereArgs: whereArgs);
-    return list.map((e) => parse(e)).toList();
+    return list.map((e) => modelCastFromMap(e)).toList();
   }
 
   ///分页查询 current = 1
@@ -92,7 +95,7 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
             whereArgs: whereArgs,
             limit: size,
             offset: current - 1))
-        .map((e) => parse(e))
+        .map((e) => modelCastFromMap(e))
         .toList();
   }
 
@@ -104,7 +107,7 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     if (res.isEmpty) {
       return null;
     }
-    return parse(res[0]);
+    return modelCastFromMap(res[0]);
   }
 
   ///根据条件构造器查询一组数据
@@ -112,7 +115,7 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     var sql = wapper.toQuerySql();
     Database database = await getDataBase();
     return (await database.rawQuery("SELECT * FROM ${getTableName()} $sql"))
-        .map((e) => parse(e))
+        .map((e) => modelCastFromMap(e))
         .toList();
   }
 

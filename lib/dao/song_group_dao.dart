@@ -32,7 +32,7 @@ class SongGrupDao extends OrmBaseDao<SongGroup> {
   void upgrade(Database db, int oldVersion, int newVersion) {}
 
   @override
-  SongGroup parse(Map<String, dynamic> map) {
+  SongGroup modelCastFromMap(Map<String, dynamic> map) {
     return SongGroup.fromMap(map);
   }
 }
@@ -60,7 +60,7 @@ class SongGrupLinkDao extends OrmBaseDao<SongGoupLink> {
   void upgrade(Database db, int oldVersion, int newVersion) {}
 
   @override
-  SongGoupLink parse(Map<String, dynamic> map) {
+  SongGoupLink modelCastFromMap(Map<String, dynamic> map) {
     return SongGoupLink.fromMap(map);
   }
 }

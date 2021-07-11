@@ -44,7 +44,7 @@ class SongDao extends OrmBaseDao<MusicEntity> {
   void upgrade(Database db, int oldVersion, int newVersion) {}
 
   @override
-  MusicEntity parse(Map<String, dynamic> map) {
+  MusicEntity modelCastFromMap(Map<String, dynamic> map) {
     return MusicEntity.fromMap(map);
   }
 }

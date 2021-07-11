@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-06-16 22:42:59
+ * @LastEditTime: 2021-07-11 17:54:46
  */
 import 'dart:convert';
 import 'dart:io';
@@ -72,7 +72,7 @@ class HttpUtil {
           ToastUtil.show(msg: "失败: 无网络连接", length: Toast.LENGTH_LONG);
         }
         _log.e("DioError请求错误Resp内容: ${e.response?.data}");
-        handler.next(e);
+        handler.reject(e);
       },
     ));
 

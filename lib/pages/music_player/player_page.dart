@@ -2,21 +2,18 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:07:33
- * @LastEditTime: 2021-07-06 21:31:20
+ * @LastEditTime: 2021-07-11 17:36:48
  */
 import 'dart:async';
 import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/common/event/player/player_event.dart';
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
-import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/audio_service_task.dart';
@@ -66,10 +63,16 @@ class _PlayerPageState extends State<PlayerPage>
   StreamSubscription<PlayerChangeEvent>? _streamPlayerStateChange;
   StreamSubscription<PlayListChangeEvent>? _streamPlayerListChange;
   StreamSubscription<PlayModeChangeEvent>? _streamPlayModeChange;
+  StreamSubscription<PlaybackState>? _streamPlaybackStateListener;
 
+  ///歌词加载的placeholder
   String _placeholder = "";
 
+  ///是否在拖拽进度条
   bool _seekDrag = false;
+
+  ///是否在缓冲中
+  bool _buffing = false;
 
   @override
   void initState() {
@@ -92,7 +95,25 @@ class _PlayerPageState extends State<PlayerPage>
       _listenerMusicChange();
       _listenerPlayListChange();
       _listenerPlayModeChange();
+      _listenerPlaybackStateChange();
     }
+  }
+
+  ///音乐缓冲状态改变事件
+  void _listenerPlaybackStateChange() {
+    _streamPlaybackStateListener =
+        AudioService.playbackStateStream.listen((event) {
+      if (event.processingState == AudioProcessingState.buffering) {
+        setState(() {
+          _buffing = true;
+        });
+      } else {
+        //NONE 加载完成
+        setState(() {
+          _buffing = false;
+        });
+      }
+    });
   }
 
   ///初始化播放控制器状态
@@ -268,6 +289,7 @@ class _PlayerPageState extends State<PlayerPage>
     _streamPlayerStateChange?.cancel();
     _streamPlayerListChange?.cancel();
     _streamPlayModeChange?.cancel();
+    _streamPlaybackStateListener?.cancel();
     super.dispose();
   }
 
@@ -332,7 +354,7 @@ class _PlayerPageState extends State<PlayerPage>
         Align(
             alignment: Alignment.center,
             child: Text(
-              _music?.songName ?? "暂未播放",
+              _buffing ? "音乐缓存中..." : _music?.songName ?? "暂未播放",
               style: TextStyle(
                   color: primaryColor,
                   fontSize: 17,
@@ -498,10 +520,14 @@ class _PlayerPageState extends State<PlayerPage>
   }
 
   ///下一首
-  void _playNext() {}
+  void _playNext() async {
+    await AudioService.skipToNext();
+  }
 
   ///上一首
-  void _playPreviou() {}
+  void _playPreviou() async {
+    await AudioService.skipToPrevious();
+  }
 
   /// 开始下一行动画
   void startLineAnim(int curLine) {

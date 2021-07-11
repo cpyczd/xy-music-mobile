@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:33:42
- * @LastEditTime: 2021-07-04 21:24:57
+ * @LastEditTime: 2021-07-11 17:27:12
  */
 import 'dart:async';
 
@@ -97,7 +97,7 @@ class SingleDataLine<T> {
     if (currentData == null) {
       currentData = SinglePackageData(params: params);
     } else {
-      currentData?.data = params;
+      currentData?.params = params;
     }
     inner.add(currentData!);
   }

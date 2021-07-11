@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-10 00:15:38
+ * @LastEditTime: 2021-07-11 18:19:15
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -121,6 +121,7 @@ class PlayerService {
 
   ///加载音乐
   Future<bool> loadMusicForUrl(String url) async {
+    logger.i("LoadPlay===>>> Url:$url");
     _createPlayerInstance();
     AudioServiceBackground.setState(
         processingState: AudioProcessingState.buffering);
@@ -133,6 +134,7 @@ class PlayerService {
           processingState: AudioProcessingState.ready);
       initListener();
     } else {
+      logger.e("Service==> loadMusicForUrl(String url) 方法调用State失败");
       _status = PlayStatus.error;
       AudioServiceBackground.setState(
           processingState: AudioProcessingState.error);
@@ -148,7 +150,16 @@ class PlayerService {
     //发送Laoding事件
     AudioServiceBackground.sendCustomEvent(PlayerChangeEvent(_status, entity));
     if (entity.playUrl != null && entity.playUrl!.isNotEmpty) {
-      return await loadMusicForUrl(entity.playUrl!);
+      //检查此Url是否失效
+      try {
+        var response = await HttpUtil.getBaseHttp().get(entity.playUrl!);
+        if (response.statusCode == 200) {
+          return await loadMusicForUrl(entity.playUrl!);
+        }
+      } catch (e) {
+        logger.w("检查播放Url是否生效出现异常:", e);
+      }
+      //意味着播放地址已经失效不做任何操作直接会走下面的代码逻辑部分
     }
     var service =
         musicServiceProviderMange.getSupportProvider(entity.source).first;
@@ -187,6 +198,7 @@ class PlayerService {
       if (state) {
         _status = PlayStatus.playing;
       } else {
+        logger.e("Service==> play() 方法调用State失败");
         _status = PlayStatus.error;
       }
       return state;
@@ -310,13 +322,15 @@ class PlayerService {
           AudioServiceBackground.setState(
               processingState: AudioProcessingState.completed);
           //Check检查播放完成了但是和实际时长差距很大就可能是试听音乐
-          if (music != null) {
-            int min = 30;
-            int diffce = (music.duration.inSeconds - this.position.inSeconds);
-            if (diffce > min) {
-              ToastUtil.show(msg: "此音乐可能是十几秒的试听音乐", length: Toast.LENGTH_LONG);
-            }
-          }
+          // if (music != null && music.duration.inSeconds > 0) {
+          //   int min = 30;
+          //   int diffce = (music.duration.inSeconds - this.position.inSeconds);
+          //   if (diffce > min) {
+          //     ToastUtil.show(
+          //         msg: "[${music.songName}] 可能是十几秒的试听音乐",
+          //         length: Toast.LENGTH_LONG);
+          //   }
+          // }
           break;
       }
       if (music != null) {

@@ -2,13 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 15:20:15
- * @LastEditTime: 2021-06-01 16:01:05
+ * @LastEditTime: 2021-07-11 18:33:48
  */
 import 'package:sqflite/sqflite.dart';
-import 'package:xy_music_mobile/config/database_config.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
+import 'package:xy_music_mobile/util/orm/orm_base_dao.dart';
 
-class SongDao extends SqlBaseProvider<MusicEntity> {
+class SongDao extends OrmBaseDao<MusicEntity> {
   @override
   String getTableCreateSql() {
     return '''

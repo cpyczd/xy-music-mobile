@@ -1,20 +1,20 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:xy_music_mobile/model/base_entity.dart';
+import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 
 /*
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-07-04 20:50:59
+ * @LastEditTime: 2021-07-11 13:17:35
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 ///音乐模块实体类
-class MusicEntity extends BaseEntity {
+class MusicEntity extends OrmBaseModel {
   String? uuid;
 
   ///歌曲ID
@@ -39,7 +39,7 @@ class MusicEntity extends BaseEntity {
   MusicSourceConstant source;
 
   ///时长
-  final Duration duration;
+  Duration duration;
 
   ///时长字符串
   String? durationStr;

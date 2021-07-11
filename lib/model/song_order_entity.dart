@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'base_entity.dart';
+import '../util/orm/orm_base_model.dart';
 
 /*
  * @Description: 
@@ -9,7 +9,7 @@ import 'base_entity.dart';
  * @LastEditTime: 2021-06-01 13:54:01
  */
 ///歌单数据
-class SongGroup extends BaseEntity {
+class SongGroup extends OrmBaseModel {
   final String groupName;
 
   String? coverImage;
@@ -98,7 +98,7 @@ class SongGroup extends BaseEntity {
 }
 
 ///歌单分组和歌曲关联表
-class SongGoupLink extends BaseEntity {
+class SongGoupLink extends OrmBaseModel {
   final int groupId;
 
   final int songId;

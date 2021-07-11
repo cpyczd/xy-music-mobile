@@ -2,18 +2,19 @@
  * @Description: 服务注册发现
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:00:03
- * @LastEditTime: 2021-07-09 23:53:04
+ * @LastEditTime: 2021-07-11 13:20:35
  */
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
 import 'package:xy_music_mobile/service/music/kw_msuic_service.dart';
-import 'package:xy_music_mobile/service/music/mg_music_servce.dart';
 import 'package:xy_music_mobile/service/ranking/kg_ranking_service.dart';
 import 'package:xy_music_mobile/service/ranking/wy_ranking_service.dart';
 import 'package:xy_music_mobile/service/square/kg_square_service.dart';
 import 'package:xy_music_mobile/service/square/wy_square_service.dart';
 import 'package:xy_music_mobile/service/music/tx_music_service.dart';
 import 'package:xy_music_mobile/service/music/wy_music_service.dart';
+
+import 'music/mg_music_servce.dart';
 
 ///音乐服务
 void _registerMusicService() {

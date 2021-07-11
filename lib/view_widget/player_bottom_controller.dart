@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-06 21:24:41
+ * @LastEditTime: 2021-07-11 17:28:05
  */
 
 import 'dart:async';
@@ -23,6 +23,7 @@ import 'package:xy_music_mobile/service/audio_service_task.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 
 class PlayerBottomControllre extends StatefulWidget {
   const PlayerBottomControllre({Key? key}) : super(key: key);
@@ -42,6 +43,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
   StreamSubscription<PlayerChangeEvent>? _streamPlayerStateChange;
   StreamSubscription<PlayerPositionChangedEvent>? _streamPlayerPositionChange;
   StreamSubscription<PlayListChangeEvent>? _streamPlayerListChange;
+  StreamSubscription<PlaybackState>? _streamPlaybackStateListener;
 
   @override
   void initState() {
@@ -85,6 +87,19 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
         getLine(_playInfoKey).setData(null);
       }
     });
+
+    _streamPlaybackStateListener =
+        AudioService.playbackStateStream.listen((event) {
+      if (getLine(_playInfoKey).currentData?.data == null) {
+        return;
+      }
+      if (event.processingState == AudioProcessingState.buffering) {
+        getLine(_playInfoKey).setParams({"buffing": true});
+      } else {
+        //NONE 加载完成
+        getLine(_playInfoKey).setParams({"buffing": false});
+      }
+    });
   }
 
   @override
@@ -93,6 +108,7 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
     _streamPlayerPositionChange?.cancel();
     _streamPlayerStateChange?.cancel();
     _streamPlayerListChange?.cancel();
+    _streamPlaybackStateListener?.cancel();
     super.dispose();
   }
 
@@ -119,8 +135,10 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                         double val = 0;
                         if (media != null) {
                           var total = media.duration!.inMilliseconds;
-                          val = pack.data!.inMilliseconds.toDouble() /
-                              total.toDouble();
+                          if (total > 0) {
+                            val = pack.data!.inMilliseconds.toDouble() /
+                                total.toDouble();
+                          }
                         }
                         return CircularProgressIndicator(
                           value: val,
@@ -141,7 +159,9 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            pack.data?.songName ?? "暂未播放",
+                            pack.params?["buffing"] ?? false
+                                ? "缓存中..."
+                                : pack.data?.songName ?? "暂未播放",
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                                 color: Colors.black,
@@ -149,7 +169,9 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
                                 fontWeight: FontWeight.w400),
                           ),
                           Text(
-                            pack.data?.singer ?? "",
+                            pack.params?["buffing"] ?? false
+                                ? "稍等一下马上就好"
+                                : pack.data?.singer ?? "",
                             overflow: TextOverflow.ellipsis,
                             style:
                                 TextStyle(color: Colors.black54, fontSize: 11),
@@ -379,11 +401,28 @@ class CurrentPlayListUtil {
                                 SizedBox.fromSize(
                                   size: Size.fromHeight(5),
                                 ),
-                                Text(
-                                  music.singer ?? "",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: 12, color: Colors.black54),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 5),
+                                      child: Text(
+                                        "[ ${music.source.desc} ]",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 10, color: Colors.green),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        music.singer ?? "",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black54),
+                                      ),
+                                    )
+                                  ],
                                 )
                               ],
                             ),

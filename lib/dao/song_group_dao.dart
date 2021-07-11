@@ -2,14 +2,14 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 11:01:44
- * @LastEditTime: 2021-06-01 15:56:26
+ * @LastEditTime: 2021-07-11 19:32:57
  */
 
 import 'package:sqflite_common/sqlite_api.dart';
-import 'package:xy_music_mobile/config/database_config.dart';
-import 'package:xy_music_mobile/model/song_group.dart';
+import 'package:xy_music_mobile/model/song_order_entity.dart';
+import 'package:xy_music_mobile/util/orm/orm_base_dao.dart';
 
-class SongGrupDao extends SqlBaseProvider<SongGroup> {
+class SongGrupDao extends OrmBaseDao<SongGroup> {
   @override
   String getTableCreateSql() {
     return '''
@@ -38,7 +38,7 @@ class SongGrupDao extends SqlBaseProvider<SongGroup> {
 }
 
 ///分组和歌曲关联表
-class SongGrupLinkDao extends SqlBaseProvider<SongGoupLink> {
+class SongGrupLinkDao extends OrmBaseDao<SongGoupLink> {
   @override
   String getTableCreateSql() {
     return '''

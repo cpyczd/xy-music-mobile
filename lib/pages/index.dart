@@ -13,7 +13,7 @@ import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
-import 'package:xy_music_mobile/service/audio_service_task.dart';
+import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/player_bottom_controller.dart';

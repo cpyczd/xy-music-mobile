@@ -11,7 +11,7 @@ import 'package:hive/hive.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/store_config.dart';
 import 'package:xy_music_mobile/model/play_list_model.dart';
-import 'package:xy_music_mobile/service/audio_service_task.dart';
+import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 
 class SettingPage extends StatefulWidget {
   SettingPage({Key? key}) : super(key: key);

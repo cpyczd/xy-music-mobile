@@ -17,7 +17,7 @@ import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/store_config.dart';
 import 'package:xy_music_mobile/model/lyric.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
-import 'package:xy_music_mobile/service/player_service.dart';
+import 'package:xy_music_mobile/service/player/player_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 class AudioPlayerBackageTask extends BackgroundAudioTask {

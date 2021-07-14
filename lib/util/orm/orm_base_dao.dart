@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:32:44
- * @LastEditTime: 2021-07-13 18:10:42
+ * @LastEditTime: 2021-07-14 17:53:48
  */
 
 import 'package:sqflite/sqflite.dart';
@@ -11,11 +11,7 @@ import 'package:xy_music_mobile/util/orm/orm.dart';
 import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 import 'package:xy_music_mobile/util/orm/orm_query_wapper.dart';
 import 'package:xy_music_mobile/util/orm/orm_update_wapper.dart';
-
 import 'orm_exception.dart';
-
-typedef Future<void> ExecTransaction<T extends OrmBaseDao>(
-    Transaction tx, T ormBaseDao);
 
 ///ORM-DAO 提供者父类对象
 abstract class OrmBaseDao<T extends OrmBaseModel> {

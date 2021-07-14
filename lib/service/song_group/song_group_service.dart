@@ -2,11 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-12 10:26:31
- * @LastEditTime: 2021-07-13 18:01:59
+ * @LastEditTime: 2021-07-14 17:44:22
  */
 
 import 'package:xy_music_mobile/dao/song_dao.dart';
 import 'package:xy_music_mobile/dao/song_group_dao.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_order_entity.dart';
 
 class SongGroupService {
@@ -16,7 +17,36 @@ class SongGroupService {
 
   ///创建一个分组
   Future<SongGroup> createGroup(SongGroup group) {
+    group.id = null;
     return _songGrupDao.insert(group);
+  }
+
+  ///更新一个分组
+  Future<bool> updateGroup(SongGroup update) async {
+    SongGroup? group = await _songGrupDao.getOne(update.id!);
+    if (group == null) {
+      return false;
+    }
+    var row = await _songGrupDao.updateById(update);
+    return row > 0;
+  }
+
+  ///更新一个音乐数据
+  Future<bool> updateMusic(MusicEntity music) async {
+    MusicEntity? entity = await _songDao.getOne(music.id!);
+    if (entity == null) {
+      return false;
+    }
+    var row = await _songDao.updateById(music);
+    return row > 0;
+  }
+
+  ///添加一首音乐到分组里
+  Future<void> addMusic(int groupId, MusicEntity entity) async {
+    entity.id = null;
+    MusicEntity saveEntity = await _songDao.insert(entity);
+    SongGoupLink link = SongGoupLink(groupId: groupId, songId: saveEntity.id!);
+    await _songGrupLinkDao.insert(link);
   }
 
   ///删除一个音乐

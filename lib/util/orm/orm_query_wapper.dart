@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:34:26
- * @LastEditTime: 2021-07-11 19:38:43
+ * @LastEditTime: 2021-07-14 17:52:58
  */
 import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 
@@ -15,10 +15,6 @@ class QueryWapper<T extends OrmBaseModel> {
 
   QueryWapper() {
     _where = List.empty(growable: true);
-  }
-
-  factory QueryWapper.newInstance() {
-    return QueryWapper<T>();
   }
 
   Object castWhereValue(Object val) {

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:34:26
- * @LastEditTime: 2021-07-14 17:52:58
+ * @LastEditTime: 2021-07-15 14:37:54
  */
 import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 
@@ -85,6 +85,20 @@ class QueryWapper<T extends OrmBaseModel> {
     if (condition) {
       _where.add("$colum LIKE '%$value%'");
     }
+    return this;
+  }
+
+  ///isNull
+  QueryWapper<T> eqIn(String colum, List<Object> values) {
+    var join = values.join(",");
+    _where.add("$colum IN ($join)");
+    return this;
+  }
+
+  ///isNull
+  QueryWapper<T> notIn(String colum, List<Object> values) {
+    var join = values.join(",");
+    _where.add("$colum NOT IN ($join)");
     return this;
   }
 

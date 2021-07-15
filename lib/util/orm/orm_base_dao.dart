@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:32:44
- * @LastEditTime: 2021-07-14 17:53:48
+ * @LastEditTime: 2021-07-15 15:05:04
  */
 
 import 'package:sqflite/sqflite.dart';
@@ -23,6 +23,11 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
   ///创建表的语句
   String getTableCreateSql();
 
+  ///初始化执行的SQL
+  List<String>? initExecSql() {
+    return null;
+  }
+
   ///类型转换
   T modelCastFromMap(Map<String, dynamic> map);
 
@@ -40,6 +45,12 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     Database database = await OrmHelper.getCurrentDatabase();
     if (!isTableExist) {
       await database.execute(getTableCreateSql());
+      var initSqls = initExecSql();
+      if (initSqls != null && initSqls.isNotEmpty) {
+        for (var sql in initSqls) {
+          await database.execute(sql);
+        }
+      }
     }
     //判断是否需要更新
     if (OrmHelper.oldVersion != null && OrmHelper.newVersion != null) {
@@ -119,8 +130,20 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     return modelCastFromMap(res[0]);
   }
 
+  ///查询数量
+  Future<int> count({QueryWapper<T>? wapper}) async {
+    var sql = wapper?.toQuerySql() ?? "";
+    DatabaseExecutor database = await getDataBase();
+    var res = await database
+        .rawQuery("select count(1) as count from ${getTableName()} $sql");
+    if (res.isEmpty) {
+      return 0;
+    }
+    return res[0]["count"] as int;
+  }
+
   ///根据条件构造器查询一组数据
-  Future<List<T>> getListByQueryWapper(QueryWapper<T> wapper) async {
+  Future<List<T>> listByQueryWapper(QueryWapper<T> wapper) async {
     var sql = wapper.toQuerySql();
     DatabaseExecutor database = await getDataBase();
     return (await database.rawQuery("SELECT * FROM ${getTableName()} $sql"))

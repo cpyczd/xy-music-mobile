@@ -2,18 +2,55 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-12 10:26:31
- * @LastEditTime: 2021-07-14 17:44:22
+ * @LastEditTime: 2021-07-15 15:53:33
  */
 
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/dao/song_dao.dart';
 import 'package:xy_music_mobile/dao/song_group_dao.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_order_entity.dart';
+import 'package:xy_music_mobile/util/orm/orm_query_wapper.dart';
 
 class SongGroupService {
   static final SongDao _songDao = SongDao();
   static final SongGrupDao _songGrupDao = SongGrupDao();
   static final SongGrupLinkDao _songGrupLinkDao = SongGrupLinkDao();
+
+  ///返回系统默认自带的歌单Id编号
+  static int getLikeId() {
+    return SongGrupDao.LIKE_ID;
+  }
+
+  ///查询所有的分组数据
+  Future<List<SongGroup>> findAllGroup() async {
+    var list = await _songGrupDao.list();
+    for (var g in list) {
+      int count = await _songGrupLinkDao.count(
+          wapper: QueryWapper<SongGoupLink>().eq("groupId", g.id!));
+      g.musicCount = count;
+    }
+    return list;
+  }
+
+  Future<SongGroup?> findGroupById(int id) async {
+    var group = await _songGrupDao.getOne(id);
+    if (group == null) {
+      return null;
+    }
+    int count = await _songGrupLinkDao.count(
+        wapper: QueryWapper<SongGoupLink>().eq("groupId", group.id!));
+    group.musicCount = count;
+    return group;
+  }
+
+  ///查询所有的音乐列表
+  Future<List<MusicEntity>> findAllMusicByGroupId(int groupId) async {
+    var linkList = await _songGrupLinkDao
+        .listByQueryWapper(QueryWapper<SongGoupLink>().eq("groupId", groupId));
+    return _songDao.listByQueryWapper(QueryWapper<MusicEntity>()
+        .eqIn("_id", linkList.map((e) => e.songId).toList()));
+  }
 
   ///创建一个分组
   Future<SongGroup> createGroup(SongGroup group) {
@@ -65,6 +102,10 @@ class SongGroupService {
 
   ///删除一个分组根据Id
   Future<bool> deleteGroupById(int id) async {
+    if (id == SongGrupDao.LIKE_ID) {
+      log.w("系统初始化【我的喜欢音乐】歌单无法删除");
+      return false;
+    }
     int row = await _songGrupDao.deleteById(id);
     if (row <= 0) {
       return false;

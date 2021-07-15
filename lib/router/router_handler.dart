@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-06-29 21:00:50
+ * @LastEditTime: 2021-07-15 15:57:04
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -62,5 +62,7 @@ Handler squareTagSelectedPage = Handler(
 ///自建音乐歌单详情页
 Handler myMusicInfoPage = Handler(
     handlerFunc: (BuildContext? context, Map<String, List<String>> parameters) {
-  return MyMusicInfoPage();
+  return MyMusicInfoPage(
+    groupId: context!.settings!.arguments as int,
+  );
 });

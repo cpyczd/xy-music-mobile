@@ -160,7 +160,7 @@ class DialogUtil {
 
   //显示一个输入框
   static void showInputDialog(BuildContext context,
-      {Function? call,
+      {Function(String value)? call,
       String title = "提示",
       String? placeholder,
       String? initVal}) {

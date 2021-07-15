@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 11:01:44
- * @LastEditTime: 2021-07-11 19:32:57
+ * @LastEditTime: 2021-07-15 14:51:49
  */
 
 import 'package:sqflite_common/sqlite_api.dart';
@@ -10,10 +10,12 @@ import 'package:xy_music_mobile/model/song_order_entity.dart';
 import 'package:xy_music_mobile/util/orm/orm_base_dao.dart';
 
 class SongGrupDao extends OrmBaseDao<SongGroup> {
+  static const int LIKE_ID = 1;
+
   @override
   String getTableCreateSql() {
     return '''
-    create table if not exists ${getTableName()} (
+    CREATE TABLE IF NOT EXISTS ${getTableName()} (
       _id INTEGER PRIMARY KEY autoincrement,-- id
       groupName varchar(50) NOT NULL , -- 分组名称
       coverImage text default NULL , -- 封面图片
@@ -21,6 +23,15 @@ class SongGrupDao extends OrmBaseDao<SongGroup> {
       updateTime INTEGER default NULL -- 更新时间
     );
    ''';
+  }
+
+  @override
+  List<String>? initExecSql() {
+    return [
+      '''
+      INSERT IN TO (_id,groupName,createTime) VALUES($LIKE_ID,'我喜欢的音乐',${DateTime.now().millisecondsSinceEpoch})
+      '''
+    ];
   }
 
   @override

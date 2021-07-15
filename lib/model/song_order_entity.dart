@@ -6,17 +6,19 @@ import '../util/orm/orm_base_model.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 10:43:28
- * @LastEditTime: 2021-06-01 13:54:01
+ * @LastEditTime: 2021-07-15 15:01:21
  */
 ///歌单数据
 class SongGroup extends OrmBaseModel {
-  final String groupName;
+  String groupName;
 
   String? coverImage;
 
   DateTime? createTime;
 
   DateTime? updateTime;
+
+  int musicCount = 0;
 
   SongGroup({
     int? id,

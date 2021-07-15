@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 15:20:15
- * @LastEditTime: 2021-07-11 18:33:48
+ * @LastEditTime: 2021-07-15 23:50:58
  */
 import 'package:sqflite/sqflite.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -13,7 +13,9 @@ class SongDao extends OrmBaseDao<MusicEntity> {
   String getTableCreateSql() {
     return '''
     create table if not exists ${getTableName()} (
-      _id INTEGER PRIMARY KEY autoincrement,   -- ID
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,   -- ID
+      md5 varchar(100) default NULL , -- md5
+      uuid varchar(100) default NULL , -- uuid
       songmId varchar(100) default NULL , -- 歌曲ID
       albumId varchar(100) default NULL , -- 专辑ID
       albumName varchar(100) default NULL , -- 专辑名称

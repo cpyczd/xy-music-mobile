@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-12 10:26:31
- * @LastEditTime: 2021-07-15 15:53:33
+ * @LastEditTime: 2021-07-15 23:48:12
  */
 
 import 'package:xy_music_mobile/config/logger_config.dart';
@@ -49,7 +49,7 @@ class SongGroupService {
     var linkList = await _songGrupLinkDao
         .listByQueryWapper(QueryWapper<SongGoupLink>().eq("groupId", groupId));
     return _songDao.listByQueryWapper(QueryWapper<MusicEntity>()
-        .eqIn("_id", linkList.map((e) => e.songId).toList()));
+        .eqIn("id", linkList.map((e) => e.songId).toList()));
   }
 
   ///创建一个分组
@@ -82,6 +82,7 @@ class SongGroupService {
   Future<void> addMusic(int groupId, MusicEntity entity) async {
     entity.id = null;
     MusicEntity saveEntity = await _songDao.insert(entity);
+    log.i("保存的音乐:===>>>> $saveEntity");
     SongGoupLink link = SongGoupLink(groupId: groupId, songId: saveEntity.id!);
     await _songGrupLinkDao.insert(link);
   }
@@ -110,12 +111,55 @@ class SongGroupService {
     if (row <= 0) {
       return false;
     }
-    //删除分组关联Link表和音乐主表
-    var database = await _songGrupLinkDao.getDataBase();
-    row = await database.delete(
-        "delete from sl,s from ${_songGrupLinkDao.getTableName()} as sl" +
-            " left join ${_songDao.getTableName()} as s on sl.songId = s._id" +
-            " where sl.groupId = $id");
+    var links = await _songGrupLinkDao
+        .listByQueryWapper(QueryWapper<SongGoupLink>().eq("groupId", id));
+    for (var element in links) {
+      await _songDao.deleteById(element.songId);
+    }
+    row = await _songGrupLinkDao
+        .deleteByQueryWapper(QueryWapper<SongGoupLink>().eq("groupId", id));
     return row > 0;
+  }
+
+  ///判断此音乐是否存在我的喜欢列表中
+  Future<bool> existMusicLike(String md5) async {
+    var database = await _songDao.getDataBase();
+    var res = await database.rawQuery('''
+      SELECT COUNT(S.id) AS COUNT FROM ${_songGrupLinkDao.getTableName()} AS SL
+      LEFT JOIN ${_songDao.getTableName()} AS S
+      ON S.id = SL.songId
+      WHERE SL.groupId = ${getLikeId()}
+      AND S.md5 = '$md5'
+      ''');
+    if (res.isEmpty) {
+      return false;
+    }
+    return (res[0]["COUNT"] as int) > 0;
+  }
+
+  ///删除一个音乐数据
+  Future<bool> deleteLikeMusicByMD5(String md5) async {
+    var database = await _songDao.getDataBase();
+    var res = await database.rawQuery('''
+      select s.id from ${_songGrupLinkDao.getTableName()} as sl
+      left join ${_songDao.getTableName()} as s on sl.songId = s.id
+      where sl.groupId = ${getLikeId()} and s.md5 = '$md5';
+      ''');
+    int row = -1;
+    if (res.isNotEmpty) {
+      int musicId = int.parse(res[0]["id"]!.toString());
+      row = await _songGrupLinkDao.deleteByQueryWapper(
+          QueryWapper<SongGoupLink>()
+              .eq("groupId", getLikeId())
+              .eq("songId", musicId));
+      if (row <= 0) {
+        return false;
+      }
+      row = await _songDao.deleteById(musicId);
+      if (row <= 0) {
+        return false;
+      }
+    }
+    return true;
   }
 }

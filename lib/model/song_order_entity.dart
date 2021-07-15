@@ -6,7 +6,7 @@ import '../util/orm/orm_base_model.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 10:43:28
- * @LastEditTime: 2021-07-15 15:01:21
+ * @LastEditTime: 2021-07-15 21:52:52
  */
 ///歌单数据
 class SongGroup extends OrmBaseModel {
@@ -62,8 +62,12 @@ class SongGroup extends OrmBaseModel {
       id: map['id'],
       groupName: map['groupName'],
       coverImage: map['coverImage'],
-      createTime: DateTime.fromMillisecondsSinceEpoch(map['createTime']),
-      updateTime: DateTime.fromMillisecondsSinceEpoch(map['updateTime']),
+      createTime: map['createTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['createTime'])
+          : null,
+      updateTime: map['updateTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['updateTime'])
+          : null,
     );
   }
 
@@ -143,7 +147,9 @@ class SongGoupLink extends OrmBaseModel {
       id: map['id'],
       groupId: map['groupId'],
       songId: map['songId'],
-      createTime: DateTime.fromMillisecondsSinceEpoch(map['createTime']),
+      createTime: map['createTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['createTime'])
+          : null,
     );
   }
 

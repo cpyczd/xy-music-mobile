@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-07-07 23:04:01
+ * @LastEditTime: 2021-07-15 22:43:33
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -416,8 +416,8 @@ class _SearchPageState extends State<SearchPage> with MultDataLine {
                   if (replaceSource != _source) {
                     _resetSearch();
                     _source = replaceSource!;
+                    _onSearch();
                   }
-                  _onSearch();
                 },
                 isScrollable: true,
                 tabs: musicSourceSupport.map((e) => Text(e!.desc)).toList(),
@@ -592,7 +592,7 @@ class _SearchPageState extends State<SearchPage> with MultDataLine {
           .searchMusic(_searchKeyWord, size: _size, current: _current)
           .then((value) {
         setState(() {
-          if (value.isNotEmpty) {
+          if (value.isNotEmpty && _source == value[0].source) {
             _searchResultList.addAll(value);
           }
         });

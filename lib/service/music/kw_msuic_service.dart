@@ -78,6 +78,7 @@ class KwMusicServiceImpl extends BaseMusicService {
         .map((e) {
       var songId = (e["MUSICRID"] as String).replaceAll('MUSIC_', '');
       return MusicEntity(
+          md5: signMD5(e["SONGNAME"] + songId),
           songmId: songId,
           albumId: e["ALBUMID"],
           albumName: e["ALBUM"],

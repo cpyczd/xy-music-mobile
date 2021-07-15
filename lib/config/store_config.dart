@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:47:34
- * @LastEditTime: 2021-07-05 16:09:16
+ * @LastEditTime: 2021-07-15 21:47:52
  */
 
 import 'package:hive/hive.dart';
@@ -30,8 +30,8 @@ class Store {
 
   ///注册适配器
   static void _registerAdapter() {
-    Hive.registerAdapter(HiveStoreModelAdapter());
-    Hive.registerAdapter(PlayListModelAdapter());
+    Hive.registerAdapter(HiveStoreModelAdapter(), override: true);
+    Hive.registerAdapter(PlayListModelAdapter(), override: true);
   }
 
   ///打开一个盒子

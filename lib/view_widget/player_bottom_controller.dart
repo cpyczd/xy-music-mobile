@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-11 17:28:05
+ * @LastEditTime: 2021-07-15 23:58:03
  */
 
 import 'dart:async';
@@ -20,6 +20,8 @@ import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/service/player/audio_service_task.dart';
+import 'package:xy_music_mobile/service/song_group/song_group_service.dart';
+import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/icon_util.dart';
 import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
@@ -241,6 +243,8 @@ class _PlayerBottomControllreState extends State<PlayerBottomControllre>
 
 ///显示当前播放列表工具类
 class CurrentPlayListUtil {
+  static final SongGroupService _groupService = SongGroupService();
+
   static final modeStyles = <Map<String, dynamic>>[
     {"mode": PlayMode.order, "icon": iconFont(hex16: 0xe6af)},
     {"mode": PlayMode.loop, "icon": iconFont(hex16: 0xe6ae)},
@@ -350,6 +354,7 @@ class CurrentPlayListUtil {
             },
             itemBuilder: (context, index) {
               MusicEntity music = list[index];
+
               return ReorderableDelayedDragStartListener(
                 index: index,
                 key: ValueKey(music.uuid),
@@ -427,10 +432,24 @@ class CurrentPlayListUtil {
                               ],
                             ),
                           ),
-                          IconButton(
-                              padding: EdgeInsets.zero,
-                              onPressed: () {},
-                              icon: iconFont(hex16: 0xe603, size: 20)),
+                          FutureBuilder<bool>(
+                            builder: (context, asp) {
+                              return IconButton(
+                                  color: !asp.requireData
+                                      ? Colors.black45
+                                      : Colors.redAccent,
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () async {
+                                    await _addOrDelMyLikeGroup(
+                                        music, asp.requireData, state);
+                                  },
+                                  icon: iconFont(
+                                      hex16: !asp.requireData ? 0xe603 : 0xe612,
+                                      size: 20));
+                            },
+                            future: _groupService.existMusicLike(music.md5),
+                            initialData: false,
+                          ),
                           IconButton(
                               padding: EdgeInsets.zero,
                               onPressed: () {
@@ -486,6 +505,21 @@ class CurrentPlayListUtil {
   ///播放到指定的位置
   static void _playTo(MusicEntity music, StateSetter setter) async {
     await AudioService.playFromMediaId(music.uuid!);
+    setter(() {});
+  }
+
+  static Future<void> _addOrDelMyLikeGroup(
+      MusicEntity entity, bool existence, StateSetter setter) async {
+    print("existence:: $existence");
+    if (existence) {
+      //存在就移除
+      await _groupService.deleteLikeMusicByMD5(entity.md5);
+      ToastUtil.show(msg: "以从我的喜欢音乐中移除");
+    } else {
+      //不存在就添加
+      await _groupService.addMusic(SongGroupService.getLikeId(), entity);
+      ToastUtil.show(msg: "以添加到我的喜欢音乐");
+    }
     setter(() {});
   }
 }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 21:01:25
- * @LastEditTime: 2021-07-15 17:41:26
+ * @LastEditTime: 2021-07-15 22:10:57
  */
 import 'dart:ui';
 
@@ -43,10 +43,11 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
       setState(() {
         _group = value;
       });
-      //读取音乐数据
-      groupService.findAllMusicByGroupId(value!.id!).then(
-          (value) => getLine<List<MusicEntity>>(_KEY_MUSIC).setData(value));
     });
+    //读取音乐数据
+    groupService
+        .findAllMusicByGroupId(widget.groupId)
+        .then((value) => getLine<List<MusicEntity>>(_KEY_MUSIC).setData(value));
 
     //设置状态栏的颜色为亮色
     //设置状态栏的颜色
@@ -120,12 +121,14 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
               ),
             ),
           ),
-          insertTopWidget: StringUtils.isNotBlank(_group?.coverImage)
-              ? [
-                  SliverFadeDelegate.vague(_group!.coverImage!,
-                      sigmaX: 60, sigmaY: 60)
-                ]
-              : null,
+          insertTopWidget: [
+            StringUtils.isNotBlank(_group?.coverImage)
+                ? SliverFadeDelegate.vague(_group!.coverImage!,
+                    sigmaX: 60, sigmaY: 60)
+                : Container(
+                    color: Colors.black45,
+                  )
+          ],
           action: [
             IconButton(
                 onPressed: () {},
@@ -158,7 +161,7 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
                       style: TextStyle(color: Colors.black, fontSize: 15),
                       children: [
                         TextSpan(
-                            text: " ${_group?.musicCount ?? 0}首",
+                            text: " ${_group?.musicCount ?? 0} 首",
                             style:
                                 TextStyle(color: Colors.black54, fontSize: 13))
                       ]),
@@ -172,7 +175,7 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
           ],
         ),
       ),
-      sliver: getLine<List<MusicEntity>>(_KEY_MUSIC)
+      sliver: getLine<List<MusicEntity>>(_KEY_MUSIC, initData: [])
           .addObserver((context, pack) => SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   var music = pack.data![index];

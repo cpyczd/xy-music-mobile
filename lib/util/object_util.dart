@@ -2,9 +2,12 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-07-04 16:49:19
+ * @LastEditTime: 2021-07-15 22:52:40
  */
 import 'package:collection/collection.dart';
+import 'dart:convert';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 
 class EnumUtil {
   ///枚举类型转string
@@ -40,4 +43,11 @@ class StringUtils {
   static bool isBlank(String? str) {
     return str == null || str.isEmpty;
   }
+}
+
+///MD5加密
+String signMD5(String src) {
+  var content = new Utf8Encoder().convert(src);
+  var digest = md5.convert(content);
+  return hex.encode(digest.bytes);
 }

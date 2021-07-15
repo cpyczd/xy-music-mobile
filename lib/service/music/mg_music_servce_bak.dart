@@ -74,6 +74,7 @@ class MgMusicServiceImplBak extends BaseMusicService {
               ? item["imgItems"][0]["img"]
               : null;
       MusicEntity entity = MusicEntity(
+          md5: "",
           songmId: item["songId"],
           albumId: albumNInfo["id"],
           albumName: albumNInfo["name"],

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:27
- * @LastEditTime: 2021-07-15 17:46:22
+ * @LastEditTime: 2021-07-15 22:37:18
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -126,7 +126,7 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
             Expanded(child: SizedBox()),
             IconButton(
                 onPressed: _clickHandleCreateGroup, icon: Icon(Icons.add)),
-            IconButton(onPressed: () {}, icon: Icon(Icons.arrow_right)),
+            // IconButton(onPressed: () {}, icon: Icon(Icons.arrow_right)),
           ],
         ),
       ),
@@ -134,7 +134,8 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
           .addObserver((context, pack) => SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   SongGroup group = pack.data![index];
-                  bool isLikeGroup = group.id! == SongGroupService.getLikeId();
+                  bool isLikeGroup =
+                      (group.id! == SongGroupService.getLikeId());
 
                   return Container(
                     height: 50,
@@ -158,7 +159,7 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
                       ),
                       title: Text(group.groupName),
                       subtitle: Text("${group.musicCount}首"),
-                      trailing: isLikeGroup
+                      trailing: !isLikeGroup
                           ? IconButton(
                               onPressed: () {
                                 showModalBottomSheet(
@@ -172,26 +173,31 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
                                       return ListView(
                                         physics: BouncingScrollPhysics(),
                                         shrinkWrap: true,
-                                        padding: EdgeInsets.all(12),
+                                        padding: EdgeInsets.only(
+                                            left: 12,
+                                            right: 12,
+                                            top: 30,
+                                            bottom: 10),
                                         children: [
                                           ListTile(
-                                            onTap: () =>
-                                                _clickHandleEditGroup(group),
+                                            onTap: () {
+                                              Navigator.pop(context);
+                                              _clickHandleEditGroup(group);
+                                            },
                                             title: Text("编辑"),
                                             leading: Icon(Icons.edit),
                                           ),
-                                          isLikeGroup
-                                              ? ListTile(
-                                                  onTap: () =>
-                                                      _clickHandleDeleteGroup(
-                                                          group),
-                                                  title: Text("删除"),
-                                                  leading: Icon(
-                                                    Icons.delete,
-                                                    color: Colors.redAccent,
-                                                  ),
-                                                )
-                                              : SizedBox(),
+                                          ListTile(
+                                            onTap: () {
+                                              _clickHandleDeleteGroup(group);
+                                              Navigator.pop(context);
+                                            },
+                                            title: Text("删除"),
+                                            leading: Icon(
+                                              Icons.delete,
+                                              color: Colors.redAccent,
+                                            ),
+                                          )
                                         ],
                                       );
                                     });
@@ -259,10 +265,13 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
       if (val.isEmpty) {
         ToastUtil.show(msg: "请输入完整");
       } else {
-        groupService.createGroup(SongGroup(groupName: val)).then((value) {
+        groupService
+            .createGroup(SongGroup(groupName: val.trim()))
+            .then((value) {
           ToastUtil.show(msg: "创建成功");
           _loadGroupLists();
         });
+        Navigator.pop(context);
       }
     });
   }
@@ -276,11 +285,12 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
       if (val.isEmpty) {
         ToastUtil.show(msg: "请输入完整");
       } else {
-        group.groupName = val;
+        group.groupName = val.trim();
         groupService.updateGroup(group).then((value) {
           ToastUtil.show(msg: "更新成功");
           _loadGroupLists();
         });
+        Navigator.pop(context);
       }
     });
   }

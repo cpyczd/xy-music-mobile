@@ -86,6 +86,7 @@ class TxMusicServiceImpl extends BaseMusicService {
       var map = Map<String, dynamic>.from(e);
       String singer = (map["singer"] as List).map((e) => e["name"]).join("、");
       var entity = MusicEntity(
+          md5: util.signMD5(map["id"].toString() + map["title"]),
           songmId: map["id"].toString(),
           albumId: map["album"]["id"].toString(),
           albumName: map["album"]["title"],

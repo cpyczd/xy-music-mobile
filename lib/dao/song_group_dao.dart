@@ -2,10 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 11:01:44
- * @LastEditTime: 2021-07-15 14:51:49
+ * @LastEditTime: 2021-07-15 21:57:43
  */
 
 import 'package:sqflite_common/sqlite_api.dart';
+import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/model/song_order_entity.dart';
 import 'package:xy_music_mobile/util/orm/orm_base_dao.dart';
 
@@ -16,11 +17,11 @@ class SongGrupDao extends OrmBaseDao<SongGroup> {
   String getTableCreateSql() {
     return '''
     CREATE TABLE IF NOT EXISTS ${getTableName()} (
-      _id INTEGER PRIMARY KEY autoincrement,-- id
-      groupName varchar(50) NOT NULL , -- 分组名称
-      coverImage text default NULL , -- 封面图片
-      createTime INTEGER default NULL,  -- 创建时间
-      updateTime INTEGER default NULL -- 更新时间
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,-- id
+      groupName  VARCHAR(50) NOT NULL , -- 分组名称
+      coverImage TEXT DEFAULT NULL , -- 封面图片
+      createTime INTEGER DEFAULT NULL,  -- 创建时间
+      updateTime INTEGER DEFAULT NULL -- 更新时间
     );
    ''';
   }
@@ -29,7 +30,7 @@ class SongGrupDao extends OrmBaseDao<SongGroup> {
   List<String>? initExecSql() {
     return [
       '''
-      INSERT IN TO (_id,groupName,createTime) VALUES($LIKE_ID,'我喜欢的音乐',${DateTime.now().millisecondsSinceEpoch})
+      INSERT INTO ${getTableName()} (id,groupName,createTime) VALUES($LIKE_ID,'我喜欢的音乐',${DateTime.now().millisecondsSinceEpoch})
       '''
     ];
   }
@@ -44,6 +45,7 @@ class SongGrupDao extends OrmBaseDao<SongGroup> {
 
   @override
   SongGroup modelCastFromMap(Map<String, dynamic> map) {
+    log.i("modelCastFromMap===>>>> $map");
     return SongGroup.fromMap(map);
   }
 }
@@ -54,7 +56,7 @@ class SongGrupLinkDao extends OrmBaseDao<SongGoupLink> {
   String getTableCreateSql() {
     return '''
     create table if not exists ${getTableName()} (
-      _id INTEGER PRIMARY KEY autoincrement,-- id
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,-- id
       groupId INTEGER NOT NULL , -- 分组ID
       songId INTEGER default NULL,  -- 歌曲Id
       createTime INTEGER default NULL  -- 创建时间

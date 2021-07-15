@@ -6,6 +6,7 @@
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'config/store_config.dart' as store;
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
     // HttpUtil.openProxy();
     // log.close();
     store.Store.flutterInit();
+    Sqflite.devSetDebugModeOn(true);
 
     return MaterialApp(
       title: 'Xy-Music',

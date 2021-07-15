@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-26 20:19:46
- * @LastEditTime: 2021-07-09 15:42:48
+ * @LastEditTime: 2021-07-15 22:58:06
  */
 import 'package:dio/dio.dart';
 import 'package:xy_music_mobile/model/lyric.dart';
@@ -92,6 +92,7 @@ class WyMusicServiceImpl extends BaseMusicService {
     }
     return (resp["songs"] as List)
         .map((e) => MusicEntity(
+            md5: signMD5(e["id"].toString() + e["name"]),
             songmId: e["id"].toString(),
             songName: e["name"],
             singer: (e["ar"] as List).map((e) => e["name"]).join("、"),

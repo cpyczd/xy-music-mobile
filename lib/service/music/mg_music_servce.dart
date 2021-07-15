@@ -77,6 +77,7 @@ class MgMusicServiceImpl extends BaseMusicService {
       String play = e["rateFormats"][0]["url"] as String;
       play = play.substring(play.indexOf("/public"));
       return MusicEntity(
+          md5: util.signMD5(e["copyrightId"].toString() + e["name"]),
           songmId: e["copyrightId"],
           singer: (e["singers"] as List).map((e) => e["name"]).join("、"),
           picImage:

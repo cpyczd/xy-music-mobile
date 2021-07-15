@@ -42,6 +42,7 @@ class KGMusicServiceImpl extends BaseMusicService {
         });
     return (result["data"]["info"] as List).map((e) {
       var entity = MusicEntity(
+          md5: util.signMD5(e["songname"] + e["hash"]),
           originData: e,
           singer: e["singername"],
           songName: e["songname"],

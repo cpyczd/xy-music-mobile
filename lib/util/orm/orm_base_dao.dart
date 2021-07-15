@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:32:44
- * @LastEditTime: 2021-07-15 15:05:04
+ * @LastEditTime: 2021-07-15 21:55:23
  */
 
 import 'package:sqflite/sqflite.dart';
@@ -81,14 +81,14 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
     }
     DatabaseExecutor database = await getDataBase();
     return database.update(getTableName(), row.toMap(),
-        where: "_id = ?", whereArgs: [row.id]);
+        where: "id = ?", whereArgs: [row.id]);
   }
 
   ///查询一条数据
   Future<T?> getOne(int id) async {
     DatabaseExecutor database = await getDataBase();
     var list =
-        await database.query(getTableName(), where: "_id = ?", whereArgs: [id]);
+        await database.query(getTableName(), where: "id = ?", whereArgs: [id]);
     if (list.isNotEmpty) {
       return modelCastFromMap(list[0]);
     }
@@ -173,7 +173,7 @@ abstract class OrmBaseDao<T extends OrmBaseModel> {
 
   ///删除根据Id
   Future<int> deleteById(int id) async {
-    return delete(where: "_id = ?", whereArgs: [id]);
+    return delete(where: "id = ?", whereArgs: [id]);
   }
 
   ///清空数据库

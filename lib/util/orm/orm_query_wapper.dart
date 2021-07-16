@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-11 18:34:26
- * @LastEditTime: 2021-07-15 14:37:54
+ * @LastEditTime: 2021-07-16 21:04:30
  */
 import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 
@@ -26,14 +26,14 @@ class QueryWapper<T extends OrmBaseModel> {
 
   QueryWapper<T> neq(String colum, Object value, {bool condition = true}) {
     if (condition) {
-      _where.add("$colum = ${castWhereValue(value)}");
+      _where.add("$colum != ${castWhereValue(value)}");
     }
     return this;
   }
 
   QueryWapper<T> eq(String colum, Object value, {bool condition = true}) {
     if (condition) {
-      _where.add("$colum != ${castWhereValue(value)}");
+      _where.add("$colum = ${castWhereValue(value)}");
     }
     return this;
   }
@@ -90,7 +90,7 @@ class QueryWapper<T extends OrmBaseModel> {
 
   ///isNull
   QueryWapper<T> eqIn(String colum, List<Object> values) {
-    var join = values.join(",");
+    var join = values.map((e) => e.toString()).join(",");
     _where.add("$colum IN ($join)");
     return this;
   }

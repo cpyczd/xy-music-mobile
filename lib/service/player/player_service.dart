@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-12 10:24:34
+ * @LastEditTime: 2021-07-16 22:23:11
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -112,6 +112,7 @@ class PlayerService {
     return Uri.parse(entity.picImage!);
   }
 
+  ///创建播放器实例
   void _createPlayerInstance() {
     _audioPlayer?.stop();
     _status = PlayStatus.stop;
@@ -317,20 +318,20 @@ class PlayerService {
           break;
         case PlayerState.COMPLETED:
           status = PlayStatus.completed;
-          position = Duration.zero;
           _playCompletedHandler();
           AudioServiceBackground.setState(
               processingState: AudioProcessingState.completed);
           //Check检查播放完成了但是和实际时长差距很大就可能是试听音乐
-          // if (music != null && music.duration.inSeconds > 0) {
-          //   int min = 30;
-          //   int diffce = (music.duration.inSeconds - this.position.inSeconds);
-          //   if (diffce > min) {
-          //     ToastUtil.show(
-          //         msg: "[${music.songName}] 可能是十几秒的试听音乐",
-          //         length: Toast.LENGTH_LONG);
-          //   }
-          // }
+          if (music != null && music.duration.inSeconds > 0) {
+            int diffce = 20;
+            if (this.position.inSeconds - diffce <
+                (music.duration.inSeconds - diffce)) {
+              ToastUtil.show(
+                  msg: "[${music.songName}] 可能是十几秒的试听音乐",
+                  length: Toast.LENGTH_LONG);
+            }
+          }
+          position = Duration.zero;
           break;
       }
       if (music != null) {

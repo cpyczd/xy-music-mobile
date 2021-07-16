@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 18:29:30
- * @LastEditTime: 2021-07-09 16:12:54
+ * @LastEditTime: 2021-07-16 23:03:39
  */
 import 'dart:async';
 
@@ -121,6 +121,9 @@ abstract class BaseSongSquareService extends BaseCommon {
   ///获取歌单内音乐列表信息
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1});
+
+  ///转换成MusicEntity对象
+  Future<MusicEntity> toMusicModel(SongSquareMusic music);
 }
 
 ///歌曲排行榜服务抽象类

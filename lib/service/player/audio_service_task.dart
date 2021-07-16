@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-06 18:28:32
+ * @LastEditTime: 2021-07-16 23:37:03
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -29,7 +29,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   AudioPlayerBackageTask() {
     ///初始化使用的参数
     Application.applicationInit();
-    HttpUtil.logOpen();
+    // HttpUtil.logOpen();
   }
 
   @override
@@ -351,16 +351,20 @@ class PlayerTaskHelper {
   }
 
   ///添加一首音乐到列队
-  static Future<void> pushQueue(MusicEntity entity) async {
+  static Future<MediaItem> pushQueue(MusicEntity entity) async {
     entity.uuid = _uuid.v1();
     Uri? uri;
     if (StringUtils.isBlank(entity.picImage)) {
       //如果为空就获取图片的地址
-      var url = await musicServiceProviderMange
-          .getSupportProvider(entity.source)
-          .first
-          .getPic(entity);
-      entity.picImage = url;
+      try {
+        var url = await musicServiceProviderMange
+            .getSupportProvider(entity.source)
+            .first
+            .getPic(entity);
+        entity.picImage = url;
+      } catch (e) {
+        log.e("获取图片失败", e);
+      }
     }
     if (StringUtils.isNotBlank(entity.picImage)) {
       uri = Uri.parse(entity.picImage!);
@@ -374,7 +378,8 @@ class PlayerTaskHelper {
         duration: entity.duration,
         extras: entity.toMap(),
         artUri: uri);
-    AudioService.addQueueItem(item);
+    await AudioService.addQueueItem(item);
+    return item;
   }
 
   ///获取播放Model

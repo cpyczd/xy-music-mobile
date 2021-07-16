@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-07-06 16:33:50
+ * @LastEditTime: 2021-07-16 23:09:19
  */
 
 import 'dart:convert';
@@ -12,6 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:intl/intl.dart';
 import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/index.dart';
@@ -101,6 +102,7 @@ class WySquareServiceImpl extends BaseSongSquareService {
     return playlists
         .map((e) => SongSquareInfo(
             id: e["id"].toString(),
+            source: MusicSourceConstant.kg,
             playCount: formatPlayCount(e["playCount"]),
             name: e["name"],
             time: DateFormat("y年M月d日")
@@ -160,6 +162,18 @@ class WySquareServiceImpl extends BaseSongSquareService {
       tags.add(tag);
     }
     return tags;
+  }
+
+  @override
+  Future<MusicEntity> toMusicModel(SongSquareMusic music) async {
+    return MusicEntity(
+        md5: signMD5(music.songName + music.id),
+        songmId: music.id,
+        singer: music.singer,
+        songName: music.songName,
+        duration: music.duration ?? Duration.zero,
+        source: music.source,
+        originData: music.originalData);
   }
 
   @override

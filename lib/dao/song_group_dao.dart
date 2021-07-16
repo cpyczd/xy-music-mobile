@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 11:01:44
- * @LastEditTime: 2021-07-15 21:57:43
+ * @LastEditTime: 2021-07-16 21:20:16
  */
 
 import 'package:sqflite_common/sqlite_api.dart';
@@ -62,6 +62,11 @@ class SongGrupLinkDao extends OrmBaseDao<SongGoupLink> {
       createTime INTEGER default NULL  -- 创建时间
     );
    ''';
+  }
+
+  @override
+  List<String>? initExecSql() {
+    return ["create index group_id_key on ${getTableName()} ( groupId )"];
   }
 
   @override

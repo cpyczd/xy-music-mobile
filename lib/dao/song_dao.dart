@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 15:20:15
- * @LastEditTime: 2021-07-15 23:50:58
+ * @LastEditTime: 2021-07-16 21:24:25
  */
 import 'package:sqflite/sqflite.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
@@ -35,6 +35,11 @@ class SongDao extends OrmBaseDao<MusicEntity> {
       originData text default NULL -- 原始数据
     );
    ''';
+  }
+
+  @override
+  List<String>? initExecSql() {
+    return ["create index index_md5 on ${getTableName()} ( md5 )"];
   }
 
   @override

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 21:33:42
- * @LastEditTime: 2021-07-11 17:27:12
+ * @LastEditTime: 2021-07-16 22:51:44
  */
 import 'dart:async';
 
@@ -73,10 +73,14 @@ class SingleDataLine<T> {
   StreamSink<SinglePackageData<T>> get inner => _stream.sink;
 
   ///设置主数据
-  void setData(T? t) {
+  ///[filterIdentical] 是否同值过滤
+  void setData(T? t, {bool filterIdentical = true}) {
     //同值过滤
-    if (t == currentData) return;
-    if (currentData != null && t == currentData!.data) return;
+    if (filterIdentical) {
+      if (t == currentData) return;
+      if (currentData != null && t == currentData!.data) return;
+    }
+
     //防止关闭
     if (_stream.isClosed) return;
     if (currentData == null) {

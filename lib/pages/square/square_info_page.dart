@@ -1,11 +1,16 @@
 import 'dart:ui';
 
+import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
+import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
+import 'package:xy_music_mobile/service/player/audio_service_task.dart';
+import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/fade_head_sliver_delegate.dart';
 
@@ -25,6 +30,35 @@ class SquareInfoPage extends StatefulWidget {
 }
 
 class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
+  static const _KEY_MUSIC_LIST = "_KEY_MUSIC_LIST";
+  List<SongSquareMusic> _musicList = [];
+  int _pageSize = 9999;
+  int _pageIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPage();
+  }
+
+  void _loadPage() {
+    _pageIndex++;
+    squareServiceProviderMange
+        .getSupportProvider(widget.info.source)
+        .first
+        .getSongMusicList(widget.info, size: _pageSize, current: _pageIndex)
+        .then((value) {
+      if (value.isNotEmpty) {
+        _musicList.addAll(value);
+        getLine<List<SongSquareMusic>>(_KEY_MUSIC_LIST)
+            .setData(_musicList, filterIdentical: false);
+      }
+    }).catchError((e) {
+      log.e("没有数据或者异常信息:", e);
+      ToastUtil.show(msg: e);
+    });
+  }
+
   @override
   void dispose() {
     disposeDataLine();
@@ -154,13 +188,36 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
           ],
         ),
       ),
-      sliver: SliverList(
-          delegate: SliverChildBuilderDelegate((content, index) {
-        return Container(
-          height: 65,
-          color: Colors.primaries[index % Colors.primaries.length],
-        );
-      }, childCount: 30)),
+      sliver: getLine<List<SongSquareMusic>>(_KEY_MUSIC_LIST,
+              initData: _musicList)
+          .addObserver((context, pack) => SliverList(
+                  delegate: SliverChildBuilderDelegate((content, index) {
+                var music = pack.data![index];
+                return ListTile(
+                  onTap: () => _handlePaly(music),
+                  dense: true,
+                  title: Text(music.songName),
+                  subtitle: Text(music.singer),
+                  leading: Text(
+                    "${index + 1}",
+                    style: TextStyle(fontSize: 15, color: Colors.black),
+                  ),
+                  trailing:
+                      IconButton(onPressed: () {}, icon: Icon(Icons.more_vert)),
+                );
+              }, childCount: pack.data!.length))),
     );
+  }
+
+  ///播放音乐
+  void _handlePaly(SongSquareMusic squareMusic) {
+    squareServiceProviderMange
+        .getSupportProvider(squareMusic.source)
+        .first
+        .toMusicModel(squareMusic)
+        .then((value) async {
+      var mediaItem = await PlayerTaskHelper.pushQueue(value);
+      await AudioService.playFromMediaId(mediaItem.id);
+    });
   }
 }

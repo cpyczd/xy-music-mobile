@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-06-20 16:48:22
+ * @LastEditTime: 2021-07-16 23:32:21
  */
 
 import 'dart:convert';
 
 import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
@@ -66,6 +67,7 @@ class KgSquareServiceImpl extends BaseSongSquareService {
     return (resp["special_db"] as List)
         .map((e) => SongSquareInfo(
             id: e["specialid"].toString(),
+            source: MusicSourceConstant.kg,
             playCount: e["total_play_count"].toString(),
             collectCount: e["collect_count"].toString(),
             name: e["specialname"],
@@ -112,6 +114,52 @@ class KgSquareServiceImpl extends BaseSongSquareService {
       tagList.add(tag);
     }
     return tagList;
+  }
+
+  @override
+  Future<MusicEntity> toMusicModel(SongSquareMusic music) async {
+    Map resp = await HttpUtil.get(
+        "https://api.gmit.vip/Api/KuGou?format=json&id=${music.id}");
+    if (resp["code"] != 200) {
+      return MusicEntity(
+          md5: signMD5(music.songName + music.id),
+          songmId: music.id,
+          singer: music.singer,
+          songName: music.songName,
+          hash: music.id,
+          duration: music.duration ?? Duration.zero,
+          source: music.source,
+          originData: music.originalData);
+    }
+    var data = resp["data"];
+    String? lrc = data["lrc"];
+    var duration = Duration.zero;
+    if (StringUtils.isNotBlank(lrc)) {
+      var timeStr =
+          lrc!.substring(lrc.lastIndexOf("[") + 1, lrc.lastIndexOf("]"));
+      //分
+      var minute = timeStr.substring(0, timeStr.indexOf(":"));
+      //秒
+      var second = timeStr.split(":")[1].split(".")[0];
+      //毫秒
+      var millSecond = timeStr.split(":")[1].split(".")[1];
+      duration = Duration(
+          minutes: int.parse(minute),
+          seconds: int.parse(second),
+          milliseconds: int.parse(millSecond));
+    }
+    return MusicEntity(
+        md5: signMD5(music.songName + music.id),
+        picImage: data["pic"],
+        playUrl: data["url"],
+        songmId: music.id,
+        singer: music.singer,
+        songName: music.songName,
+        hash: music.id,
+        duration: duration,
+        durationStr: getTimeStamp(duration.inMilliseconds),
+        source: music.source,
+        originData: {});
   }
 
   @override

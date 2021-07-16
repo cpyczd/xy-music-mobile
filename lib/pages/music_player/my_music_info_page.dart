@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 21:01:25
- * @LastEditTime: 2021-07-15 22:10:57
+ * @LastEditTime: 2021-07-16 21:53:47
  */
 import 'dart:ui';
 
@@ -39,21 +39,25 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
 
   @override
   void initState() {
-    groupService.findGroupById(widget.groupId).then((value) {
+    groupService.getGroupById(widget.groupId).then((value) {
       setState(() {
         _group = value;
       });
     });
-    //读取音乐数据
-    groupService
-        .findAllMusicByGroupId(widget.groupId)
-        .then((value) => getLine<List<MusicEntity>>(_KEY_MUSIC).setData(value));
-
+    _loadMusicList();
     //设置状态栏的颜色为亮色
     //设置状态栏的颜色
     Future.delayed(Duration.zero)
         .then((value) => setUiOverlayStyle(Brightness.dark));
     super.initState();
+  }
+
+  ///读取音乐数据
+  void _loadMusicList() {
+    //读取音乐数据
+    groupService
+        .findMusicAllByGroupId(widget.groupId)
+        .then((value) => getLine<List<MusicEntity>>(_KEY_MUSIC).setData(value));
   }
 
   @override
@@ -127,7 +131,10 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
                     sigmaX: 60, sigmaY: 60)
                 : Container(
                     color: Colors.black45,
-                  )
+                  ),
+            Container(
+              color: Colors.black26,
+            )
           ],
           action: [
             IconButton(
@@ -182,7 +189,8 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
 
                   return Container(
                     height: 50,
-                    margin: EdgeInsets.only(bottom: 7, left: 10, right: 10),
+                    margin:
+                        EdgeInsets.only(bottom: 7, top: 8, left: 20, right: 20),
                     width: double.infinity,
                     child: Row(
                       children: [
@@ -196,29 +204,41 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
                         Expanded(
                           flex: 2,
                           child: Padding(
-                            padding: const EdgeInsets.only(left: 10),
+                            padding: const EdgeInsets.only(left: 20),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  music.songName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 3.5),
+                                  child: Text(
+                                    music.songName,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w400),
+                                  ),
                                 ),
-                                Text(
-                                  music.singer ?? "",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.grey, fontSize: 12),
-                                ),
-                                Text(
-                                  "来源:${music.source.desc}",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      color: Colors.green, fontSize: 9),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  // mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.only(right: 5),
+                                      child: Text(
+                                        "[${music.source.desc}]",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: Colors.green, fontSize: 11),
+                                      ),
+                                    ),
+                                    Text(
+                                      music.singer ?? "",
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 12),
+                                    ),
+                                  ],
                                 )
                               ],
                             ),
@@ -234,7 +254,6 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
                                     onPressed: () => _clickHandleMore(music),
                                     icon: Icon(
                                       Icons.more_vert,
-                                      color: Colors.green,
                                       size: 20,
                                     )),
                               ],
@@ -272,6 +291,13 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
                 ),
               ),
               ListTile(
+                onTap: () {
+                  groupService.deleteLikeMusicByMD5(music.md5).then((value) {
+                    Navigator.pop(context);
+                    _loadMusicList();
+                    ToastUtil.show(msg: "移除成功");
+                  });
+                },
                 title: Text("删除"),
                 leading: Icon(
                   Icons.delete,

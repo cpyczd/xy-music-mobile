@@ -148,6 +148,8 @@ class SongSquareInfo {
   ///specialid
   final String id;
 
+  final MusicSourceConstant source;
+
   ///播放次数
   final String playCount;
 
@@ -176,13 +178,14 @@ class SongSquareInfo {
   SongSquareInfo({
     required this.id,
     required this.playCount,
-    this.collectCount,
+    required this.source,
     required this.name,
     required this.time,
     required this.img,
+    required this.author,
+    this.collectCount,
     this.grade,
     this.desc,
-    required this.author,
     this.original,
   });
 
@@ -199,6 +202,7 @@ class SongSquareInfo {
     Map? original,
   }) {
     return SongSquareInfo(
+      source: source,
       id: id ?? this.id,
       playCount: playCount ?? this.playCount,
       collectCount: collectCount ?? this.collectCount,
@@ -215,6 +219,7 @@ class SongSquareInfo {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'source': source.name,
       'playCount': playCount,
       'collectCount': collectCount,
       'name': name,
@@ -230,6 +235,8 @@ class SongSquareInfo {
   factory SongSquareInfo.fromMap(Map<String, dynamic> map) {
     return SongSquareInfo(
       id: map['id'],
+      source:
+          EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
       playCount: map['playCount'],
       collectCount: map['collectCount'],
       name: map['name'],
@@ -249,7 +256,7 @@ class SongSquareInfo {
 
   @override
   String toString() {
-    return 'SongSquareInfo(id: $id, playCount: $playCount, collectCount: $collectCount, name: $name, time: $time, img: $img, grade: $grade, desc: $desc, author: $author, original: $original)';
+    return 'SongSquareInfo(id: $id, source:$source, playCount: $playCount, collectCount: $collectCount, name: $name, time: $time, img: $img, grade: $grade, desc: $desc, author: $author, original: $original)';
   }
 
   @override

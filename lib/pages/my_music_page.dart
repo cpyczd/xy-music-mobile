@@ -2,15 +2,17 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:27
- * @LastEditTime: 2021-07-15 22:37:18
+ * @LastEditTime: 2021-07-16 22:03:10
  */
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/common/event/group/group_event_constant.dart';
 import 'package:xy_music_mobile/config/theme.dart';
-import 'package:xy_music_mobile/dao/song_group_dao.dart';
 import 'package:xy_music_mobile/model/song_order_entity.dart';
 import 'package:xy_music_mobile/service/song_group/song_group_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
@@ -31,10 +33,18 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
   //歌单服务
   final SongGroupService groupService = SongGroupService();
 
+  StreamSubscription? _groupEventListener;
+
   @override
   void initState() {
     super.initState();
-
+    //初始化Bus监听器
+    _groupEventListener =
+        Application.eventBus.on<GroupEventEnum>().listen((event) {
+      if (event == GroupEventEnum.MUSIC_LIST_CHANGE) {
+        _loadGroupLists();
+      }
+    });
     Future.delayed(Duration.zero).then((value) {
       _loadGroupLists();
     });
@@ -43,12 +53,13 @@ class _MyMusicPageState extends State<MyMusicPage> with MultDataLine {
   @override
   void dispose() {
     disposeDataLine();
+    _groupEventListener?.cancel();
     super.dispose();
   }
 
   ///加载Group列表
   void _loadGroupLists() {
-    groupService.findAllGroup().then(
+    groupService.findGroupAll().then(
         (value) => getLine<List<SongGroup>>(_KEY_GROUP_LIST).setData(value));
   }
 

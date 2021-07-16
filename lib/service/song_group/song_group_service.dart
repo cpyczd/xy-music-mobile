@@ -2,9 +2,11 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-12 10:26:31
- * @LastEditTime: 2021-07-15 23:48:12
+ * @LastEditTime: 2021-07-16 22:10:33
  */
 
+import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/common/event/group/group_event_constant.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/dao/song_dao.dart';
 import 'package:xy_music_mobile/dao/song_group_dao.dart';
@@ -22,34 +24,41 @@ class SongGroupService {
     return SongGrupDao.LIKE_ID;
   }
 
-  ///查询所有的分组数据
-  Future<List<SongGroup>> findAllGroup() async {
+  ///查询所有的歌单数据
+  Future<List<SongGroup>> findGroupAll() async {
     var list = await _songGrupDao.list();
     for (var g in list) {
-      int count = await _songGrupLinkDao.count(
-          wapper: QueryWapper<SongGoupLink>().eq("groupId", g.id!));
+      int count = await this.getGroupMusicCount(g.id!);
       g.musicCount = count;
     }
     return list;
   }
 
-  Future<SongGroup?> findGroupById(int id) async {
+  ///返回此分组歌单的音乐数量
+  Future<int> getGroupMusicCount(int groupId) async {
+    int count = await _songGrupLinkDao.count(
+        wapper: QueryWapper<SongGoupLink>().eq("groupId", groupId));
+    return count;
+  }
+
+  ///查询歌单根据歌单主键Id
+  Future<SongGroup?> getGroupById(int id) async {
     var group = await _songGrupDao.getOne(id);
     if (group == null) {
       return null;
     }
-    int count = await _songGrupLinkDao.count(
-        wapper: QueryWapper<SongGoupLink>().eq("groupId", group.id!));
+    int count = await this.getGroupMusicCount(group.id!);
     group.musicCount = count;
     return group;
   }
 
-  ///查询所有的音乐列表
-  Future<List<MusicEntity>> findAllMusicByGroupId(int groupId) async {
+  ///查询所有的音乐信息根据
+  Future<List<MusicEntity>> findMusicAllByGroupId(int groupId) async {
     var linkList = await _songGrupLinkDao
         .listByQueryWapper(QueryWapper<SongGoupLink>().eq("groupId", groupId));
     return _songDao.listByQueryWapper(QueryWapper<MusicEntity>()
-        .eqIn("id", linkList.map((e) => e.songId).toList()));
+        .eqIn("id", linkList.map((e) => e.songId).toList())
+        .orderByDesc("id"));
   }
 
   ///创建一个分组
@@ -79,12 +88,21 @@ class SongGroupService {
   }
 
   ///添加一首音乐到分组里
-  Future<void> addMusic(int groupId, MusicEntity entity) async {
+  Future<bool> addMusic(int groupId, MusicEntity entity) async {
+    var group = await this.getGroupById(groupId);
+    if (group == null) {
+      return false;
+    }
     entity.id = null;
     MusicEntity saveEntity = await _songDao.insert(entity);
-    log.i("保存的音乐:===>>>> $saveEntity");
+    group.coverImage = saveEntity.picImage;
+    await _songGrupDao.updateById(group);
     SongGoupLink link = SongGoupLink(groupId: groupId, songId: saveEntity.id!);
     await _songGrupLinkDao.insert(link);
+
+    //发送Event事件
+    Application.eventBus.fire(GroupEventEnum.MUSIC_LIST_CHANGE);
+    return true;
   }
 
   ///删除一个音乐
@@ -96,9 +114,13 @@ class SongGroupService {
         return false;
       }
       row = await _songGrupLinkDao.deleteById(id);
-      return row > 0;
+      if (row <= 0) {
+        return false;
+      }
     }
-    return false;
+    //发送Event事件
+    Application.eventBus.fire(GroupEventEnum.MUSIC_LIST_CHANGE);
+    return true;
   }
 
   ///删除一个分组根据Id
@@ -160,6 +182,8 @@ class SongGroupService {
         return false;
       }
     }
+    //发送Event事件
+    Application.eventBus.fire(GroupEventEnum.MUSIC_LIST_CHANGE);
     return true;
   }
 }

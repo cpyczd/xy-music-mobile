@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-16 23:37:03
+ * @LastEditTime: 2021-07-18 19:42:33
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -378,6 +378,10 @@ class PlayerTaskHelper {
         duration: entity.duration,
         extras: entity.toMap(),
         artUri: uri);
+    if (!AudioService.connected) {
+      log.e("AudioService 未建立连接");
+      Future.error("AudioService No connect");
+    }
     await AudioService.addQueueItem(item);
     return item;
   }

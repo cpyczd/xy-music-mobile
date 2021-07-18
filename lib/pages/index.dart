@@ -9,15 +9,11 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:xy_music_mobile/application.dart';
-import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
-import 'package:xy_music_mobile/config/service_manage.dart';
-import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/player_bottom_controller.dart';
-import 'hot_page.dart';
 import 'my_music_page.dart';
 import 'setting_page.dart';
 import 'song_square_page.dart';
@@ -71,18 +67,12 @@ class _HomePageState extends State<HomePage>
     switch (state) {
       case AppLifecycleState.resumed:
         log.d("app in resumed");
-        // AudioService.stop();
         break;
       case AppLifecycleState.inactive:
         log.d("app in inactive");
         break;
       case AppLifecycleState.paused:
         log.d("app in paused");
-        // if (Application.playerService.playState == PlayStatus.playing) {
-        //   await Application.playerService.puase();
-        //   await AudioServiceBackground.run(
-        //       () => AudioPlayerBackageTask(Application.playerService));
-        // }
         break;
       case AppLifecycleState.detached:
         log.d("app in detached");

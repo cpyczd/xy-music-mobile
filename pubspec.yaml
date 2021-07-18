@@ -88,6 +88,9 @@ dependencies:
   #图片颜色提取工具
   palette_generator: ^0.3.0
   uuid: 3.0.4
+  # flutter_isolate: ^2.0.0
+  xy_music_plugin_thread:
+    path: ../xy_music_plugin_thread
   #Json 序列化
   # json_annotation: ^4.0.0
 

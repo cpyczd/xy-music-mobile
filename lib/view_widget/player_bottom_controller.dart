@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-15 23:58:03
+ * @LastEditTime: 2021-07-17 22:11:13
  */
 
 import 'dart:async';
@@ -373,7 +373,10 @@ class CurrentPlayListUtil {
                             if (index == cindx) {
                               return CircleAvatar(
                                 backgroundImage:
-                                    CachedNetworkImageProvider(music.picImage!),
+                                    StringUtils.isNotBlank(music.picImage)
+                                        ? CachedNetworkImageProvider(
+                                            music.picImage!)
+                                        : null,
                               );
                             } else {
                               return Text(

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-07-05 15:19:25
+ * @LastEditTime: 2021-07-17 21:05:40
  */
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluro/fluro.dart';
@@ -32,16 +32,11 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
   ///展示的歌单列表配置
   final List<_LoadSquareGroup> _groups = [
     _LoadSquareGroup(
-        name: "网易最热",
-        source: MusicSourceConstant.wy,
-        sortId: "hot",
-        tagId: "华语"),
-    _LoadSquareGroup(
       name: "酷狗推荐",
       source: MusicSourceConstant.kg,
       sortId: "5",
     ),
-    _LoadSquareGroup(name: "酷狗最热", source: MusicSourceConstant.kg, sortId: "6"),
+    _LoadSquareGroup(name: "酷狗飙升", source: MusicSourceConstant.kg, sortId: "8"),
   ];
 
   ///Grid每组展示的个数
@@ -67,7 +62,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
             .getSupportProvider(item.source)
             .first
             .getSongSquareInfoList(sort: sort, tag: tag);
-        getLine<List<SongSquareInfo>>(item.source.name)
+        getLine<List<SongSquareInfo>>(item.name)
             .setData(list.take(_groupItemSize).toList());
       }
     });
@@ -89,6 +84,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
     );
   }
 
+  ///中间管理操作按钮组
   Widget _createBtnAction() {
     return SliverGrid(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -113,44 +109,44 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
   }
 
   ///构建顶部搜索框
-  Widget _searchWidget() {
-    return GestureDetector(
-      onTap: () => Application.navigateToIos(context, "/search"),
-      child: Container(
-        width: double.infinity,
-        height: 40,
-        padding: EdgeInsets.symmetric(vertical: 9, horizontal: 22),
-        decoration: BoxDecoration(boxShadow: [
-          BoxShadow(
-              color: Colors.black12,
-              offset: Offset(0.0, 1.0), //阴影xy轴偏移量
-              blurRadius: 1.0, //阴影模糊程度
-              spreadRadius: 1.0 //阴影扩散程度
-              )
-        ], color: Colors.white, borderRadius: BorderRadius.circular(22)),
-        child: Align(
-          alignment: Alignment.center,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search,
-                color: Colors.black54,
-              ),
-              SizedBox.fromSize(
-                size: Size.fromWidth(10),
-              ),
-              Text(
-                "歌曲搜索",
-                style: TextStyle(color: Colors.black54),
-              )
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _searchWidget() {
+  //   return GestureDetector(
+  //     onTap: () => Application.navigateToIos(context, "/search"),
+  //     child: Container(
+  //       width: double.infinity,
+  //       height: 40,
+  //       padding: EdgeInsets.symmetric(vertical: 9, horizontal: 22),
+  //       decoration: BoxDecoration(boxShadow: [
+  //         BoxShadow(
+  //             color: Colors.black12,
+  //             offset: Offset(0.0, 1.0), //阴影xy轴偏移量
+  //             blurRadius: 1.0, //阴影模糊程度
+  //             spreadRadius: 1.0 //阴影扩散程度
+  //             )
+  //       ], color: Colors.white, borderRadius: BorderRadius.circular(22)),
+  //       child: Align(
+  //         alignment: Alignment.center,
+  //         child: Row(
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             Icon(
+  //               Icons.search,
+  //               color: Colors.black54,
+  //             ),
+  //             SizedBox.fromSize(
+  //               size: Size.fromWidth(10),
+  //             ),
+  //             Text(
+  //               "歌曲搜索",
+  //               style: TextStyle(color: Colors.black54),
+  //             )
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   ///创建首页Banner
   Widget _createSwiper() {
@@ -224,7 +220,7 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
           ],
         ),
       ),
-      sliver: getLine<List<SongSquareInfo>>(data.source.name, initData: [])
+      sliver: getLine<List<SongSquareInfo>>(data.name, initData: [])
           .addObserver((context, pack) {
         return SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

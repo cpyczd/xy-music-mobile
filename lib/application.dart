@@ -19,7 +19,7 @@ class Application {
   //消息总线
   static final EventBus eventBus = EventBus();
 
-  static late BuildContext context;
+  // static late BuildContext context;
 
   ///IOS 可侧滑返回的跳转界面
   static Future navigateToIos(BuildContext context, String path,

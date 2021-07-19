@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:52:34
- * @LastEditTime: 2021-06-16 15:09:40
+ * @LastEditTime: 2021-07-19 10:30:31
  */
 
 import 'package:xy_music_mobile/common/source_constant.dart';
@@ -408,7 +408,7 @@ class SongSquareMusic {
       'singer': singer,
       'album': album,
       'originalData': originalData,
-      'duration': duration,
+      'duration': duration?.inMilliseconds,
       'durationStr': durationStr,
       'source': source.name,
     };
@@ -421,7 +421,9 @@ class SongSquareMusic {
       singer: map['singer'],
       album: map['album'],
       originalData: Map.from(map['originalData']),
-      duration: map['duration'],
+      duration: map['duration'] != null
+          ? Duration(milliseconds: map['duration'])
+          : null,
       durationStr: map['durationStr'],
       source: EnumUtil.enumFromString<MusicSourceConstant>(
           MusicSourceConstant.values, map["source"])!,

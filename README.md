@@ -1,20 +1,52 @@
 
-# xy-music-mobile   🌧  XY-全网音乐播放器
+# XY-音乐助手
+
+> 项目名:  xy-music-mobile
+>
+> 目前项目起步阶段 开发中....
 
 
-目前项目起步阶段 开发中....
 
-项目将采用Dart语言Flutter框架进行开发。
+### 简介
 
-### 第一版目标:
+基于Flutter框架开发的音乐播放软件，使用本音乐平台可进行全网音乐源搜索、播放、收藏、下载（暂未实现）、歌词展示、歌单服务、等便捷舒服的完美听歌体验。
+
+支持平台：
+
+1. Android ✅
+2. IOS ✅
+
+
+
+### 演示截图
+
+| <img src="./doc/screenshot_1.png" style="zoom:30%;" align="left"/> | <img src="./doc/screenshot_2.png" style="zoom:30%;" align="left"/> | <img src="./doc/screenshot_3.png" style="zoom:30%;" align="left"/> |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img src="./doc/screenshot_4.png" style="zoom:30%;" align="left"/> | <img src="./doc/screenshot_5.png" style="zoom:30%;" align="left"/> | <img src="./doc/screenshot_6.png" style="zoom:30%;" align="left"/> |
+| <img src="./doc/screenshot_7.png" style="zoom:30%;" align="left"/> | <img src="./doc/screenshot_8.png" style="zoom:30%;" align="left"/> |                                                              |
+|                                                              |                                                              |                                                              |
+
+
+
+
+
+## 历史与当下
+
+### 1. 第一版目标:    (已完成-2021-7-19)
 1. 适配Android
 2. 适配IOS
 3. 能进行搜索听歌
 4. 显示歌词
 5. 添加播放列表
 
-### 第二版目标
-1. 嗯...还很多先做了再说
+### 2. 第二版目标
+1. 歌单开发与优化
+2. 排行榜发现Tab功能栏
+3. 音乐下载
+
+
+
+
 
 
 ### 项目协议

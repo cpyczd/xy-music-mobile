@@ -1,12 +1,9 @@
-import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_isolate/flutter_isolate.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
@@ -17,9 +14,9 @@ import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/isolate/thread.dart';
+import 'package:xy_music_mobile/util/isolate/thread_pool.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/fade_head_sliver_delegate.dart';
-import 'package:xy_music_plugin_thread/xy_music_plugin_thread.dart';
 
 /*
  * @Description: 歌单详情歌曲页面
@@ -234,19 +231,25 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
     });
   }
 
-  static void taskThread(dynamic params) async {
+  ///Task线程执行放
+  static void taskThread(String paramsJson) async {
+    var params = ThreadParams.fromJson(paramsJson);
     Application.applicationInit();
-    List<SongSquareMusic> music = (params as List)
+    List<SongSquareMusic> music = (params.args as List)
         .map((e) => SongSquareMusic.fromMap(Map<String, dynamic>.from(e)))
         .toList();
     for (var item in music) {
-      var m = await squareServiceProviderMange
-          .getSupportProvider(item.source)
-          .first
-          .toMusicModel(item);
-      Thread.send("onData", m.toMap());
+      try {
+        var m = await squareServiceProviderMange
+            .getSupportProvider(item.source)
+            .first
+            .toMusicModel(item);
+        Thread.send(params.threadId, "onData", m.toMap());
+      } catch (e) {
+        log.w("解析歌单内所有音乐出现异常: $item", e);
+      }
     }
-    Thread.send("onClose", "Success");
+    Thread.kill(params.threadId);
   }
 
   void _playAll() async {
@@ -254,24 +257,19 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
       var thread = Thread(
           runnable: taskThread,
           params: _musicList.map((e) => e.toMap()).toList());
+      ThreadPool.createThread(thread);
       await thread.run();
       bool play = false;
-      Thread.onListener("onData").listen((event) {
-        log.d("onData===>>> ${event.method} ${event.args}");
-        setState(() {
-          PlayerTaskHelper.pushQueue(
-                  MusicEntity.fromMap((event.args as Map).cast()))
-              .then((mediaItem) {
-            if (!play) {
-              play = true;
-              AudioService.playFromMediaId(mediaItem.id);
-            }
-          });
+      Thread.onListener(thread, "onData").listen((event) {
+        log.d("添加到歌单回调onData===>>> ${event.method} ${event.data}");
+        PlayerTaskHelper.pushQueue(
+                MusicEntity.fromMap((event.data as Map).cast()))
+            .then((mediaItem) {
+          if (!play) {
+            play = true;
+            AudioService.playFromMediaId(mediaItem.id);
+          }
         });
-      });
-      Thread.onListener("onClose").listen((event) {
-        log.d("onClose===>>> ${event.method} ${event.args}");
-        thread.close();
       });
     }
   }

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-07-16 23:09:19
+ * @LastEditTime: 2021-07-19 21:42:04
  */
 
 import 'dart:convert';
@@ -28,7 +28,7 @@ class WySquareServiceImpl extends BaseSongSquareService {
   }
 
   @override
-  Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
+  Future<List<MusicEntity>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1}) async {
     if (current <= 0) {
       current = 1;
@@ -64,12 +64,13 @@ class WySquareServiceImpl extends BaseSongSquareService {
       return Future.error("获取失败");
     }
     return (resp["songs"] as List)
-        .map((e) => SongSquareMusic(
-            id: e["id"].toString(),
+        .map((e) => MusicEntity(
+            md5: signMD5(e["id"].toString() + e["name"]),
+            songmId: e["id"].toString(),
             songName: e["name"],
             singer: (e["ar"] as List).map((e) => e["name"]).join("、"),
-            album: e["al"]["name"],
-            originalData: e,
+            albumName: e["al"]["name"],
+            originData: e,
             duration: Duration(milliseconds: e["dt"]),
             durationStr:
                 getTimeStamp(Duration(milliseconds: e["dt"]).inMilliseconds),
@@ -162,18 +163,6 @@ class WySquareServiceImpl extends BaseSongSquareService {
       tags.add(tag);
     }
     return tags;
-  }
-
-  @override
-  Future<MusicEntity> toMusicModel(SongSquareMusic music) async {
-    return MusicEntity(
-        md5: signMD5(music.songName + music.id),
-        songmId: music.id,
-        singer: music.singer,
-        songName: music.songName,
-        duration: music.duration ?? Duration.zero,
-        source: music.source,
-        originData: music.originalData);
   }
 
   @override

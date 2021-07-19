@@ -344,126 +344,142 @@ class SongSquareSort {
   int get hashCode => name.hashCode ^ id.hashCode;
 }
 
-///歌单内音乐
-class SongSquareMusic {
-  final String id;
+// ///歌单内音乐
+// class SongSquareMusic {
+//   final String id;
 
-  ///歌名
-  final String songName;
+//   ///歌名
+//   final String songName;
 
-  ///歌手
-  final String singer;
+//   ///歌曲ID
+//   final String? songmId;
 
-  ///专辑
-  final String album;
+//   //专辑ID
+//   String? albumId;
 
-  ///原始数据
-  final Map originalData;
+//   ///歌手
+//   final String singer;
 
-  ///时长
-  Duration? duration;
+//   ///专辑
+//   final String album;
 
-  ///时长字符串
-  String? durationStr;
+//   ///原始数据
+//   final Map originalData;
 
-  ///源
-  final MusicSourceConstant source;
-  SongSquareMusic({
-    required this.id,
-    required this.songName,
-    required this.singer,
-    required this.album,
-    required this.originalData,
-    this.duration,
-    this.durationStr,
-    required this.source,
-  });
+//   ///时长
+//   Duration? duration;
 
-  SongSquareMusic copyWith({
-    String? id,
-    String? songName,
-    String? singer,
-    String? album,
-    Map? originalData,
-    Duration? duration,
-    String? durationStr,
-    MusicSourceConstant? source,
-  }) {
-    return SongSquareMusic(
-      id: id ?? this.id,
-      songName: songName ?? this.songName,
-      singer: singer ?? this.singer,
-      album: album ?? this.album,
-      originalData: originalData ?? this.originalData,
-      duration: duration ?? this.duration,
-      durationStr: durationStr ?? this.durationStr,
-      source: source ?? this.source,
-    );
-  }
+//   ///时长字符串
+//   String? durationStr;
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'songName': songName,
-      'singer': singer,
-      'album': album,
-      'originalData': originalData,
-      'duration': duration?.inMilliseconds,
-      'durationStr': durationStr,
-      'source': source.name,
-    };
-  }
+//   ///源
+//   final MusicSourceConstant source;
+//   SongSquareMusic({
+//     required this.id,
+//     required this.songName,
+//     required this.singer,
+//     required this.album,
+//     required this.originalData,
+//     required this.source,
+//     required this.songmId,
+//     this.albumId,
+//     this.duration,
+//     this.durationStr,
+//   });
 
-  factory SongSquareMusic.fromMap(Map<String, dynamic> map) {
-    return SongSquareMusic(
-      id: map['id'],
-      songName: map['songName'],
-      singer: map['singer'],
-      album: map['album'],
-      originalData: Map.from(map['originalData']),
-      duration: map['duration'] != null
-          ? Duration(milliseconds: map['duration'])
-          : null,
-      durationStr: map['durationStr'],
-      source: EnumUtil.enumFromString<MusicSourceConstant>(
-          MusicSourceConstant.values, map["source"])!,
-    );
-  }
+//   SongSquareMusic copyWith({
+//     String? id,
+//     String? songmId,
+//     String? albumId,
+//     String? songName,
+//     String? singer,
+//     String? album,
+//     Map? originalData,
+//     Duration? duration,
+//     String? durationStr,
+//     MusicSourceConstant? source,
+//   }) {
+//     return SongSquareMusic(
+//       id: id ?? this.id,
+//       songmId: songmId ?? this.songmId,
+//       albumId: albumId ?? this.albumId,
+//       songName: songName ?? this.songName,
+//       singer: singer ?? this.singer,
+//       album: album ?? this.album,
+//       originalData: originalData ?? this.originalData,
+//       duration: duration ?? this.duration,
+//       durationStr: durationStr ?? this.durationStr,
+//       source: source ?? this.source,
+//     );
+//   }
 
-  String toJson() => json.encode(toMap());
+//   Map<String, dynamic> toMap() {
+//     return {
+//       'id': id,
+//       'songName': songName,
+//       'songmId': songmId,
+//       'albumId': albumId,
+//       'singer': singer,
+//       'album': album,
+//       'originalData': originalData,
+//       'duration': duration?.inMilliseconds,
+//       'durationStr': durationStr,
+//       'source': source.name,
+//     };
+//   }
 
-  factory SongSquareMusic.fromJson(String source) =>
-      SongSquareMusic.fromMap(json.decode(source));
+//   factory SongSquareMusic.fromMap(Map<String, dynamic> map) {
+//     return SongSquareMusic(
+//       id: map['id'],
+//       albumId: map["albumId"],
+//       songmId: map["songmId"],
+//       songName: map['songName'],
+//       singer: map['singer'],
+//       album: map['album'],
+//       originalData: Map.from(map['originalData']),
+//       duration: map['duration'] != null
+//           ? Duration(milliseconds: map['duration'])
+//           : null,
+//       durationStr: map['durationStr'],
+//       source: EnumUtil.enumFromString<MusicSourceConstant>(
+//           MusicSourceConstant.values, map["source"])!,
+//     );
+//   }
 
-  @override
-  String toString() {
-    return 'SongSquareMusic(id: $id, songName: $songName, singer: $singer, album: $album, originalData: $originalData, duration: $duration, durationStr: $durationStr, source: $source)';
-  }
+//   String toJson() => json.encode(toMap());
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
+//   factory SongSquareMusic.fromJson(String source) =>
+//       SongSquareMusic.fromMap(json.decode(source));
 
-    return other is SongSquareMusic &&
-        other.id == id &&
-        other.songName == songName &&
-        other.singer == singer &&
-        other.album == album &&
-        mapEquals(other.originalData, originalData) &&
-        other.duration == duration &&
-        other.durationStr == durationStr &&
-        other.source == source;
-  }
+//   @override
+//   String toString() {
+//     return 'SongSquareMusic(id: $id, songmId: $songmId, albumId: $albumId, songName: $songName, singer: $singer, album: $album, originalData: $originalData, duration: $duration, durationStr: $durationStr, source: $source)';
+//   }
 
-  @override
-  int get hashCode {
-    return id.hashCode ^
-        songName.hashCode ^
-        singer.hashCode ^
-        album.hashCode ^
-        originalData.hashCode ^
-        duration.hashCode ^
-        durationStr.hashCode ^
-        source.hashCode;
-  }
-}
+//   @override
+//   bool operator ==(Object other) {
+//     if (identical(this, other)) return true;
+
+//     return other is SongSquareMusic &&
+//         other.id == id &&
+//         other.songName == songName &&
+//         other.singer == singer &&
+//         other.album == album &&
+//         mapEquals(other.originalData, originalData) &&
+//         other.duration == duration &&
+//         other.durationStr == durationStr &&
+//         other.source == source;
+//   }
+
+//   @override
+//   int get hashCode {
+//     return id.hashCode ^
+//         songName.hashCode ^
+//         singer.hashCode ^
+//         album.hashCode ^
+//         originalData.hashCode ^
+//         duration.hashCode ^
+//         durationStr.hashCode ^
+//         source.hashCode;
+//   }
+// }

@@ -1,20 +1,26 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:xy_music_mobile/model/base_entity.dart';
+import 'package:xy_music_mobile/util/orm/orm_base_model.dart';
 
 /*
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-23 13:26:03
- * @LastEditTime: 2021-06-06 18:16:29
+ * @LastEditTime: 2021-07-15 22:50:04
  */
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 ///音乐模块实体类
-class MusicEntity extends BaseEntity {
+class MusicEntity extends OrmBaseModel {
+  ///随机字符串 ->目前播放列表会用到
+  String? uuid;
+
+  ///唯一标识 根据[唯一音乐编号]+[音乐名称]+[歌手]构建出来的唯一值
+  final String md5;
+
   ///歌曲ID
   final String? songmId;
 
@@ -37,13 +43,13 @@ class MusicEntity extends BaseEntity {
   MusicSourceConstant source;
 
   ///时长
-  final int duration;
+  Duration duration;
 
   ///时长字符串
   String? durationStr;
 
   ///图片封面
-  final String? picImage;
+  String? picImage;
 
   ///歌词
   String? lrc;
@@ -64,30 +70,32 @@ class MusicEntity extends BaseEntity {
 
   final Map originData;
 
-  MusicEntity({
-    int? id,
-    this.songmId,
-    this.albumId,
-    this.albumName,
-    this.singer,
-    this.playUrl,
-    required this.songName,
-    this.songnameOriginal,
-    required this.source,
-    required this.duration,
-    this.durationStr,
-    this.picImage,
-    this.lrc,
-    this.hash,
-    this.quality,
-    this.qualityFileSize,
-    this.types,
-    required this.originData,
-  }) {
+  MusicEntity(
+      {int? id,
+      required this.md5,
+      required this.songName,
+      required this.duration,
+      required this.source,
+      required this.originData,
+      this.songmId,
+      this.albumId,
+      this.albumName,
+      this.singer,
+      this.playUrl,
+      this.songnameOriginal,
+      this.durationStr,
+      this.picImage,
+      this.lrc,
+      this.hash,
+      this.quality,
+      this.qualityFileSize,
+      this.types,
+      this.uuid}) {
     super.id = id;
   }
 
   MusicEntity copyWith({
+    String? md5,
     int? id,
     String? songmId,
     String? albumId,
@@ -97,7 +105,7 @@ class MusicEntity extends BaseEntity {
     String? songName,
     String? songnameOriginal,
     MusicSourceConstant? source,
-    int? duration,
+    Duration? duration,
     String? durationStr,
     String? picImage,
     String? lrc,
@@ -108,6 +116,7 @@ class MusicEntity extends BaseEntity {
     Map<String, dynamic>? originData,
   }) {
     return MusicEntity(
+      md5: md5 ?? this.md5,
       id: id ?? this.id,
       songmId: songmId ?? this.songmId,
       playUrl: playUrl ?? this.playUrl,
@@ -132,6 +141,7 @@ class MusicEntity extends BaseEntity {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'md5': md5,
       'playUrl': playUrl,
       'songmId': songmId,
       'albumId': albumId,
@@ -140,40 +150,46 @@ class MusicEntity extends BaseEntity {
       'songName': songName,
       'songnameOriginal': songnameOriginal,
       'source': source.name,
-      'duration': duration,
+      'duration': duration.inMilliseconds,
       'durationStr': durationStr,
       'picImage': picImage,
       'lrc': lrc,
       'hash': hash,
       'quality': quality,
       'qualityFileSize': qualityFileSize,
-      'types': jsonEncode(types),
+      'types': types != null ? jsonEncode(types) : null,
       'originData': jsonEncode(originData),
+      'uuid': uuid
     };
   }
 
   factory MusicEntity.fromMap(Map<String, dynamic> map) {
     return MusicEntity(
-      id: map['id'],
-      songmId: map['songmId'],
-      albumId: map['albumId'],
-      albumName: map['albumName'],
-      singer: map['singer'],
-      songName: map['songName'],
-      songnameOriginal: map['songnameOriginal'],
-      source:
-          EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
-      duration: map['duration'],
-      durationStr: map['durationStr'],
-      picImage: map['picImage'],
-      lrc: map['lrc'],
-      hash: map['hash'],
-      playUrl: map['playUrl'],
-      quality: map['quality'],
-      qualityFileSize: map['qualityFileSize'],
-      types: List<String>.from(jsonDecode(map['types'])),
-      originData: Map<String, dynamic>.from(jsonDecode(map['originData'])),
-    );
+        id: map['id'],
+        md5: map['md5'],
+        songmId: map['songmId'],
+        albumId: map['albumId'],
+        albumName: map['albumName'],
+        singer: map['singer'],
+        songName: map['songName'],
+        songnameOriginal: map['songnameOriginal'],
+        source:
+            EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
+        duration: Duration(milliseconds: map['duration']),
+        durationStr: map['durationStr'],
+        picImage: map['picImage'],
+        lrc: map['lrc'],
+        hash: map['hash'],
+        playUrl: map['playUrl'],
+        quality: map['quality'],
+        qualityFileSize: map['qualityFileSize'],
+        types: StringUtils.isNotBlank(map['types'])
+            ? List<String>.from(jsonDecode(map['types']))
+            : null,
+        originData: StringUtils.isNotBlank(map['originData'])
+            ? Map<String, dynamic>.from(jsonDecode(map['originData']))
+            : {},
+        uuid: map["uuid"]);
   }
 
   String toJson() => json.encode(toMap());
@@ -183,7 +199,7 @@ class MusicEntity extends BaseEntity {
 
   @override
   String toString() {
-    return 'MusicEntity(id: $id, songmId: $songmId, albumId: $albumId, albumName: $albumName, singer: $singer, songName: $songName, songnameOriginal: $songnameOriginal, source: $source, duration: $duration, durationStr: $durationStr, picImage: $picImage, lrc: $lrc, hash: $hash, quality: $quality, qualityFileSize: $qualityFileSize, types: $types, playUrl: $playUrl, originData: $originData)';
+    return 'MusicEntity(id: $id,uuid: $uuid ,md5: $md5 ,mId: $songmId, albumId: $albumId, albumName: $albumName, singer: $singer, songName: $songName, songnameOriginal: $songnameOriginal, source: $source, duration: $duration, durationStr: $durationStr, picImage: $picImage, lrc: $lrc, hash: $hash, quality: $quality, qualityFileSize: $qualityFileSize, types: $types, playUrl: $playUrl, originData: $originData)';
   }
 
   @override
@@ -192,6 +208,7 @@ class MusicEntity extends BaseEntity {
 
     return other is MusicEntity &&
         other.id == id &&
+        other.md5 == md5 &&
         other.songmId == songmId &&
         other.albumId == albumId &&
         other.albumName == albumName &&
@@ -214,6 +231,8 @@ class MusicEntity extends BaseEntity {
   @override
   int get hashCode {
     return id.hashCode ^
+        uuid.hashCode ^
+        md5.hashCode ^
         songmId.hashCode ^
         albumId.hashCode ^
         albumName.hashCode ^

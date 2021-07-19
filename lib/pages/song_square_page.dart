@@ -2,12 +2,23 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:26:24
- * @LastEditTime: 2021-06-14 12:57:24
+ * @LastEditTime: 2021-07-17 21:05:40
  */
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
+import 'package:flutter_swiper_null_safety/flutter_swiper_null_safety.dart';
 import 'package:xy_music_mobile/application.dart';
+import 'package:xy_music_mobile/config/logger_config.dart';
+import 'package:xy_music_mobile/config/service_manage.dart';
+import 'package:xy_music_mobile/config/theme.dart';
+import 'package:xy_music_mobile/model/song_square_entity.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/pages/square/square_list_page.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
+import 'package:xy_music_mobile/view_widget/icon_util.dart';
+import 'package:xy_music_mobile/view_widget/text_icon_button.dart';
 
 ///歌单广场 主页
 class SongSquarePage extends StatefulWidget {
@@ -18,9 +29,43 @@ class SongSquarePage extends StatefulWidget {
 }
 
 class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
+  ///展示的歌单列表配置
+  final List<_LoadSquareGroup> _groups = [
+    _LoadSquareGroup(
+      name: "酷狗推荐",
+      source: MusicSourceConstant.kg,
+      sortId: "5",
+    ),
+    _LoadSquareGroup(name: "酷狗飙升", source: MusicSourceConstant.kg, sortId: "8"),
+  ];
+
+  ///Grid每组展示的个数
+  final int _groupItemSize = 6;
+
+  late BuildContext _context;
+
   @override
   void initState() {
+    log.d("InitState 被调用 =>> SongSquarePage");
     super.initState();
+    Future.delayed(Duration.zero).then((value) async {
+      for (var item in _groups) {
+        var sort = item.sortId == null
+            ? null
+            : SongSquareSort(id: item.sortId!, name: "");
+
+        var tag = item.tagId == null
+            ? null
+            : SongSqurareTagItem(
+                id: item.tagId!, name: "", parentName: "", parentId: "");
+        var list = await squareServiceProviderMange
+            .getSupportProvider(item.source)
+            .first
+            .getSongSquareInfoList(sort: sort, tag: tag);
+        getLine<List<SongSquareInfo>>(item.name)
+            .setData(list.take(_groupItemSize).toList());
+      }
+    });
   }
 
   @override
@@ -31,143 +76,240 @@ class _SongSquarePageState extends State<SongSquarePage> with MultDataLine {
 
   @override
   Widget build(BuildContext context) {
+    _context = context;
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 36),
-          child: Column(
-            children: [
-              _searchWidget(),
-              Expanded(
-                  child: Container(
-                margin: EdgeInsets.only(top: 20),
-                child: _squareList(),
-              ))
-            ],
-          ),
-        ),
+      body: Container(
+        child: _squareList(),
       ),
     );
   }
 
-  ///构建顶部搜索框
-  Widget _searchWidget() {
-    return GestureDetector(
-      onTap: () => Application.navigateToIos(context, "/search"),
-      child: Container(
-        width: double.infinity,
-        height: 40,
-        padding: EdgeInsets.symmetric(vertical: 9, horizontal: 22),
-        decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(22)),
-        child: Align(
-          alignment: Alignment.center,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.search,
-                color: Colors.black54,
-              ),
-              SizedBox.fromSize(
-                size: Size.fromWidth(10),
-              ),
-              Text(
-                "歌曲搜索",
-                style: TextStyle(color: Colors.black54),
-              )
-            ],
+  ///中间管理操作按钮组
+  Widget _createBtnAction() {
+    return SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, childAspectRatio: 2.5),
+        delegate: SliverChildListDelegate([
+          TextIconButton(
+            // icon: Icon(
+            //   Icons.all_inbox_sharp,
+            //   color: Color(AppTheme.getCurrentTheme().primaryColor),
+            // ),
+            icon: svg(name: "gedan"),
+            text: "全部歌单",
+            onPressed: () =>
+                Application.navigateToIos(_context, "/squareListPage"),
           ),
+          TextIconButton(
+            icon: svg(name: "custom"),
+            text: "推荐管理",
+            onPressed: () {},
+          ),
+        ]));
+  }
+
+  ///构建顶部搜索框
+  // Widget _searchWidget() {
+  //   return GestureDetector(
+  //     onTap: () => Application.navigateToIos(context, "/search"),
+  //     child: Container(
+  //       width: double.infinity,
+  //       height: 40,
+  //       padding: EdgeInsets.symmetric(vertical: 9, horizontal: 22),
+  //       decoration: BoxDecoration(boxShadow: [
+  //         BoxShadow(
+  //             color: Colors.black12,
+  //             offset: Offset(0.0, 1.0), //阴影xy轴偏移量
+  //             blurRadius: 1.0, //阴影模糊程度
+  //             spreadRadius: 1.0 //阴影扩散程度
+  //             )
+  //       ], color: Colors.white, borderRadius: BorderRadius.circular(22)),
+  //       child: Align(
+  //         alignment: Alignment.center,
+  //         child: Row(
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             Icon(
+  //               Icons.search,
+  //               color: Colors.black54,
+  //             ),
+  //             SizedBox.fromSize(
+  //               size: Size.fromWidth(10),
+  //             ),
+  //             Text(
+  //               "歌曲搜索",
+  //               style: TextStyle(color: Colors.black54),
+  //             )
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  ///创建首页Banner
+  Widget _createSwiper() {
+    return SliverToBoxAdapter(
+      child: Container(
+        height: 130,
+        child: Swiper.children(
+          containerHeight: 130,
+          containerWidth: double.infinity,
+          autoplay: true,
+          pagination: SwiperPagination(),
+          children: [
+            Image.asset(
+              "assets/tmp/banner1.jpeg",
+              fit: BoxFit.cover,
+            ),
+            Image.asset(
+              "assets/tmp/banner2.jpeg",
+              fit: BoxFit.cover,
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _squareList() {
-    return CustomScrollView(slivers: <Widget>[
-      // StickyHeader(
-      //     header: Container(
-      //       child: Text(
-      //         "酷狗Top",
-      //         style: TextStyle(fontSize: 18, color: Colors.black),
-      //       ),
-      //     ),
-      //     content: SliverList(
-      //       delegate: SliverChildBuilderDelegate((content, index) {
-      //         return Container(
-      //           height: 65,
-      //           color: Colors.primaries[index % Colors.primaries.length],
-      //         );
-      //       }, childCount: 1),
-      //     ))
-      SliverStickyHeader(
-        overlapsContent: false,
-        header: Container(
-          height: 60.0,
-          color: Color.fromRGBO(248, 248, 248, 1),
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Header #0',
-            style: const TextStyle(color: Colors.black),
-          ),
-        ),
-        sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, crossAxisSpacing: 5, mainAxisSpacing: 3),
-          delegate:
-              SliverChildBuilderDelegate((BuildContext context, int index) {
-            return Container(
-              color: Colors.primaries[index % Colors.primaries.length],
-            );
-          }, childCount: 20),
-        ),
-      ),
-      SliverStickyHeader(
-        header: Container(
-          height: 60.0,
-          color: Colors.lightBlue,
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Header #2',
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-        sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, crossAxisSpacing: 5, mainAxisSpacing: 3),
-          delegate:
-              SliverChildBuilderDelegate((BuildContext context, int index) {
-            return Container(
-              color: Colors.primaries[index % Colors.primaries.length],
-            );
-          }, childCount: 20),
+    return CustomScrollView(
+        physics: BouncingScrollPhysics(),
+        slivers: <Widget>[
+          _createSwiper(),
+          _createBtnAction(),
+        ]..addAll(_groups
+            .map((e) => SliverPadding(
+                  padding: EdgeInsets.only(bottom: 20, left: 15, right: 15),
+                  sliver: _createSquareWidgetItem(e),
+                ))
+            .toList()));
+  }
+
+  ///创建一个Sliver
+  Widget _createSquareWidgetItem(_LoadSquareGroup data) {
+    return SliverStickyHeader(
+      overlapsContent: false,
+      header: Container(
+        height: 60.0,
+        color: Color(AppTheme.getCurrentTheme().scaffoldBackgroundColor),
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        alignment: Alignment.centerLeft,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              data.name,
+              style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500),
+            ),
+            TextButton.icon(
+                onPressed: () {
+                  if (data.moreClick != null) {
+                    data.moreClick!(context, data);
+                  }
+                },
+                icon: Text("更多"),
+                label: Icon(
+                  Icons.more_horiz,
+                  size: 15,
+                ))
+          ],
         ),
       ),
-      SliverStickyHeader(
-        header: Container(
-          height: 60.0,
-          color: Colors.lightBlue,
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'Header #1',
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-        sliver: SliverGrid(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3, crossAxisSpacing: 5, mainAxisSpacing: 3),
-          delegate:
-              SliverChildBuilderDelegate((BuildContext context, int index) {
-            return Container(
-              color: Colors.primaries[index % Colors.primaries.length],
-            );
-          }, childCount: 20),
-        ),
-      )
-    ]);
+      sliver: getLine<List<SongSquareInfo>>(data.name, initData: [])
+          .addObserver((context, pack) {
+        return SliverGrid(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3, mainAxisSpacing: 20),
+            delegate:
+                SliverChildBuilderDelegate((BuildContext context, int index) {
+              var item = pack.data![index];
+              return GestureDetector(
+                onTap: () {
+                  if (data.squareInfoClick != null) {
+                    data.squareInfoClick!(context, item);
+                  }
+                },
+                child: Container(
+                  width: 131,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                          child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: item.img,
+                          fit: BoxFit.cover,
+                        ),
+                      )),
+                      Padding(
+                        padding: EdgeInsets.only(top: 6, left: 10, right: 10),
+                        child: Text(
+                          item.name,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Color.fromRGBO(7, 18, 23, 1),
+                              fontSize: 12),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }, childCount: pack.data!.length));
+      }),
+    );
+  }
+}
+
+typedef void _MoreClickHandler(BuildContext context, _LoadSquareGroup group);
+
+typedef void _SquareInfoClickHandler(BuildContext context, SongSquareInfo info);
+
+class _LoadSquareGroup {
+  final String name;
+
+  final MusicSourceConstant source;
+
+  String? sortId;
+
+  String? tagId;
+
+  _MoreClickHandler? moreClick = (context, group) {
+    Application.navigateToIos(context, "/squareListPage",
+        params: SquareListPageArauments(
+            paramsSource: group.source, paramsSort: group.sortId));
+  };
+
+  _SquareInfoClickHandler? squareInfoClick = (context, info) {
+    // Application.navigateToIos(context, "/squareInfoPage", params: info);
+    Application.router.navigateTo(
+      context,
+      "/squareInfoPage",
+      transition: TransitionType.native,
+      routeSettings: RouteSettings(arguments: info),
+    );
+  };
+
+  _LoadSquareGroup({
+    required this.name,
+    required this.source,
+    this.sortId,
+    this.tagId,
+    _MoreClickHandler? moreClick,
+    _SquareInfoClickHandler? squareInfoClick,
+  }) {
+    if (moreClick != null) {
+      this.moreClick = moreClick;
+    }
+    if (squareInfoClick != null) {
+      this.squareInfoClick = squareInfoClick;
+    }
   }
 }

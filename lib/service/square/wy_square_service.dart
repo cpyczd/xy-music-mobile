@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-15 20:31:33
- * @LastEditTime: 2021-06-15 23:12:59
+ * @LastEditTime: 2021-07-16 23:09:19
  */
 
 import 'dart:convert';
@@ -11,25 +11,28 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:intl/intl.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
-
-import 'package:xy_music_mobile/service/music_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
+import '../base_music_service.dart';
 
 ///网易云歌单解析器   Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
-class WySquareServiceImpl extends SongSquareService {
+class WySquareServiceImpl extends BaseSongSquareService {
   ///初始化WebApi工具
-  late final _WyWebApi webApi;
+  late final WyWebApi webApi;
 
   WySquareServiceImpl() {
-    webApi = _WyWebApi();
+    webApi = WyWebApi();
   }
 
   @override
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1}) async {
+    if (current <= 0) {
+      current = 1;
+    }
     var data = webApi.linuxapi({
       "method": 'POST',
       "url": 'https://music.163.com/api/v3/playlist/detail',
@@ -67,6 +70,9 @@ class WySquareServiceImpl extends SongSquareService {
             singer: (e["ar"] as List).map((e) => e["name"]).join("、"),
             album: e["al"]["name"],
             originalData: e,
+            duration: Duration(milliseconds: e["dt"]),
+            durationStr:
+                getTimeStamp(Duration(milliseconds: e["dt"]).inMilliseconds),
             source: MusicSourceConstant.wy))
         .toList();
   }
@@ -77,10 +83,13 @@ class WySquareServiceImpl extends SongSquareService {
       SongSqurareTagItem? tag,
       int page = 1,
       int size = 10}) async {
+    if (page <= 0) {
+      page = 1;
+    }
     var data = webApi.webapi({
-      "cat": tag != null ? tag.id : "全部",
-      "order": sort?.id,
-      "limit": page,
+      "cat": tag?.id ?? "全部",
+      "order": sort?.id ?? "hot",
+      "limit": size,
       "offset": size * (page - 1),
       "total": true,
     });
@@ -93,6 +102,7 @@ class WySquareServiceImpl extends SongSquareService {
     return playlists
         .map((e) => SongSquareInfo(
             id: e["id"].toString(),
+            source: MusicSourceConstant.kg,
             playCount: formatPlayCount(e["playCount"]),
             name: e["name"],
             time: DateFormat("y年M月d日")
@@ -104,8 +114,9 @@ class WySquareServiceImpl extends SongSquareService {
   }
 
   String formatPlayCount(int num) {
-    if (num > 100000000) return "${(num / 10000000 / 10)}" '亿';
-    if (num > 10000) return '${num / 1000 / 10}' '万';
+    if (num > 100000000)
+      return "${(num / 10000000 / 10).toStringAsFixed(2)}" '亿';
+    if (num > 10000) return '${(num / 1000 / 10).toStringAsFixed(2)}' '万';
     return "$num";
   }
 
@@ -131,7 +142,7 @@ class WySquareServiceImpl extends SongSquareService {
     Map all = resp["all"];
     tags.add(SongSqurareTag(name: "默认", source: MusicSourceConstant.wy, tags: [
       SongSqurareTagItem(
-          name: all["name"], parentName: "", id: "", parentId: "")
+          name: all["name"], parentName: "", id: all["name"], parentId: "")
     ]));
 
     List sub = resp["sub"];
@@ -154,13 +165,25 @@ class WySquareServiceImpl extends SongSquareService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
-    return type == MusicSourceConstant.wy;
+  Future<MusicEntity> toMusicModel(SongSquareMusic music) async {
+    return MusicEntity(
+        md5: signMD5(music.songName + music.id),
+        songmId: music.id,
+        singer: music.singer,
+        songName: music.songName,
+        duration: music.duration ?? Duration.zero,
+        source: music.source,
+        originData: music.originalData);
+  }
+
+  @override
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.wy;
   }
 }
 
 ///网易WebAPI 参数加密工具
-class _WyWebApi {
+class WyWebApi {
   final iv = "0102030405060708";
   final presetKey = "0CoJUm6Qyw8W8jud";
   final linuxapiKey = "rFgB&h#%2?^eDg:Q";

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2020-08-05 14:00:34
- * @LastEditTime: 2021-06-15 23:32:39
+ * @LastEditTime: 2021-07-11 17:54:46
  */
 import 'dart:convert';
 import 'dart:io';
@@ -60,7 +60,8 @@ class HttpUtil {
             "HttpDebug =====> Request: ${response.requestOptions.path} ${response.requestOptions.method}");
         _log.i(
             "HttpDebug =====> --->RequestData: Data:${response.requestOptions.data} Params:${response.requestOptions.queryParameters}");
-        _log.i("HttpDebug =====> --->Response: ${response.data}");
+        _log.i(
+            "HttpDebug =====> --->Response: ${response.statusMessage}-${response.statusCode}  ${response.data}");
         _log.i("HttpDebug =====> END");
         handler.next(response);
       },
@@ -70,7 +71,8 @@ class HttpUtil {
           //网络断开连接
           ToastUtil.show(msg: "失败: 无网络连接", length: Toast.LENGTH_LONG);
         }
-        handler.next(e);
+        _log.e("DioError请求错误Resp内容: ${e.response?.data}");
+        handler.reject(e);
       },
     ));
 

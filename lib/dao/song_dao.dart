@@ -2,18 +2,20 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 15:20:15
- * @LastEditTime: 2021-06-01 16:01:05
+ * @LastEditTime: 2021-07-16 21:24:25
  */
 import 'package:sqflite/sqflite.dart';
-import 'package:xy_music_mobile/config/database_config.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
+import 'package:xy_music_mobile/util/orm/orm_base_dao.dart';
 
-class SongDao extends SqlBaseProvider<MusicEntity> {
+class SongDao extends OrmBaseDao<MusicEntity> {
   @override
   String getTableCreateSql() {
     return '''
     create table if not exists ${getTableName()} (
-      _id INTEGER PRIMARY KEY autoincrement,   -- ID
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,   -- ID
+      md5 varchar(100) default NULL , -- md5
+      uuid varchar(100) default NULL , -- uuid
       songmId varchar(100) default NULL , -- 歌曲ID
       albumId varchar(100) default NULL , -- 专辑ID
       albumName varchar(100) default NULL , -- 专辑名称
@@ -36,6 +38,11 @@ class SongDao extends SqlBaseProvider<MusicEntity> {
   }
 
   @override
+  List<String>? initExecSql() {
+    return ["create index index_md5 on ${getTableName()} ( md5 )"];
+  }
+
+  @override
   String getTableName() {
     return "song";
   }
@@ -44,7 +51,7 @@ class SongDao extends SqlBaseProvider<MusicEntity> {
   void upgrade(Database db, int oldVersion, int newVersion) {}
 
   @override
-  MusicEntity parse(Map<String, dynamic> map) {
+  MusicEntity modelCastFromMap(Map<String, dynamic> map) {
     return MusicEntity.fromMap(map);
   }
 }

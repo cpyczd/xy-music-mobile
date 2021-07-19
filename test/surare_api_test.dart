@@ -5,7 +5,7 @@
  * @LastEditTime: 2021-06-15 23:26:12
  */
 import 'package:xy_music_mobile/model/song_square_entity.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/square/kg_square_service.dart';
 import 'package:xy_music_mobile/service/square/wy_square_service.dart';
 import 'package:xy_music_mobile/util/http_util.dart';
@@ -14,7 +14,7 @@ main() async {
   HttpUtil.logOpen();
   HttpUtil.openProxy();
   // SongSquareService service = WySquareServiceImpl();
-  SongSquareService service = KgSquareServiceImpl();
+  BaseSongSquareService service = KgSquareServiceImpl();
 
   var infoList = await service.getSongSquareInfoList();
 

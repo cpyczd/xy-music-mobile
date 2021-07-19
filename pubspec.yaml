@@ -58,19 +58,20 @@ dependencies:
   #时间格式化工具与国际化插件
   intl: ^0.17.0
   #图片放大预览
-  photo_view: ^0.11.1
+  # photo_view: ^0.11.1
   #监听网络状态
   connectivity: ^3.0.4
   #保存到图片到本地
-  image_gallery_saver: '^1.6.9'
+  # image_gallery_saver: '^1.6.9'
   #获取版本号
   get_version: ^0.2.2
   #NoSql数据库
   hive: ^2.0.4
   #ListView滚动到列表中指定item
-  scrollable_positioned_list: ^0.1.10
+  # scrollable_positioned_list: ^0.1.10
   #音乐播放组件
   audioplayers: ^0.19.0
+  # just_audio: ^0.8.0
   #后台控制中心 音乐播放服务
   audio_service: ^0.17.0
   url_launcher: ^6.0.4
@@ -82,6 +83,14 @@ dependencies:
   flutter_sticky_header: ^0.6.0
   #Aes\Rsa 加解密
   encrypt: ^5.0.0
+  #轮播图插件
+  flutter_swiper_null_safety: ^1.0.2
+  #图片颜色提取工具
+  palette_generator: ^0.3.0
+  uuid: 3.0.4
+  # flutter_isolate: ^2.0.0
+  #xy_music_plugin_thread:
+  #  path: ../xy_music_plugin_thread
   #Json 序列化
   # json_annotation: ^4.0.0
 
@@ -108,6 +117,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/tmp/
+    - assets/svg/
+    - assets/img/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -121,7 +132,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
+  fonts:
+    - family: iconfont
+      fonts:
+        - asset: assets/fonts/iconfont.ttf
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf

@@ -2,16 +2,24 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-06-13 23:38:00
+ * @LastEditTime: 2021-07-15 22:43:33
  */
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:xy_music_mobile/common/store_constant.dart';
+import 'package:xy_music_mobile/config/service_manage.dart'
+    show musicServiceProviderMange;
+import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
-import 'package:xy_music_mobile/model/source_constant.dart';
-import 'package:xy_music_mobile/service/kg_music_service.dart';
-import 'package:xy_music_mobile/service/mg_music_servce.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/service/player/audio_service_task.dart';
+import 'package:xy_music_mobile/service/music/kg_music_service.dart';
+import 'package:xy_music_mobile/service/base_music_service.dart';
 import 'package:xy_music_mobile/service/search_helper.dart';
-import 'package:xy_music_mobile/service/tx_music_service.dart';
+import 'package:xy_music_mobile/util/index.dart';
+import 'package:xy_music_mobile/util/sp_util.dart';
+import 'package:xy_music_mobile/util/stream_util.dart';
+import 'package:xy_music_mobile/view_widget/icon_util.dart';
 
 class SearchPage extends StatefulWidget {
   SearchPage({Key? key}) : super(key: key);
@@ -20,7 +28,9 @@ class SearchPage extends StatefulWidget {
   _SearchPageState createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends State<SearchPage> with MultDataLine {
+  final String _searchLineKey = "_searchLineKey";
+
   ///输入框控制器
   TextEditingController _textControl = TextEditingController();
 
@@ -56,6 +66,9 @@ class _SearchPageState extends State<SearchPage> {
   ///默认搜索源
   MusicSourceConstant _source = MusicSourceConstant.kg;
 
+  ///支持的播放源
+  late final List<MusicSourceConstant?> musicSourceSupport;
+
   @override
   void initState() {
     super.initState();
@@ -63,11 +76,14 @@ class _SearchPageState extends State<SearchPage> {
       _token = await SearchHelper.getToken();
       _loadResultController();
       _loadHotSearchList();
+      _loadSearchHistory();
     });
+    musicSourceSupport = musicServiceProviderMange.getSupportSourceList();
   }
 
   @override
   void dispose() {
+    disposeDataLine();
     super.dispose();
     _textControl.dispose();
     _scrollResultListController.dispose();
@@ -76,7 +92,7 @@ class _SearchPageState extends State<SearchPage> {
   ///加载热搜排行榜
   void _loadHotSearchList() {
     //从酷狗拉取TopHot
-    MusicService service = KGMusicServiceImpl();
+    BaseMusicService service = KGMusicServiceImpl();
     service
         .getHotSearch()
         .then((value) => setState(() => {_hotKeyword.addAll(value)}));
@@ -98,10 +114,17 @@ class _SearchPageState extends State<SearchPage> {
     });
   }
 
+  ///加载搜索历史
+  void _loadSearchHistory() {
+    _SearchHistoryStore.getKeyList()
+        .then((value) => getLine(_searchLineKey).setData(value));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
+        bottom: false,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
@@ -222,32 +245,45 @@ class _SearchPageState extends State<SearchPage> {
                   child: SizedBox(
                       height: 25,
                       width: double.infinity,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        physics: BouncingScrollPhysics(),
-                        addAutomaticKeepAlives: true,
-                        itemCount: 5,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(20)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            child: Center(
-                              child: Text(
-                                "世界美好:$index",
-                                style: TextStyle(
-                                    fontSize: 13, color: Colors.black),
-                              ),
-                            ),
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) =>
-                            VerticalDivider(
-                          width: 16.0,
-                          color: Color(0xFFFFFFFF),
-                        ),
-                      )),
+                      child: getLine(_searchLineKey, initData: <String>[])
+                          .addObserver((context, pack) => ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                physics: BouncingScrollPhysics(
+                                    parent: AlwaysScrollableScrollPhysics()),
+                                addAutomaticKeepAlives: true,
+                                itemCount: pack.data!.length,
+                                itemBuilder: (context, index) {
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius:
+                                            BorderRadius.circular(20)),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: Center(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          var key = pack.data![index];
+                                          _searchKeyWord = key;
+                                          _onSearch();
+                                        },
+                                        child: Text(
+                                          pack.data![index],
+                                          style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.black),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                separatorBuilder:
+                                    (BuildContext context, int index) =>
+                                        VerticalDivider(
+                                  width: 16.0,
+                                  color: Color(0xFFFFFFFF),
+                                ),
+                              ))),
                 ),
               )
             ],
@@ -361,22 +397,30 @@ class _SearchPageState extends State<SearchPage> {
             width: double.infinity,
             height: 30,
             child: DefaultTabController(
-              length: MusicSourceConstant.values.length - 1,
+              length: musicSourceSupport.length,
               child: TabBar(
-                onTap: (value) {
-                  var replaceSource = MusicSourceConstant.values[value];
+                indicatorColor: Colors.redAccent.shade100,
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorWeight: 2,
+                labelColor: Color(AppTheme.getCurrentTheme().primaryColor),
+                labelStyle:
+                    TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                unselectedLabelColor:
+                    Color(AppTheme.getCurrentTheme().primaryColor)
+                        .withOpacity(0.7),
+                unselectedLabelStyle:
+                    TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+                onTap: (index) {
+                  var replaceSource = musicSourceSupport[index];
                   //如果不是之前的源就重置分页为 0
                   if (replaceSource != _source) {
                     _resetSearch();
-                    _source = replaceSource;
+                    _source = replaceSource!;
+                    _onSearch();
                   }
-                  _onSearch();
                 },
                 isScrollable: true,
-                tabs: MusicSourceConstant.values
-                    .where((element) => element != MusicSourceConstant.none)
-                    .map((e) => Text(e.desc))
-                    .toList(),
+                tabs: musicSourceSupport.map((e) => Text(e!.desc)).toList(),
               ),
             ),
           ),
@@ -410,40 +454,105 @@ class _SearchPageState extends State<SearchPage> {
                             var subStyle =
                                 TextStyle(color: Colors.grey, fontSize: 12);
                             var entity = _searchResultList[index];
-                            return ListTile(
-                                title: Text(
-                                  entity.songName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
+                            return InkWell(
+                              onTap: () => _playClickItem(entity),
+                              child: Container(
+                                height: 60,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 10),
+                                width: double.infinity,
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      constraints: BoxConstraints(maxWidth: 20),
+                                      onPressed: () {
+                                        _addMusicQueue(entity);
+                                      },
+                                      icon: iconFont(
+                                        hex16: 0xe615,
+                                        size: 20,
+                                      ),
+                                      // splashColor: Colors.transparent,
+                                      // highlightColor: Colors.transparent,
+                                      padding: EdgeInsets.zero,
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 20),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              entity.songName,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.only(top: 5),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      '歌手: ' +
+                                                          (entity.singer ??
+                                                              "-"),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: subStyle),
+                                                  (() {
+                                                    return entity.songnameOriginal !=
+                                                                entity
+                                                                    .songName &&
+                                                            entity.songnameOriginal !=
+                                                                null
+                                                        ? Text(
+                                                            'Cover: ${entity.songnameOriginal}',
+                                                            style: subStyle,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          )
+                                                        : SizedBox();
+                                                  })(),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        flex: 1,
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.end,
+                                          children: [
+                                            IconButton(
+                                                onPressed: () {},
+                                                icon: Icon(
+                                                  Icons.more_vert,
+                                                  size: 20,
+                                                )),
+                                          ],
+                                        ))
+                                  ],
                                 ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 5),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('歌手: ' + (entity.singer ?? "-"),
-                                          style: subStyle),
-                                      (() {
-                                        return entity.songnameOriginal !=
-                                                entity.songName
-                                            ? Text(
-                                                'Cover: ' +
-                                                    (entity.songnameOriginal ??
-                                                        "-"),
-                                                style: subStyle,
-                                              )
-                                            : SizedBox();
-                                      })(),
-                                    ],
-                                  ),
-                                ),
-                                trailing: IconButton(
-                                    onPressed: () {},
-                                    icon: Icon(Icons.more_vert)));
+                              ),
+                            );
                           }
                         });
           })())
@@ -464,48 +573,81 @@ class _SearchPageState extends State<SearchPage> {
     if (_searchKeyWord.isEmpty) {
       return;
     }
+    _SearchHistoryStore.save(_searchKeyWord);
+
+    ///切换显示的页面为序号2
     pageIndex = 2;
     //发起搜索
-    MusicService? service;
-    switch (_source) {
-      case MusicSourceConstant.kg:
-        service = KGMusicServiceImpl();
-        break;
-      case MusicSourceConstant.tx:
-        service = TxMusicServiceImpl();
-        break;
-      case MusicSourceConstant.mg:
-        service = MgMusicServiceImpl();
-        break;
-      default:
-        //不支持的源
-        break;
+    BaseMusicService service =
+        musicServiceProviderMange.getSupportProvider(_source).first;
+
+    setState(() {
+      _source = _source;
+      //开始搜索
+      if (_searchResultList.isEmpty) {
+        //如果是首次加载显示Loading加载组件
+        _isLoading = true;
+      }
+      service
+          .searchMusic(_searchKeyWord, size: _size, current: _current)
+          .then((value) {
+        setState(() {
+          if (value.isNotEmpty && _source == value[0].source) {
+            _searchResultList.addAll(value);
+          }
+        });
+      }).whenComplete(() => setState(() {
+                _isLoading = false;
+                _moreLoading = false;
+              }));
+    });
+  }
+
+  ///添加音乐到播放队列
+  void _addMusicQueue(MusicEntity entity) async {
+    await PlayerTaskHelper.pushQueue(entity);
+    ToastUtil.show(msg: "已添加到播放列表");
+  }
+
+  ///点击后添加到播放列表并开始播放
+  void _playClickItem(MusicEntity entity) async {
+    ToastUtil.show(msg: "开始播放 ${entity.songName}");
+    await PlayerTaskHelper.pushQueue(entity);
+    await AudioService.playFromMediaId(entity.uuid!);
+  }
+}
+
+///搜索记录保存
+class _SearchHistoryStore {
+  static final String _storeKey = StoreSpKey.SEARCH_HISTOTY_KEY.key;
+  static final int _maxLength = 20;
+
+  ///保存一个关键字
+  static Future<void> save(String keyWorkd) async {
+    Map? res = await SpUtil.getVal(_storeKey);
+    if (res == null) {
+      res = Map.from({"list": []});
     }
-    if (service == null) {
-      setState(() {
-        _source = MusicSourceConstant.none;
-      });
-    } else {
-      setState(() {
-        _source = _source;
-        //开始搜索
-        if (_searchResultList.isEmpty) {
-          //如果是首次加载显示Loading加载组件
-          _isLoading = true;
-        }
-        service
-            ?.searchMusic(_searchKeyWord, size: _size, current: _current)
-            .then((value) {
-          setState(() {
-            if (value.isNotEmpty) {
-              _searchResultList.addAll(value);
-            }
-          });
-        }).whenComplete(() => setState(() {
-                  _isLoading = false;
-                  _moreLoading = false;
-                }));
-      });
+    List list = res["list"];
+
+    if (list.length > _maxLength) {
+      list = list.sublist(0, _maxLength - 1);
     }
+    if (list.isNotEmpty && list[0] == keyWorkd) {
+      return;
+    }
+    list.insert(0, keyWorkd);
+    res["list"] = list;
+    await SpUtil.save(_storeKey, res.cast<String, dynamic>());
+    return;
+  }
+
+  ///获取Keywords
+  static Future<List<String>> getKeyList() async {
+    Map? res = await SpUtil.getVal(_storeKey);
+    if (res == null) {
+      res = Map.from({"list": []});
+    }
+    return (res["list"] as List).cast<String>();
   }
 }

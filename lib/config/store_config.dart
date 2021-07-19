@@ -2,12 +2,13 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:47:34
- * @LastEditTime: 2021-06-16 10:56:47
+ * @LastEditTime: 2021-07-15 21:47:52
  */
 
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart' as pathProvider;
 import 'package:xy_music_mobile/model/hive_store_model.dart';
+import 'package:xy_music_mobile/model/play_list_model.dart';
 
 class Store {
   ///Hive存储的Box名称
@@ -17,17 +18,20 @@ class Store {
   static late final Box<Map> defaultBox;
 
   ///初始化
-  static void flutterInit() async {
+  static Future<void> flutterInit({bool initBox = true}) async {
     //初始化Hive
     var directory = await pathProvider.getApplicationSupportDirectory();
     Hive.init(directory.path);
     _registerAdapter();
-    defaultBox = await Hive.openBox<Map>(Store.HIVE_BOX_NAME);
+    if (initBox) {
+      defaultBox = await Hive.openBox<Map>(Store.HIVE_BOX_NAME);
+    }
   }
 
   ///注册适配器
   static void _registerAdapter() {
-    Hive.registerAdapter(HiveStoreModelAdapter());
+    Hive.registerAdapter(HiveStoreModelAdapter(), override: true);
+    Hive.registerAdapter(PlayListModelAdapter(), override: true);
   }
 
   ///打开一个盒子

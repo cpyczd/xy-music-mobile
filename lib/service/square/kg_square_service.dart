@@ -2,19 +2,21 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-06-15 23:31:23
+ * @LastEditTime: 2021-07-16 23:32:21
  */
 
 import 'dart:convert';
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
+import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'dart:async';
 import 'package:xy_music_mobile/util/http_util.dart';
-import 'package:xy_music_mobile/service/music_service.dart';
+import 'package:xy_music_mobile/util/index.dart';
+import '../base_music_service.dart';
 
 ///酷狗歌单Service    Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
-class KgSquareServiceImpl extends SongSquareService {
+class KgSquareServiceImpl extends BaseSongSquareService {
   @override
   Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1}) async {
@@ -33,6 +35,9 @@ class KgSquareServiceImpl extends SongSquareService {
               singer: e["singername"],
               album: e["album_name"],
               source: MusicSourceConstant.kg,
+              duration: Duration(seconds: e["duration"]),
+              durationStr:
+                  getTimeStamp(Duration(seconds: e["duration"]).inMilliseconds),
               originalData: e))
           .skip((current - 1) * size)
           .take(size)
@@ -54,7 +59,7 @@ class KgSquareServiceImpl extends SongSquareService {
           "cdn": "cdn",
           "t": sort?.id ?? "",
           "c": tag?.id ?? "",
-          "p": page
+          "p": page - 1
         });
     if (resp["status"] != 1) {
       Future.error("获取失败");
@@ -62,6 +67,7 @@ class KgSquareServiceImpl extends SongSquareService {
     return (resp["special_db"] as List)
         .map((e) => SongSquareInfo(
             id: e["specialid"].toString(),
+            source: MusicSourceConstant.kg,
             playCount: e["total_play_count"].toString(),
             collectCount: e["collect_count"].toString(),
             name: e["specialname"],
@@ -76,6 +82,7 @@ class KgSquareServiceImpl extends SongSquareService {
   @override
   FutureOr<List<SongSquareSort>> getSortList() {
     return [
+      SongSquareSort(id: "", name: "全部"),
       SongSquareSort(id: "5", name: "推荐"),
       SongSquareSort(id: "6", name: "最热"),
       SongSquareSort(id: "7", name: "最新"),
@@ -110,7 +117,53 @@ class KgSquareServiceImpl extends SongSquareService {
   }
 
   @override
-  bool support(MusicSourceConstant type, Object? fliter) {
-    return type == MusicSourceConstant.kg;
+  Future<MusicEntity> toMusicModel(SongSquareMusic music) async {
+    Map resp = await HttpUtil.get(
+        "https://api.gmit.vip/Api/KuGou?format=json&id=${music.id}");
+    if (resp["code"] != 200) {
+      return MusicEntity(
+          md5: signMD5(music.songName + music.id),
+          songmId: music.id,
+          singer: music.singer,
+          songName: music.songName,
+          hash: music.id,
+          duration: music.duration ?? Duration.zero,
+          source: music.source,
+          originData: music.originalData);
+    }
+    var data = resp["data"];
+    String? lrc = data["lrc"];
+    var duration = Duration.zero;
+    if (StringUtils.isNotBlank(lrc)) {
+      var timeStr =
+          lrc!.substring(lrc.lastIndexOf("[") + 1, lrc.lastIndexOf("]"));
+      //分
+      var minute = timeStr.substring(0, timeStr.indexOf(":"));
+      //秒
+      var second = timeStr.split(":")[1].split(".")[0];
+      //毫秒
+      var millSecond = timeStr.split(":")[1].split(".")[1];
+      duration = Duration(
+          minutes: int.parse(minute),
+          seconds: int.parse(second),
+          milliseconds: int.parse(millSecond));
+    }
+    return MusicEntity(
+        md5: signMD5(music.songName + music.id),
+        picImage: data["pic"],
+        playUrl: data["url"],
+        songmId: music.id,
+        singer: music.singer,
+        songName: music.songName,
+        hash: music.id,
+        duration: duration,
+        durationStr: getTimeStamp(duration.inMilliseconds),
+        source: music.source,
+        originData: {});
+  }
+
+  @override
+  MusicSourceConstant? supportSource({Object? fliter}) {
+    return MusicSourceConstant.kg;
   }
 }

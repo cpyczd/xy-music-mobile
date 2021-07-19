@@ -6,10 +6,10 @@ import 'package:flutter/foundation.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:52:34
- * @LastEditTime: 2021-06-15 21:23:39
+ * @LastEditTime: 2021-07-19 10:30:31
  */
 
-import 'package:xy_music_mobile/model/source_constant.dart';
+import 'package:xy_music_mobile/common/source_constant.dart';
 import 'package:xy_music_mobile/util/index.dart';
 
 ///标签
@@ -148,6 +148,8 @@ class SongSquareInfo {
   ///specialid
   final String id;
 
+  final MusicSourceConstant source;
+
   ///播放次数
   final String playCount;
 
@@ -171,21 +173,25 @@ class SongSquareInfo {
 
   ///作者
   final String author;
+
+  Map? original;
   SongSquareInfo({
     required this.id,
     required this.playCount,
-    this.collectCount,
+    required this.source,
     required this.name,
     required this.time,
     required this.img,
+    required this.author,
+    this.collectCount,
     this.grade,
     this.desc,
-    required this.author,
+    this.original,
   });
 
   SongSquareInfo copyWith({
     String? id,
-    String? payCount,
+    String? playCount,
     String? collectCount,
     String? name,
     String? time,
@@ -193,10 +199,12 @@ class SongSquareInfo {
     double? grade,
     String? desc,
     String? author,
+    Map? original,
   }) {
     return SongSquareInfo(
+      source: source,
       id: id ?? this.id,
-      playCount: payCount ?? this.playCount,
+      playCount: playCount ?? this.playCount,
       collectCount: collectCount ?? this.collectCount,
       name: name ?? this.name,
       time: time ?? this.time,
@@ -204,12 +212,14 @@ class SongSquareInfo {
       grade: grade ?? this.grade,
       desc: desc ?? this.desc,
       author: author ?? this.author,
+      original: original ?? this.original,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'source': source.name,
       'playCount': playCount,
       'collectCount': collectCount,
       'name': name,
@@ -218,12 +228,15 @@ class SongSquareInfo {
       'grade': grade,
       'desc': desc,
       'author': author,
+      'original': original,
     };
   }
 
   factory SongSquareInfo.fromMap(Map<String, dynamic> map) {
     return SongSquareInfo(
       id: map['id'],
+      source:
+          EnumUtil.enumFromString(MusicSourceConstant.values, map['source'])!,
       playCount: map['playCount'],
       collectCount: map['collectCount'],
       name: map['name'],
@@ -232,6 +245,7 @@ class SongSquareInfo {
       grade: map['grade'],
       desc: map['desc'],
       author: map['author'],
+      original: map['original'],
     );
   }
 
@@ -242,7 +256,7 @@ class SongSquareInfo {
 
   @override
   String toString() {
-    return 'SongSquareInfo(id: $id, payCount: $playCount, collectCount: $collectCount, name: $name, time: $time, img: $img, grade: $grade, desc: $desc, author: $author)';
+    return 'SongSquareInfo(id: $id, source:$source, playCount: $playCount, collectCount: $collectCount, name: $name, time: $time, img: $img, grade: $grade, desc: $desc, author: $author, original: $original)';
   }
 
   @override
@@ -258,7 +272,8 @@ class SongSquareInfo {
         other.img == img &&
         other.grade == grade &&
         other.desc == desc &&
-        other.author == author;
+        other.author == author &&
+        other.original == original;
   }
 
   @override
@@ -271,7 +286,8 @@ class SongSquareInfo {
         img.hashCode ^
         grade.hashCode ^
         desc.hashCode ^
-        author.hashCode;
+        author.hashCode ^
+        original.hashCode;
   }
 }
 
@@ -344,6 +360,12 @@ class SongSquareMusic {
   ///原始数据
   final Map originalData;
 
+  ///时长
+  Duration? duration;
+
+  ///时长字符串
+  String? durationStr;
+
   ///源
   final MusicSourceConstant source;
   SongSquareMusic({
@@ -352,6 +374,8 @@ class SongSquareMusic {
     required this.singer,
     required this.album,
     required this.originalData,
+    this.duration,
+    this.durationStr,
     required this.source,
   });
 
@@ -361,6 +385,8 @@ class SongSquareMusic {
     String? singer,
     String? album,
     Map? originalData,
+    Duration? duration,
+    String? durationStr,
     MusicSourceConstant? source,
   }) {
     return SongSquareMusic(
@@ -369,6 +395,8 @@ class SongSquareMusic {
       singer: singer ?? this.singer,
       album: album ?? this.album,
       originalData: originalData ?? this.originalData,
+      duration: duration ?? this.duration,
+      durationStr: durationStr ?? this.durationStr,
       source: source ?? this.source,
     );
   }
@@ -380,6 +408,8 @@ class SongSquareMusic {
       'singer': singer,
       'album': album,
       'originalData': originalData,
+      'duration': duration?.inMilliseconds,
+      'durationStr': durationStr,
       'source': source.name,
     };
   }
@@ -391,8 +421,12 @@ class SongSquareMusic {
       singer: map['singer'],
       album: map['album'],
       originalData: Map.from(map['originalData']),
+      duration: map['duration'] != null
+          ? Duration(milliseconds: map['duration'])
+          : null,
+      durationStr: map['durationStr'],
       source: EnumUtil.enumFromString<MusicSourceConstant>(
-          MusicSourceConstant.values, map['source'] as String)!,
+          MusicSourceConstant.values, map["source"])!,
     );
   }
 
@@ -403,7 +437,7 @@ class SongSquareMusic {
 
   @override
   String toString() {
-    return 'SongSquareMusic(id: $id, songName: $songName, singer: $singer, album: $album, originalData: $originalData, source: $source)';
+    return 'SongSquareMusic(id: $id, songName: $songName, singer: $singer, album: $album, originalData: $originalData, duration: $duration, durationStr: $durationStr, source: $source)';
   }
 
   @override
@@ -416,6 +450,8 @@ class SongSquareMusic {
         other.singer == singer &&
         other.album == album &&
         mapEquals(other.originalData, originalData) &&
+        other.duration == duration &&
+        other.durationStr == durationStr &&
         other.source == source;
   }
 
@@ -426,6 +462,8 @@ class SongSquareMusic {
         singer.hashCode ^
         album.hashCode ^
         originalData.hashCode ^
+        duration.hashCode ^
+        durationStr.hashCode ^
         source.hashCode;
   }
 }

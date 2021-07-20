@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-01 11:01:44
- * @LastEditTime: 2021-07-16 21:20:16
+ * @LastEditTime: 2021-07-20 13:35:31
  */
 
 import 'package:sqflite_common/sqlite_api.dart';
@@ -66,7 +66,9 @@ class SongGrupLinkDao extends OrmBaseDao<SongGoupLink> {
 
   @override
   List<String>? initExecSql() {
-    return ["create index group_id_key on ${getTableName()} ( groupId )"];
+    return [
+      "create index if not exists group_id_key on ${getTableName()} ( groupId )"
+    ];
   }
 
   @override

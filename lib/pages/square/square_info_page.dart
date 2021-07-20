@@ -219,11 +219,21 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
   ///播放音乐
   void _handlePaly(MusicEntity music) async {
     ToastUtil.show(msg: "开始播放${music.songName}");
-    var mediaItem = await PlayerTaskHelper.pushQueue(music);
-    await AudioService.playFromMediaId(mediaItem.id);
+    await PlayerTaskHelper.pushQueue(music);
+    await PlayerTaskHelper.playByMd5(music.md5);
   }
 
+  ///播放全部
   void _playAll() async {
-    if (_musicList.isNotEmpty) {}
+    if (_musicList.isNotEmpty) {
+      PlayerTaskHelper.appendList(_musicList).then((arr) {
+        ToastUtil.show(msg: "已添加到试听列表开始播放");
+        //播放第一个
+        if (arr.isNotEmpty) {
+          var first = arr.first;
+          AudioService.playFromMediaId(first.uuid!);
+        }
+      });
+    }
   }
 }

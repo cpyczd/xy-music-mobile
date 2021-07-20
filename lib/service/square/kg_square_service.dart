@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-07-19 21:49:47
+ * @LastEditTime: 2021-07-20 13:49:00
  */
 
 import 'dart:convert';
@@ -38,9 +38,9 @@ class KgSquareServiceImpl extends BaseSongSquareService {
               singer: e["singername"],
               albumName: e["album_name"],
               source: MusicSourceConstant.kg,
-              duration: Duration(seconds: e["duration"]),
-              durationStr:
-                  getTimeStamp(Duration(seconds: e["duration"]).inMilliseconds),
+              duration: Duration(milliseconds: e["duration"]),
+              durationStr: getTimeStamp(
+                  Duration(milliseconds: e["duration"]).inMilliseconds),
               originData: e))
           .skip((current - 1) * size)
           .take(size)

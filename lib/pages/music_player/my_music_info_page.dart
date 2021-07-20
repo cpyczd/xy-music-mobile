@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-29 21:01:25
- * @LastEditTime: 2021-07-16 21:53:47
+ * @LastEditTime: 2021-07-20 16:17:44
  */
 import 'dart:ui';
 
@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_order_entity.dart';
+import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'package:xy_music_mobile/service/song_group/song_group_service.dart';
 import 'package:xy_music_mobile/util/index.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
@@ -187,78 +188,84 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
                 delegate: SliverChildBuilderDelegate((context, index) {
                   var music = pack.data![index];
 
-                  return Container(
-                    height: 50,
-                    margin:
-                        EdgeInsets.only(bottom: 7, top: 8, left: 20, right: 20),
-                    width: double.infinity,
-                    child: Row(
-                      children: [
-                        Text(
-                          "${index + 1}",
-                          style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black45),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 3.5),
-                                  child: Text(
-                                    music.songName,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w400),
-                                  ),
-                                ),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  // mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(right: 5),
-                                      child: Text(
-                                        "[${music.source.desc}]",
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            color: Colors.green, fontSize: 11),
-                                      ),
-                                    ),
-                                    Text(
-                                      music.singer ?? "",
+                  return InkWell(
+                    onTap: () => _play(music),
+                    child: Container(
+                      height: 50,
+                      margin: EdgeInsets.only(
+                          bottom: 7, top: 8, left: 20, right: 20),
+                      width: double.infinity,
+                      child: Row(
+                        children: [
+                          Text(
+                            "${index + 1}",
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black45),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 3.5),
+                                    child: Text(
+                                      music.songName,
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                          color: Colors.grey, fontSize: 12),
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w400),
                                     ),
-                                  ],
-                                )
-                              ],
+                                  ),
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    // mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 5),
+                                        child: Text(
+                                          "[${music.source.desc}]",
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 11),
+                                        ),
+                                      ),
+                                      Text(
+                                        music.singer ?? "",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: Colors.grey, fontSize: 12),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                            flex: 1,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                    onPressed: () => _clickHandleMore(music),
-                                    icon: Icon(
-                                      Icons.more_vert,
-                                      size: 20,
-                                    )),
-                              ],
-                            ))
-                      ],
+                          Expanded(
+                              flex: 1,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                      onPressed: () => _clickHandleMore(music),
+                                      icon: Icon(
+                                        Icons.more_vert,
+                                        size: 20,
+                                      )),
+                                ],
+                              ))
+                        ],
+                      ),
                     ),
                   );
                 }, childCount: pack.data!.length),
@@ -281,6 +288,12 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
             padding: EdgeInsets.all(12),
             children: [
               ListTile(
+                onTap: () {
+                  PlayerTaskHelper.nextPlay(music).then((value) {
+                    Navigator.pop(context);
+                    ToastUtil.show(msg: "将在下一首播放");
+                  });
+                },
                 title: Text("下一首播放"),
                 leading: Icon(Icons.edit),
               ),
@@ -307,5 +320,11 @@ class _MyMusicInfoPageState extends State<MyMusicInfoPage> with MultDataLine {
             ],
           );
         });
+  }
+
+  ///播放当前选中
+  void _play(MusicEntity entity) async {
+    await PlayerTaskHelper.pushQueue(entity);
+    PlayerTaskHelper.playByMd5(entity.md5);
   }
 }

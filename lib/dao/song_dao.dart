@@ -39,7 +39,9 @@ class SongDao extends OrmBaseDao<MusicEntity> {
 
   @override
   List<String>? initExecSql() {
-    return ["create index index_md5 on ${getTableName()} ( md5 )"];
+    return [
+      "create index if not exists index_md5 on ${getTableName()} ( md5 )"
+    ];
   }
 
   @override

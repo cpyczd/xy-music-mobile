@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-07-19 20:52:38
+ * @LastEditTime: 2021-07-20 13:23:24
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,6 @@ class MyApp extends StatelessWidget {
       FluroRouter router = new FluroRouter();
       Routers.configRouters(router);
       Application.router = router;
-      // Application.context = context;
       PlayerTaskHelper.flutterInitListener();
       // HttpUtil.logOpen();
       // HttpUtil.openProxy();

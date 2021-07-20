@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-19 22:09:31
+ * @LastEditTime: 2021-07-20 13:44:24
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -333,11 +333,20 @@ class PlayerService {
                 "播放完成检查是否是试听音乐: position:${position.inSeconds}   Max:${music.duration.inSeconds}");
             int diffce = 20;
             if (this.position.inSeconds < music.duration.inSeconds) {
-              if (this.position.inSeconds - diffce <
+              if (this.position.inSeconds <
                   (music.duration.inSeconds - diffce)) {
                 ToastUtil.show(
                     msg: "[${music.songName}] 可能是十几秒的试听音乐",
                     length: Toast.LENGTH_LONG);
+                //进行改正修复正确的音乐时长
+                music.duration = position;
+                music.durationStr = getTimeStamp(position.inMilliseconds);
+                var dbMusic = musicModel!.findByUuid(music.uuid!);
+                if (dbMusic != null) {
+                  dbMusic.duration = music.duration;
+                  dbMusic.durationStr = music.durationStr;
+                  musicModel!.updateByUuid(dbMusic);
+                }
               }
             }
           }

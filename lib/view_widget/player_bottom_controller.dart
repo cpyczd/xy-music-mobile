@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-30 21:28:42
- * @LastEditTime: 2021-07-17 22:11:13
+ * @LastEditTime: 2021-07-20 14:15:03
  */
 
 import 'dart:async';
@@ -317,8 +317,8 @@ class CurrentPlayListUtil {
               padding: EdgeInsets.zero,
               splashColor: Colors.transparent,
               hoverColor: Colors.transparent,
-              onPressed: () async {
-                _removeMusic(await PlayerTaskHelper.getMusicList(), state);
+              onPressed: () {
+                _clear(state);
               },
               icon: iconFont(hex16: 0xe67d, size: 20)),
         ],
@@ -369,27 +369,27 @@ class CurrentPlayListUtil {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          (() {
-                            if (index == cindx) {
-                              return CircleAvatar(
-                                backgroundImage:
-                                    StringUtils.isNotBlank(music.picImage)
-                                        ? CachedNetworkImageProvider(
-                                            music.picImage!)
-                                        : null,
-                              );
-                            } else {
-                              return Text(
-                                  (index + 1) < 10
-                                      ? "0${index + 1}"
-                                      : "${(index + 1)}",
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                      fontSize: 14, color: Colors.black));
-                            }
-                          })(),
-                          SizedBox.fromSize(
-                            size: Size.fromWidth(15),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 15),
+                            child: (() {
+                              if (index == cindx) {
+                                return CircleAvatar(
+                                  backgroundImage:
+                                      StringUtils.isNotBlank(music.picImage)
+                                          ? CachedNetworkImageProvider(
+                                              music.picImage!)
+                                          : null,
+                                );
+                              } else {
+                                return Text(
+                                    (index + 1) < 10
+                                        ? "0${index + 1}"
+                                        : "${(index + 1)}",
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: 14, color: Colors.black));
+                              }
+                            })(),
                           ),
                           Expanded(
                             child: Column(
@@ -502,6 +502,12 @@ class CurrentPlayListUtil {
   ///移除音乐从播放列表
   static void _removeMusic(List<MusicEntity> list, StateSetter setter) {
     PlayerTaskHelper.removeQueueByUuid(list.map((e) => e.uuid ?? "").toList());
+    setter(() {});
+  }
+
+  ///清空播放列表
+  static void _clear(StateSetter setter) async {
+    await PlayerTaskHelper.clear();
     setter(() {});
   }
 

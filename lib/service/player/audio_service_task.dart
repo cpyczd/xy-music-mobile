@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-20 16:13:36
+ * @LastEditTime: 2021-07-20 21:44:17
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -230,6 +230,11 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       return;
     }
     var item = AudioServiceBackground.queue![index];
+    //判断如果是当前播放的音乐的话就了忽略不处理!
+    var music = MusicEntity.fromMap(item.extras!.cast());
+    if (music.md5 == service.musicModel?.currentMusic?.md5) {
+      return;
+    }
     bool state =
         service.musicModel!.toPosition(MusicEntity.fromMap(item.extras!));
     if (!state) {

@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-18 19:42:33
+ * @LastEditTime: 2021-07-20 21:44:17
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -34,7 +34,6 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
 
   @override
   Future<void> onStart(Map<String, dynamic>? params) async {
-    logger.d("onStart() params: $params");
     await Store.flutterInit(initBox: false);
     service = PlayerService(this);
     var currMusic = service.musicModel!.getCurrentMusicEntity();
@@ -50,12 +49,59 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
     return;
   }
 
+  ///加载此MediaItem并检查图片是否空的就直接替换
+  void _loadImageCover(MediaItem mediaItem) {
+    if (mediaItem.artUri == null) {
+      //加载数据
+      var music = MusicEntity.fromMap(mediaItem.extras!.cast());
+      if (StringUtils.isBlank(music.picImage)) {
+        //如果为空就获取图片的地址
+        musicServiceProviderMange
+            .getSupportProvider(music.source)
+            .first
+            .getPic(music)
+            .then((value) {
+          music.picImage = value;
+          //更新到Hive数据存储中
+          var dbData = service.musicModel!.findByUuid(music.uuid!);
+          if (dbData != null) {
+            dbData.picImage = value;
+            service.musicModel!.updateByUuid(dbData);
+          }
+
+          var uri = Uri.parse(music.picImage!);
+          //直接赋值
+          var newMediaItem = mediaItem.copyWith(artUri: uri);
+          AudioServiceBackground.queue!.remove(mediaItem);
+          AudioServiceBackground.queue!.add(newMediaItem);
+          notificationUpdateQueue();
+          var currentMusic = service.musicModel?.currentMusic;
+          if (currentMusic != null && currentMusic.uuid == mediaItem.id) {
+            AudioServiceBackground.setMediaItem(newMediaItem);
+          }
+        });
+      }
+      if (StringUtils.isNotBlank(music.picImage)) {
+        var uri = Uri.parse(music.picImage!);
+        //直接赋值
+        var newMediaItem = mediaItem.copyWith(artUri: uri);
+        AudioServiceBackground.queue!.remove(mediaItem);
+        AudioServiceBackground.queue!.add(newMediaItem);
+        notificationUpdateQueue();
+        var currentMusic = service.musicModel?.currentMusic;
+        if (currentMusic != null && currentMusic.uuid == mediaItem.id) {
+          AudioServiceBackground.setMediaItem(newMediaItem);
+        }
+      }
+    }
+  }
+
   @override
   Future<void> onPlay() async {
-    log.d("onPlay() Starting");
+    log.d("onPlay() 开始播放");
     var model = service.musicModel!.getCurrentMusicEntity();
     if (model == null) {
-      logger.e("没有音乐可以播放");
+      logger.w("没有音乐可以播放");
       return;
     }
     if (service.playState == PlayStatus.stop ||
@@ -65,8 +111,10 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
     var mediaItem = AudioServiceBackground.queue!
         .firstWhere((element) => element.id == model.uuid);
     AudioServiceBackground.setMediaItem(mediaItem);
-    var res = await service.play();
-    logger.d("onPlay() 调用 Response:$res");
+    //检查图片
+    _loadImageCover(mediaItem);
+    //播放
+    await service.play();
     var controls = [
       MediaControl.pause,
     ];
@@ -182,6 +230,11 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       return;
     }
     var item = AudioServiceBackground.queue![index];
+    //判断如果是当前播放的音乐的话就了忽略不处理!
+    var music = MusicEntity.fromMap(item.extras!.cast());
+    if (music.md5 == service.musicModel?.currentMusic?.md5) {
+      return;
+    }
     bool state =
         service.musicModel!.toPosition(MusicEntity.fromMap(item.extras!));
     if (!state) {
@@ -219,10 +272,16 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   ///添加音乐到播放列表
   @override
   Future<void> onAddQueueItem(MediaItem mediaItem) async {
-    AudioServiceBackground.queue!.add(mediaItem);
     var music = MusicEntity.fromMap(mediaItem.extras!);
-    service.musicModel!.addMusic(music);
+    //先判断当前列表是否存在相同音乐
+    var dbMusic =
+        service.musicModel!.findWhere((item) => item.md5 == music.md5);
+    if (dbMusic != null) {
+      return;
+    }
+    AudioServiceBackground.queue!.add(mediaItem);
     notificationUpdateQueue();
+    service.musicModel!.addMusic(music);
     _setShowControll();
 
     ///发送播放列表改变事件
@@ -287,24 +346,62 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
         return Future.value(true);
       case "syncQueue":
         service.syncQueue();
+        _setShowControll();
+        return Future.value(true);
+      case "nextPlay":
+        var music = MusicEntity.fromMap((arguments as Map).cast());
+        var dbMusic =
+            service.musicModel!.findWhere((item) => item.md5 == music.md5);
+        if (dbMusic == null) {
+          service.musicModel!.addMusic(music);
+          service.syncQueue();
+          _setShowControll();
+        } else {
+          //已存在
+          var index = service.musicModel!.musicList.indexOf(dbMusic);
+          if (service.musicModel!.hasNext()) {
+            service.musicModel!
+                .moveIndex(index, service.musicModel!.currentIndex + 1);
+          } else {
+            service.musicModel!.removeAt(index);
+            service.musicModel!.addMusic(dbMusic);
+          }
+        }
         return Future.value(true);
       case "loadNewList":
-        if (arguments is List<MusicEntity>) {
+        if (arguments is List) {
           service.musicModel!.musicList.clear();
-          service.musicModel!.addMusicAll(arguments);
+          service.musicModel!.addMusicAll(arguments
+              .map((e) => MusicEntity.fromMap(Map<String, dynamic>.from(e)))
+              .toList());
           service.syncQueue();
+          _setShowControll();
           return Future.value(true);
         } else {
-          return Future.error("arguments it need to be {List<MusicEntity>} ");
+          return Future.error("arguments it need to be {List<Map>} ");
         }
       case "appendList":
-        if (arguments is List<MusicEntity>) {
-          service.musicModel!.addMusicAll(arguments);
+        if (arguments is List) {
+          service.musicModel!.addMusicAll(arguments
+              .map((e) => MusicEntity.fromMap(Map<String, dynamic>.from(e)))
+              .toList());
           service.syncQueue();
+          _setShowControll();
           return Future.value(true);
         } else {
-          return Future.error("arguments it need to be {List<MusicEntity>} ");
+          return Future.error("arguments it need to be {List<Map>} ");
         }
+      case "clear":
+        service.musicModel!.clear();
+        service.syncQueue();
+        _setShowControll();
+        await service.stop();
+        //发送播放列表改变的事件
+        AudioServiceBackground.sendCustomEvent(PlayListChangeEvent(
+            PlayListChangeState.delete,
+            service.musicModel!.musicList.length,
+            null));
+        return Future.value(true);
       case "getPlayMode":
         return Future.value(service.musicModel!.mode.name);
       case "setPlayMode":
@@ -354,18 +451,18 @@ class PlayerTaskHelper {
   static Future<MediaItem> pushQueue(MusicEntity entity) async {
     entity.uuid = _uuid.v1();
     Uri? uri;
-    if (StringUtils.isBlank(entity.picImage)) {
-      //如果为空就获取图片的地址
-      try {
-        var url = await musicServiceProviderMange
-            .getSupportProvider(entity.source)
-            .first
-            .getPic(entity);
-        entity.picImage = url;
-      } catch (e) {
-        log.e("获取图片失败", e);
-      }
-    }
+    // if (StringUtils.isBlank(entity.picImage)) {
+    //   //如果为空就获取图片的地址
+    //   try {
+    //     var url = await musicServiceProviderMange
+    //         .getSupportProvider(entity.source)
+    //         .first
+    //         .getPic(entity);
+    //     entity.picImage = url;
+    //   } catch (e) {
+    //     log.e("获取图片失败", e);
+    //   }
+    // }
     if (StringUtils.isNotBlank(entity.picImage)) {
       uri = Uri.parse(entity.picImage!);
     }
@@ -386,6 +483,30 @@ class PlayerTaskHelper {
     return item;
   }
 
+  ///播放音乐根据MD5
+  static Future<void> playByMd5(String md5) async {
+    if (AudioService.queue != null) {
+      for (var mediaItem in AudioService.queue!) {
+        var music = MusicEntity.fromMap(mediaItem.extras!.cast());
+        if (music.md5 == md5) {
+          await AudioService.playFromMediaId(mediaItem.id);
+          break;
+        }
+      }
+    }
+  }
+
+  ///下一首播放
+  static Future<bool> nextPlay(MusicEntity entity) {
+    if (entity.uuid == null) {
+      entity.uuid = _uuid.v1();
+    }
+    return _transformation(
+      AudioService.customAction("nextPlay", entity.toMap()),
+      cast: (val) => val is bool ? val : null,
+    );
+  }
+
   ///获取播放Model
   static Future<List<MusicEntity>> getMusicList() {
     return _transformation(AudioService.customAction("getMusicList"),
@@ -401,21 +522,38 @@ class PlayerTaskHelper {
     return AudioService.customAction("reloadMusic") as Future<bool>;
   }
 
+  ///清空播放列表
+  static Future<void> clear() async {
+    await AudioService.customAction("clear");
+  }
+
   ///主动刷新同步内存队列到 => AudioServie Queue队列里
-  static Future<bool> syncQueue() {
-    return AudioService.customAction("syncQueue") as Future<bool>;
+  static Future<void> syncQueue() async {
+    await AudioService.customAction("syncQueue");
   }
 
   ///向播放列队尾部追加数据
-  static Future<bool> appendList(List<MusicEntity> list) {
-    return AudioService.customAction(
-        "appendList", list.map((e) => e.toMap()).toList()) as Future<bool>;
+  static Future<List<MusicEntity>> appendList(List<MusicEntity> list) async {
+    for (var item in list) {
+      if (StringUtils.isBlank(item.uuid)) {
+        item.uuid = _uuid.v1();
+      }
+    }
+    await AudioService.customAction(
+        "appendList", list.map((e) => e.toMap()).toList());
+    return list;
   }
 
   ///清空现在的队列以传入的列表初始化队列 并自动同步 AudioServie Queue队列里
-  static Future<bool> loadNewList(List<MusicEntity> list) {
-    return AudioService.customAction(
-        "loadNewList", list.map((e) => e.toMap()).toList()) as Future<bool>;
+  static Future<List<MusicEntity>> loadNewList(List<MusicEntity> list) async {
+    for (var item in list) {
+      if (StringUtils.isBlank(item.uuid)) {
+        item.uuid = _uuid.v1();
+      }
+    }
+    await AudioService.customAction(
+        "loadNewList", list.map((e) => e.toMap()).toList());
+    return list;
   }
 
   ///获取播放循环模式

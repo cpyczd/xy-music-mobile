@@ -2,18 +2,16 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-21 22:59:39
- * @LastEditTime: 2021-07-19 10:21:35
+ * @LastEditTime: 2021-07-20 13:23:24
  */
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:xy_music_mobile/config/theme.dart';
 import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'config/store_config.dart' as store;
 
 import 'application.dart';
 import 'router/routers.dart';
-import 'util/http_util.dart';
 
 void main() {
   runApp(MyApp());
@@ -27,13 +25,12 @@ class MyApp extends StatelessWidget {
       FluroRouter router = new FluroRouter();
       Routers.configRouters(router);
       Application.router = router;
-      // Application.context = context;
       PlayerTaskHelper.flutterInitListener();
       // HttpUtil.logOpen();
       // HttpUtil.openProxy();
       // log.close();
       store.Store.flutterInit();
-      Sqflite.devSetDebugModeOn(true);
+      // Sqflite.devSetDebugModeOn(true);
     });
   }
   @override

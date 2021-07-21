@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
-import 'package:xy_music_mobile/application.dart';
 import 'package:xy_music_mobile/config/logger_config.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/config/theme.dart';
@@ -13,8 +12,6 @@ import 'package:xy_music_mobile/model/music_entity.dart';
 import 'package:xy_music_mobile/model/song_square_entity.dart';
 import 'package:xy_music_mobile/service/player/audio_service_task.dart';
 import 'package:xy_music_mobile/util/index.dart';
-import 'package:xy_music_mobile/util/isolate/thread.dart';
-import 'package:xy_music_mobile/util/isolate/thread_pool.dart';
 import 'package:xy_music_mobile/util/stream_util.dart';
 import 'package:xy_music_mobile/view_widget/fade_head_sliver_delegate.dart';
 
@@ -35,7 +32,7 @@ class SquareInfoPage extends StatefulWidget {
 
 class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
   static const _KEY_MUSIC_LIST = "_KEY_MUSIC_LIST";
-  List<SongSquareMusic> _musicList = [];
+  List<MusicEntity> _musicList = [];
   int _pageSize = 9999;
   int _pageIndex = 0;
 
@@ -54,7 +51,7 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
         .then((value) {
       if (value.isNotEmpty) {
         _musicList.addAll(value);
-        getLine<List<SongSquareMusic>>(_KEY_MUSIC_LIST)
+        getLine<List<MusicEntity>>(_KEY_MUSIC_LIST)
             .setData(_musicList, filterIdentical: false);
       }
     }).catchError((e) {
@@ -192,7 +189,7 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
           ],
         ),
       ),
-      sliver: getLine<List<SongSquareMusic>>(_KEY_MUSIC_LIST,
+      sliver: getLine<List<MusicEntity>>(_KEY_MUSIC_LIST,
           waitWidget: SliverToBoxAdapter(
             child: Container(
               height: MediaQuery.of(context).size.height / 2,
@@ -207,7 +204,7 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
               onTap: () => _handlePaly(music),
               dense: true,
               title: Text(music.songName),
-              subtitle: Text(music.singer),
+              subtitle: Text(music.singer ?? ""),
               leading: Text(
                 "${index + 1}",
                 style: TextStyle(fontSize: 15, color: Colors.black),
@@ -220,56 +217,22 @@ class _SquareInfoPageState extends State<SquareInfoPage> with MultDataLine {
   }
 
   ///播放音乐
-  void _handlePaly(SongSquareMusic squareMusic) {
-    squareServiceProviderMange
-        .getSupportProvider(squareMusic.source)
-        .first
-        .toMusicModel(squareMusic)
-        .then((value) async {
-      var mediaItem = await PlayerTaskHelper.pushQueue(value);
-      await AudioService.playFromMediaId(mediaItem.id);
-    });
+  void _handlePaly(MusicEntity music) async {
+    ToastUtil.show(msg: "开始播放${music.songName}");
+    await PlayerTaskHelper.pushQueue(music);
+    await PlayerTaskHelper.playByMd5(music.md5);
   }
 
-  ///Task线程执行放
-  static void taskThread(String paramsJson) async {
-    var params = ThreadParams.fromJson(paramsJson);
-    Application.applicationInit();
-    List<SongSquareMusic> music = (params.args as List)
-        .map((e) => SongSquareMusic.fromMap(Map<String, dynamic>.from(e)))
-        .toList();
-    for (var item in music) {
-      try {
-        var m = await squareServiceProviderMange
-            .getSupportProvider(item.source)
-            .first
-            .toMusicModel(item);
-        Thread.send(params.threadId, "onData", m.toMap());
-      } catch (e) {
-        log.w("解析歌单内所有音乐出现异常: $item", e);
-      }
-    }
-    Thread.kill(params.threadId);
-  }
-
+  ///播放全部
   void _playAll() async {
     if (_musicList.isNotEmpty) {
-      var thread = Thread(
-          runnable: taskThread,
-          params: _musicList.map((e) => e.toMap()).toList());
-      ThreadPool.createThread(thread);
-      await thread.run();
-      bool play = false;
-      Thread.onListener(thread, "onData").listen((event) {
-        log.d("添加到歌单回调onData===>>> ${event.method} ${event.data}");
-        PlayerTaskHelper.pushQueue(
-                MusicEntity.fromMap((event.data as Map).cast()))
-            .then((mediaItem) {
-          if (!play) {
-            play = true;
-            AudioService.playFromMediaId(mediaItem.id);
-          }
-        });
+      PlayerTaskHelper.appendList(_musicList).then((arr) {
+        ToastUtil.show(msg: "已添加到试听列表开始播放");
+        //播放第一个
+        if (arr.isNotEmpty) {
+          var first = arr.first;
+          AudioService.playFromMediaId(first.uuid!);
+        }
       });
     }
   }

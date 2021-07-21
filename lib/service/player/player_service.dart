@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 18:22:11
- * @LastEditTime: 2021-07-16 22:23:11
+ * @LastEditTime: 2021-07-20 13:44:24
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -57,6 +57,7 @@ class PlayerService {
       _db = value;
       loadPalyList();
     }).catchError((e) {
+      ToastUtil.show(msg: "试听列表加载失败");
       logger.e("PlayerService===>初始化DbBox失败", e);
     });
 
@@ -73,7 +74,7 @@ class PlayerService {
       var obj = _db.get(_boxModelKey);
       if (obj != null) {
         _playListModel = obj;
-        logger.i("Task从数据库读取到的数据:===>$_playListModel");
+        logger.i("从Hive读取到的数据:===>$_playListModel");
       }
     } else {
       _db.put(_boxModelKey, _playListModel!);
@@ -170,7 +171,7 @@ class PlayerService {
       _playListModel!.save();
     } catch (e) {
       logger.e("PlayerService => 音乐解析失败");
-      ToastUtil.show(msg: "音乐播放失败");
+      ToastUtil.show(msg: "播放${entity.songName}失败");
       //直接进行播放下一首
       _playCompletedHandler();
       return Future.error(e);
@@ -228,6 +229,12 @@ class PlayerService {
   Future<bool> stop() async {
     if (_audioPlayer == null) {
       return false;
+    }
+    if (_status == PlayStatus.completed) {
+      AudioServiceBackground.setState(
+          processingState: AudioProcessingState.stopped);
+      _status = PlayStatus.stop;
+      return true;
     }
     var res = await _audioPlayer!.stop() == 1 ? true : false;
     if (res) {
@@ -301,7 +308,7 @@ class PlayerService {
     });
     //播放状态
     _audioPlayer!.onPlayerStateChanged.listen((PlayerState s) {
-      logger.i("播放状态: $s");
+      logger.i("当前播放状态: $s");
       PlayStatus status = PlayStatus.stop;
       var music = _playListModel!.getCurrentMusicEntity();
       switch (s) {
@@ -318,20 +325,34 @@ class PlayerService {
           break;
         case PlayerState.COMPLETED:
           status = PlayStatus.completed;
-          _playCompletedHandler();
           AudioServiceBackground.setState(
               processingState: AudioProcessingState.completed);
           //Check检查播放完成了但是和实际时长差距很大就可能是试听音乐
           if (music != null && music.duration.inSeconds > 0) {
+            logger.d(
+                "播放完成检查是否是试听音乐: position:${position.inSeconds}   Max:${music.duration.inSeconds}");
             int diffce = 20;
-            if (this.position.inSeconds - diffce <
-                (music.duration.inSeconds - diffce)) {
-              ToastUtil.show(
-                  msg: "[${music.songName}] 可能是十几秒的试听音乐",
-                  length: Toast.LENGTH_LONG);
+            if (this.position.inSeconds < music.duration.inSeconds) {
+              if (this.position.inSeconds <
+                  (music.duration.inSeconds - diffce)) {
+                ToastUtil.show(
+                    msg: "[${music.songName}] 可能是十几秒的试听音乐",
+                    length: Toast.LENGTH_LONG);
+                //进行改正修复正确的音乐时长
+                music.duration = position;
+                music.durationStr = getTimeStamp(position.inMilliseconds);
+                var dbMusic = musicModel!.findByUuid(music.uuid!);
+                if (dbMusic != null) {
+                  dbMusic.duration = music.duration;
+                  dbMusic.durationStr = music.durationStr;
+                  musicModel!.updateByUuid(dbMusic);
+                }
+              }
             }
           }
           position = Duration.zero;
+          //进行下一首的播放
+          _playCompletedHandler();
           break;
       }
       if (music != null) {

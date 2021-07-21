@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-06-14 21:02:06
- * @LastEditTime: 2021-07-16 23:32:21
+ * @LastEditTime: 2021-07-20 13:49:00
  */
 
 import 'dart:convert';
@@ -18,7 +18,7 @@ import '../base_music_service.dart';
 ///酷狗歌单Service    Todo: 后期接口需要接入缓存存储、优化IO性能开销与内存开销
 class KgSquareServiceImpl extends BaseSongSquareService {
   @override
-  Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
+  Future<List<MusicEntity>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1}) async {
     String resp = await HttpUtil.get(
         "http://www2.kugou.kugou.com/yueku/v9/special/single/${info.id}-5-9999.html",
@@ -29,16 +29,19 @@ class KgSquareServiceImpl extends BaseSongSquareService {
       s = s.replaceAll(";", "");
       List sl = json.decode(s);
       return sl
-          .map((e) => SongSquareMusic(
-              id: e["hash"],
+          .map((e) => MusicEntity(
+              md5: signMD5(e["songname"] + e["hash"]),
+              hash: e["hash"],
+              songmId: e["audio_id"].toString(),
+              albumId: e["album_id"].toString(),
               songName: e["songname"],
               singer: e["singername"],
-              album: e["album_name"],
+              albumName: e["album_name"],
               source: MusicSourceConstant.kg,
-              duration: Duration(seconds: e["duration"]),
-              durationStr:
-                  getTimeStamp(Duration(seconds: e["duration"]).inMilliseconds),
-              originalData: e))
+              duration: Duration(milliseconds: e["duration"]),
+              durationStr: getTimeStamp(
+                  Duration(milliseconds: e["duration"]).inMilliseconds),
+              originData: e))
           .skip((current - 1) * size)
           .take(size)
           .toList();
@@ -114,52 +117,6 @@ class KgSquareServiceImpl extends BaseSongSquareService {
       tagList.add(tag);
     }
     return tagList;
-  }
-
-  @override
-  Future<MusicEntity> toMusicModel(SongSquareMusic music) async {
-    Map resp = await HttpUtil.get(
-        "https://api.gmit.vip/Api/KuGou?format=json&id=${music.id}");
-    if (resp["code"] != 200) {
-      return MusicEntity(
-          md5: signMD5(music.songName + music.id),
-          songmId: music.id,
-          singer: music.singer,
-          songName: music.songName,
-          hash: music.id,
-          duration: music.duration ?? Duration.zero,
-          source: music.source,
-          originData: music.originalData);
-    }
-    var data = resp["data"];
-    String? lrc = data["lrc"];
-    var duration = Duration.zero;
-    if (StringUtils.isNotBlank(lrc)) {
-      var timeStr =
-          lrc!.substring(lrc.lastIndexOf("[") + 1, lrc.lastIndexOf("]"));
-      //分
-      var minute = timeStr.substring(0, timeStr.indexOf(":"));
-      //秒
-      var second = timeStr.split(":")[1].split(".")[0];
-      //毫秒
-      var millSecond = timeStr.split(":")[1].split(".")[1];
-      duration = Duration(
-          minutes: int.parse(minute),
-          seconds: int.parse(second),
-          milliseconds: int.parse(millSecond));
-    }
-    return MusicEntity(
-        md5: signMD5(music.songName + music.id),
-        picImage: data["pic"],
-        playUrl: data["url"],
-        songmId: music.id,
-        singer: music.singer,
-        songName: music.songName,
-        hash: music.id,
-        duration: duration,
-        durationStr: getTimeStamp(duration.inMilliseconds),
-        source: music.source,
-        originData: {});
   }
 
   @override

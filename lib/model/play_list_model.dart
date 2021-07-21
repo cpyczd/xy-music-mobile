@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 17:40:45
- * @LastEditTime: 2021-07-06 21:33:35
+ * @LastEditTime: 2021-07-20 14:01:14
  */
 import 'package:xy_music_mobile/common/player_constan.dart';
 import 'package:xy_music_mobile/config/service_manage.dart';
@@ -56,17 +56,30 @@ class PlayListModel extends HiveObject {
     }
   }
 
-  void _checkData(MusicEntity entity) async {
+  //检查数据
+  void _checkData(MusicEntity entity) {
     if (entity.uuid == null || entity.uuid!.isEmpty) {
       entity.uuid = _uuid.v1();
     }
     if (entity.picImage == null || entity.picImage!.isEmpty) {
-      var url = await musicServiceProviderMange
+      musicServiceProviderMange
           .getSupportProvider(entity.source)
           .first
-          .getPic(entity);
-      entity.picImage = url;
+          .getPic(entity)
+          .then((value) {
+        entity.picImage = value;
+        _callSave();
+      });
     }
+  }
+
+  ///根据自定义条件查找
+  MusicEntity? findWhere(bool Function(MusicEntity item) test) {
+    var arr = this.musicList.where(test);
+    if (arr.isEmpty) {
+      return null;
+    }
+    return arr.first;
   }
 
   ///根据UUID查找
@@ -226,7 +239,21 @@ class PlayListModel extends HiveObject {
   ///插入音乐
   void addMusicAll(List<MusicEntity> entityList) {
     entityList.forEach((element) => _checkData(element));
+    bool isCurent = entityList
+            .indexWhere((element) => element.md5 == this.currentMusic?.md5) !=
+        -1;
+    this.musicList.removeWhere((element) =>
+        entityList.indexWhere((w1) => w1.md5 == element.md5) != -1);
     this.musicList.addAll(entityList);
+    //如果存在当前播放的音乐
+    if (isCurent) {
+      var index = this
+          .musicList
+          .indexWhere((element) => element.md5 == this.currentMusic?.md5);
+      if (index != -1) {
+        this.currentIndex = index;
+      }
+    }
     _callSave();
   }
 
@@ -260,8 +287,10 @@ class PlayListModel extends HiveObject {
   ///移动音乐到指定位置
   void moveIndex(int oldIndex, int newIndex) {
     var oldItem = this.musicList[oldIndex];
-    this.musicList.removeAt(oldIndex);
-    this.musicList.insert(newIndex, oldItem);
+    this.musicList[oldIndex] = this.musicList[newIndex];
+    this.musicList[newIndex] = oldItem;
+    // this.musicList.removeAt(oldIndex);
+    // this.musicList.insert(newIndex, oldItem);
     if (oldIndex == currentIndex) {
       this.currentIndex = newIndex;
     }
@@ -289,6 +318,16 @@ class PlayListModel extends HiveObject {
       return;
     }
     moveIndex(i, i2);
+  }
+
+  ///根据Uuid更新音乐数据
+  void updateByUuid(MusicEntity entity) {
+    var index =
+        this.musicList.indexWhere((element) => element.uuid == entity.uuid);
+    if (index != -1) {
+      this.musicList[index] = entity;
+      _callSave();
+    }
   }
 
   ///清空全部数据

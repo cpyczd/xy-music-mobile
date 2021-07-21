@@ -34,8 +34,6 @@ PODS:
   - Toast (4.0.0)
   - url_launcher (0.0.1):
     - Flutter
-  - xy_music_plugin_thread (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - audio_service (from `.symlinks/plugins/audio_service/ios`)
@@ -52,7 +50,6 @@ DEPENDENCIES:
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
   - sqflite (from `.symlinks/plugins/sqflite/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
-  - xy_music_plugin_thread (from `.symlinks/plugins/xy_music_plugin_thread/ios`)
 
 SPEC REPOS:
   trunk:
@@ -89,8 +86,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/sqflite/ios"
   url_launcher:
     :path: ".symlinks/plugins/url_launcher/ios"
-  xy_music_plugin_thread:
-    :path: ".symlinks/plugins/xy_music_plugin_thread/ios"
 
 SPEC CHECKSUMS:
   audio_service: f509d65da41b9521a61f1c404dd58651f265a567
@@ -110,7 +105,6 @@ SPEC CHECKSUMS:
   sqflite: 6d358c025f5b867b29ed92fc697fd34924e11904
   Toast: 91b396c56ee72a5790816f40d3a94dd357abc196
   url_launcher: 6fef411d543ceb26efce54b05a0a40bfd74cbbef
-  xy_music_plugin_thread: 8660c3d210411e2c75c3fc3a6f581f59a31bd624
 
 PODFILE CHECKSUM: aafe91acc616949ddb318b77800a7f51bffa2a4c
 

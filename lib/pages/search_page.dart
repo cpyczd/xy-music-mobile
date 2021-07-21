@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 16:25:35
- * @LastEditTime: 2021-07-15 22:43:33
+ * @LastEditTime: 2021-07-20 16:04:40
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
@@ -613,7 +613,8 @@ class _SearchPageState extends State<SearchPage> with MultDataLine {
   void _playClickItem(MusicEntity entity) async {
     ToastUtil.show(msg: "开始播放 ${entity.songName}");
     await PlayerTaskHelper.pushQueue(entity);
-    await AudioService.playFromMediaId(entity.uuid!);
+    // await AudioService.playFromMediaId(entity.uuid!);
+    PlayerTaskHelper.playByMd5(entity.md5);
   }
 }
 

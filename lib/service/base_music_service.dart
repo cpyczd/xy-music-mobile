@@ -119,11 +119,8 @@ abstract class BaseSongSquareService extends BaseCommon {
       int size = 10});
 
   ///获取歌单内音乐列表信息
-  Future<List<SongSquareMusic>> getSongMusicList(SongSquareInfo info,
+  Future<List<MusicEntity>> getSongMusicList(SongSquareInfo info,
       {int size = 10, int current = 1});
-
-  ///转换成MusicEntity对象
-  Future<MusicEntity> toMusicModel(SongSquareMusic music);
 }
 
 ///歌曲排行榜服务抽象类

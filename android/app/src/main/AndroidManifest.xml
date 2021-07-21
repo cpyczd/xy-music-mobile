@@ -7,7 +7,7 @@
 
    <application
         android:usesCleartextTraffic="true"
-        android:label="xy_music_mobile"
+        android:label="XY音乐助手"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

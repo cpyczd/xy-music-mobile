@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-20 21:44:17
+ * @LastEditTime: 2021-07-21 14:16:34
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -302,7 +302,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       return;
     }
     service.musicModel!.removeByUuid(mediaItem.id);
-    notificationUpdateQueue();
+    await notificationUpdateQueue();
     _setShowControll();
 
     ///发送播放列表改变事件
@@ -325,8 +325,8 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
   }
 
   ///通知更新队列
-  void notificationUpdateQueue() {
-    AudioServiceBackground.setQueue(AudioServiceBackground.queue!);
+  Future<void> notificationUpdateQueue() {
+    return AudioServiceBackground.setQueue(AudioServiceBackground.queue!);
   }
 
   @override

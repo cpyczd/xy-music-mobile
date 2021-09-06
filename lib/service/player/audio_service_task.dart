@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-07-01 22:19:35
- * @LastEditTime: 2021-07-21 14:16:34
+ * @LastEditTime: 2021-07-24 11:47:20
  */
 import 'package:audio_service/audio_service.dart';
 import 'package:event_bus/event_bus.dart';
@@ -280,7 +280,7 @@ class AudioPlayerBackageTask extends BackgroundAudioTask {
       return;
     }
     AudioServiceBackground.queue!.add(mediaItem);
-    notificationUpdateQueue();
+    await notificationUpdateQueue();
     service.musicModel!.addMusic(music);
     _setShowControll();
 

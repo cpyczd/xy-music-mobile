@@ -2,7 +2,7 @@
  * @Description: 服务注册发现
  * @Author: chenzedeng
  * @Date: 2021-06-14 13:00:03
- * @LastEditTime: 2021-07-11 13:20:35
+ * @LastEditTime: 2021-07-24 11:51:36
  */
 import 'package:xy_music_mobile/config/service_manage.dart';
 import 'package:xy_music_mobile/service/music/kg_music_service.dart';
@@ -18,6 +18,9 @@ import 'music/mg_music_servce.dart';
 
 ///音乐服务
 void _registerMusicService() {
+  ///酷我音乐
+  musicServiceProviderMange.register(KwMusicServiceImpl());
+
   ///注册酷狗服务
   musicServiceProviderMange.register(KGMusicServiceImpl());
 
@@ -29,9 +32,6 @@ void _registerMusicService() {
 
   ///网易音乐
   musicServiceProviderMange.register(WyMusicServiceImpl());
-
-  ///酷我音乐
-  musicServiceProviderMange.register(KwMusicServiceImpl());
 }
 
 ///歌单服务

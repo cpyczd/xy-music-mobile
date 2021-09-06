@@ -2,7 +2,7 @@
  * @Description: 
  * @Author: chenzedeng
  * @Date: 2021-05-22 15:07:50
- * @LastEditTime: 2021-07-05 15:31:30
+ * @LastEditTime: 2021-07-24 12:11:44
  */
 
 import 'package:audio_service/audio_service.dart';
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage>
       MyMusicPage(),
       SongSquarePage(),
       // HotPage(),
-      SettingPage()
+      // SettingPage()
     ];
     return list;
   }
@@ -138,7 +138,9 @@ class _HomePageState extends State<HomePage>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            // Application.navigateToIos(context, "/setting");
+                          },
                           icon: Icon(
                             Icons.menu,
                             color: Colors.white,
@@ -153,11 +155,11 @@ class _HomePageState extends State<HomePage>
                           child: Text("推荐",
                               style:
                                   _currentIndex == 1 ? _selected : _unselect)),
-                      TextButton(
-                          onPressed: () => _change(2),
-                          child: Text("发现",
-                              style:
-                                  _currentIndex == 2 ? _selected : _unselect)),
+                      // TextButton(
+                      //     onPressed: () => _change(2),
+                      //     child: Text("发现",
+                      //         style:
+                      //             _currentIndex == 2 ? _selected : _unselect)),
                       IconButton(
                           onPressed: () =>
                               Application.navigateToIos(context, "/search"),
